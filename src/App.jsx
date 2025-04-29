@@ -1,9 +1,15 @@
-export default function App() {
+import React from 'react'
+import{ Route , Routes } from 'react-router-dom'
+import Home from './pages/Home'
+
+const App = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-400 to-blue-500">
-      <h1 className="text-5xl font-bold text-white">
-        ✅ Gradient background works!
-      </h1>
+    <div className='mx-4 sm:mx-[10%]'>
+    <Routes>
+      <Route path='/' element={<Home />}/>
+    </Routes>
     </div>
   )
 }
+
+export default App
