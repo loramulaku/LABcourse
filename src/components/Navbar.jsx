@@ -18,7 +18,7 @@ const Navbar = () => {
 
       <ul className='hidden md:flex items-start gap-5 font-medium'>
         <NavLink
-          to="/home"
+          to="/"
           className={({ isActive }) =>
             `py-1 px-2 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700'}`
           }
