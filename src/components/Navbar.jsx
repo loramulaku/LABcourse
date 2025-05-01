@@ -17,22 +17,22 @@ const Navbar = () => {
       />
 
       <ul className='hidden md:flex items-start gap-5 font-medium'>
-        <NavLink to='/'>
+      <NavLink to='/' className={({ isActive }) => isActive ? 'text-primary' : ''}>
           <li className='py-1'>HOME</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden'  />
         </NavLink>
 
-        <NavLink to='/doctors'>
+        <NavLink to='/doctors' className={({ isActive }) => isActive ? 'text-primary' : ''}>
           <li className='py-1'>ALL DOCTORS</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
 
-        <NavLink to='/about'>
+        <NavLink to='/about' className={({ isActive }) => isActive ? 'text-primary' : ''}>
           <li className='py-1'>ABOUT</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
 
-        <NavLink to='/contact'>
+        <NavLink to='/contact' className={({ isActive }) => isActive ? 'text-primary' : ''}>
           <li className='py-1'>CONTACT</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden'  />
         </NavLink>
@@ -41,11 +41,12 @@ const Navbar = () => {
       <div className='flex items-center gap-4'>
         {
           token
-          ?<div className='flex items-center gap-2 coursor-pointer group relative'>
-            <img className='w-8 rounded-full' src="{assets.profile_pic}" alt="" />
-            <img className='w-2.5' src="{assets.dropdrown_icon}" alt="" />
+          ?<div className='flex items-center gap-2 cursor-pointer group relative'>
+            <img className='w-8 rounded-full' src={assets.profile_pic} alt="Profile" />
+            <img className='w-2.5' src={assets.dropdrown_icon} alt="Dropdown" />
+
             <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block'>
-              <div className='min-w-48 bg-stone-100 rounded flex-col gap-4 p-4'>
+            <div className='min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4'>
                 <p onClick={()=>navigate('my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
                 <p onClick={()=>navigate('my-appointments')} className='hover:text-black cursor-pointer'>My Appointments</p>
                 <p onClick={()=>setToken(false)} className='hover:text-black cursor-pointer'>Logout</p>
