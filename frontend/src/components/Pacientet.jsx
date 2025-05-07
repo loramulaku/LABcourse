@@ -22,9 +22,9 @@ const Pacientet = () => {
       {Array.isArray(pacientet) ? (
         <ul>
           {pacientet.map(p => (
-            <li key={p.ID}>
-              {p.Emri} {p.Mbiemri} – {p.DataLindjes}
-            </li>
+            <li key={p.Id}>
+            {p.Emri} {p.Mbiemri} – Mosha: {p.Mosha}, Gjinia: {p.Gjinia}
+          </li>          
           ))}
         </ul>
       ) : (
