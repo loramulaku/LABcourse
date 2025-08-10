@@ -13,6 +13,7 @@ import MyAppointments from './pages/MyAppointments'
 import Appointment from './pages/Appointment'
 import Footer from './components/Footer';
 import Pacientet from './components/Pacientet';
+import UserSimple from './components/UserSimple'
 
 
 const App = () => {
@@ -34,6 +35,7 @@ const App = () => {
         <Route path='/my-appointments' element={<MyAppointments />} />
         <Route path='/appointment/:docId' element={<Appointment />} />
         <Route path='/pacientet' element={<Pacientet />} />
+        <Route path='/usersimple' element={<UserSimple />} />
 
       </Routes>
       <Footer/>

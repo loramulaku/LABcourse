@@ -52,6 +52,15 @@ const Navbar = () => {
           CONTACT
         </NavLink>
 
+          <NavLink
+    to="/usersimple"
+    className={({ isActive }) =>
+      `py-1 px-2 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700'}`
+    }
+  >
+    Shto User
+  </NavLink>
+
       </ul>
 
       <div className='flex items-center gap-4'>
