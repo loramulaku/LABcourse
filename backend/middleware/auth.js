@@ -1,4 +1,6 @@
 //kontrollon tokenin
+console.log('REFRESH_SECRET:', process.env.REFRESH_SECRET);
+
 const jwt = require('jsonwebtoken');
 
 // kontrollo nëse token është valid

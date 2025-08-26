@@ -1,24 +1,37 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/auth');
-const profileRoutes = require('./routes/profile'); // rruget e profile
+const profileRoutes = require('./routes/profile');
 
 const app = express();
-app.use(cors());
+
+// CORS – lejo origin + credentials + Authorization header
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+    credentials: true, // lejon cookies
+    allowedHeaders: ['Content-Type', 'Authorization'], // lejo Authorization header
+  })
+);
+
+// body parser
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// nuk krijojmë db këtu, do ta marrim nga db.js brenda routes
+// cookie parser
+app.use(cookieParser());
 
-// rruget e auth (signup/login)
+
+
+// rrugët
 app.use('/api/auth', authRoutes);
-
-// rruget e profile
 app.use('/api/profile', profileRoutes);
 
-// bëje uploads publik
+// bëj folderin uploads publik
 app.use('/uploads', express.static('uploads'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server po punon te porta ${PORT}`));
+app.listen(PORT, () => console.log(`Server po punon në portën ${PORT}`));

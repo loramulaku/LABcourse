@@ -7,12 +7,33 @@ const Navbar = () => {
   const [token, setToken] = useState(!!localStorage.getItem('token')); // true nëse ka token
 
   // handleLogout fshin token dhe ridrejton te login
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+ const handleLogout = async () => {
+  try {
+    // Thirr API logout për të fshirë refresh token nga serveri + cookie
+    await fetch('http://localhost:5000/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include', // lejon cookie
+    });
+
+    // Fshij access token dhe role nga localStorage
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('role');
-    setToken(false); // shfaq Create Account
+
+    // Përditëso state për Navbar
+    setToken(false);
+
+    // Ridrejto te login
     navigate('/login');
-  };
+  } catch (err) {
+    console.error('Gabim gjatë logout', err);
+    // Edhe në rast gabimi, fshij token lokal për siguri
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('role');
+    setToken(false);
+    navigate('/login');
+  }
+};
+
 
   // Thirret nga Login.jsx pas login suksesi
   const handleLogin = () => {

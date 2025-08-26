@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import apiFetch from '../api'; // 🔹 wrapper me auto-refresh të token-it
 const API_URL = "http://localhost:5000";
 
 const MyProfile = () => {
@@ -17,101 +17,68 @@ const MyProfile = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load profile from backend
+  // ✅ Load profile from backend me apiFetch (auto-refresh token)
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  const loadProfile = async () => {
+    try {
+      const data = await apiFetch(`${API_URL}/api/profile`);
 
-    fetch(`${API_URL}/api/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // ⚡ siguro që të dhënat e adresës kthehen në objekt
-        setUserData({
-          ...data,
-          address: {
-            line1: data.address?.line1 || data.address_line1 || "",
-            line2: data.address?.line2 || data.address_line2 || "",
-          },
-        });
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
+      setUserData({
+        ...data,
+        address: {
+          line1: data.address?.line1 || data.address_line1 || "",
+          line2: data.address?.line2 || data.address_line2 || "",
+        },
       });
-  }, []);
+      setLoading(false);
+    } catch (err) {
+      console.error("Gabim gjatë marrjes së profilit:", err);
+      setLoading(false);
+    }
+  };
+  loadProfile();
+}, []);
 
-  // ✅ Save profile
+
+  // ✅ Save profile me apiFetch (header Authorization automatik)
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
+  try {
     const formData = new FormData();
-
     formData.append("phone", userData.phone);
     formData.append("address_line1", userData.address.line1);
     formData.append("address_line2", userData.address.line2);
     formData.append("gender", userData.gender);
-    formData.append("dob", userData.dob || "");
+    formData.append("dob", userData.dob);
     if (file) formData.append("profile_image", file);
 
-    // Debug për të parë çka po dërgon
-    for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
+    const data = await apiFetch(`${API_URL}/api/profile`, {
+      method: "PUT",
+      body: formData,
+    });
 
-    try {
-      const res = await fetch(`${API_URL}/api/profile`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+    setUserData((prev) => ({ ...prev, ...data }));
+    setIsEdit(false);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-      const data = await res.json();
-
-      // 🔥 rifresko gjithë userData sipas backend
-      setUserData((prev) => ({
-        ...prev,
-        phone: formData.get("phone"),
-        gender: formData.get("gender"),
-        dob: data.dob || prev.dob,
-        address: {
-          line1: formData.get("address_line1"),
-          line2: formData.get("address_line2"),
-        },
-        profile_image: data.profile_image || prev.profile_image,
-      }));
-
-      setIsEdit(false);
-      setFile(null);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // ✅ Remove photo
-  const handleRemovePhoto = async () => {
-    const token = localStorage.getItem("token");
+  // ✅ Remove photo me apiFetch
+const handleRemovePhoto = async () => {
+  try {
     const formData = new FormData();
     formData.append("removePhoto", "true");
 
-    try {
-      const res = await fetch(`${API_URL}/api/profile`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const data = await res.json();
+    const data = await apiFetch(`${API_URL}/api/profile`, {
+      method: "PUT",
+      body: formData,
+    });
 
-      setUserData((prev) => ({
-        ...prev,
-        profile_image: data.profile_image || "uploads/default.png",
-      }));
-      setFile(null);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    setUserData((prev) => ({ ...prev, ...data }));
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   if (loading) return <p>Loading profile...</p>;
 
