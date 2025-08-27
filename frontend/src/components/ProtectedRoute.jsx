@@ -2,7 +2,7 @@
 import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token"); // e lexon tokenin nga browseri
+  const token = localStorage.getItem("accessToken"); // e lexon tokenin nga browseri
   if (!token) {
     return <Navigate to="/login" />; // nëse nuk ka token, ktheje te Login
   }

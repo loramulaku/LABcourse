@@ -20,7 +20,7 @@ import UserSimple from './components/UserSimple'
 
 const App = () => {
 
-     const token = localStorage.getItem("token");
+     const token = localStorage.getItem("accessToken");
   const role = localStorage.getItem("role");
 
 
