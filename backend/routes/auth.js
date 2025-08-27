@@ -71,7 +71,7 @@ router.post('/login', (req, res) => {
     db.query('INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)',
       [user.id, refreshToken],
       (e2) => {
-        if (e2) return res.status(500).json({ error: e2.message });
+        if (e2) return res.status(500).json({ error: e2.message });//
         setRefreshCookie(res, refreshToken);
         res.json({ message: 'Login sukses', accessToken, role: user.role });
       }
