@@ -12,8 +12,9 @@ const app = express();
 app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
-    credentials: true, // lejon cookies
-    allowedHeaders: ['Content-Type', 'Authorization'], // lejo Authorization header
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // ✅
   })
 );
 

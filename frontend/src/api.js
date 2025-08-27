@@ -1,7 +1,6 @@
 // src/api.js
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/";
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // helper: marrë token nga localStorage
 export function getAccessToken() {
@@ -10,12 +9,16 @@ export function getAccessToken() {
 
 // helper: vendos token në localStorage
 export function setAccessToken(token) {
-  localStorage.setItem("accessToken", token);
+  if (token) {
+    localStorage.setItem("accessToken", token);
+  } else {
+    localStorage.removeItem("accessToken");
+  }
 }
 
 // funksioni kryesor për fetch me Authorization + auto-refresh
 export default async function apiFetch(url, options = {}) {
-  const token = getAccessToken();
+  let token = getAccessToken();
 
   const headers = {
     ...(options.headers || {}),
@@ -31,7 +34,7 @@ export default async function apiFetch(url, options = {}) {
   const fetchOptions = {
     ...options,
     headers,
-    credentials: "include", // lejon cookies (refresh token)
+    credentials: "include", // 🔑 gjithmonë për cookie refreshToken
   };
 
   let response = await fetch(url, fetchOptions);
@@ -41,24 +44,33 @@ export default async function apiFetch(url, options = {}) {
     try {
       const refreshRes = await fetch(`${API_URL}/api/auth/refresh`, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // 🔑 cookie bartet këtu
       });
 
       if (!refreshRes.ok) {
-        localStorage.removeItem("accessToken");
+        setAccessToken(null);
         alert("Seanca ka skaduar. Ju lutem logohuni përsëri.");
         window.location.href = "/login";
         return Promise.reject({ message: "Seanca ka skaduar" });
       }
 
       const data = await refreshRes.json();
-      setAccessToken(data.accessToken);
+      if (!data.accessToken) {
+        setAccessToken(null);
+        alert("Gabim me seancën. Ju lutem logohuni përsëri.");
+        window.location.href = "/login";
+        return Promise.reject({ message: "Mungon access token nga refresh" });
+      }
 
-      fetchOptions.headers["Authorization"] = `Bearer ${data.accessToken}`;
+      // ✅ ruaj tokenin e ri dhe riprovo request-in
+      setAccessToken(data.accessToken);
+      token = data.accessToken;
+      fetchOptions.headers["Authorization"] = `Bearer ${token}`;
+
       response = await fetch(url, fetchOptions);
     } catch (err) {
       console.error("Refresh token error:", err);
-      localStorage.removeItem("accessToken");
+      setAccessToken(null);
       alert("Gabim me seancën. Ju lutem logohuni përsëri.");
       window.location.href = "/login";
       return Promise.reject(err);
