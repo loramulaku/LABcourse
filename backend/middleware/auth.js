@@ -1,20 +1,28 @@
-// middleware/auth.js
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
+// Middleware për verifikimin e access token-it
 function authenticateToken(req, res, next) {
-  const auth = req.headers['authorization'];
-  const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : null;
-  if (!token) return res.status(401).json({ error: 'Mungon access token' });
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
-    if (err) return res.status(403).json({ error: 'Access token i pavlefshëm ose skaduar' });
-    req.user = payload; // { id, role }
+  if (!token) {
+    return res.status(401).json({ error: "Nuk ka token, login ose refresh" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Token i pavlefshëm ose skadoi" });
+    }
+    req.user = user; // { id, role }
     next();
   });
 }
 
+// Middleware për të kontrolluar nëse user është admin
 function isAdmin(req, res, next) {
-  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Vetëm admin' });
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ error: "Akses i ndaluar, duhet admin" });
+  }
   next();
 }
 

@@ -10,7 +10,7 @@ function generateAccessToken(user) {
   return jwt.sign(
     { id: user.id, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '1m' }
+    { expiresIn: process.env.JWT_EXPIRES_IN || '15m' } // pak më gjatë
   );
 }
 
@@ -18,18 +18,17 @@ function generateRefreshToken(user) {
   return jwt.sign(
     { id: user.id },
     process.env.REFRESH_SECRET,
-    { expiresIn: process.env.REFRESH_EXPIRES_IN || '3m' }
+    { expiresIn: process.env.REFRESH_EXPIRES_IN || '7d' } // zakonisht ditë
   );
 }
-
 
 function setRefreshCookie(res, token) {
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // dev: false, prod: true
     sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ditë
-    path: '/', // ❌ mos e kufizo vetëm tek /api/auth
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/', 
   });
 }
 
@@ -42,7 +41,7 @@ router.post('/signup', async (req, res) => {
   try {
     const hashed = await bcrypt.hash(password, 10);
     const query = 'INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)';
-    db.query(query, [name, email, hashed, role || 'user'], (err, result) => {
+    db.query(query, [name, email, hashed, role || 'user'], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ message: 'User u krijua, tash kyçu' });
     });
@@ -51,7 +50,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// LOGIN → gjeneron access+refresh, ruan refresh në DB dhe cookie
+// LOGIN
 router.post('/login', (req, res) => {
   const { email, password } = req.body;
   const query = 'SELECT * FROM users WHERE email = ?';
@@ -67,11 +66,10 @@ router.post('/login', (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Ruaj refresh në DB
     db.query('INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)',
       [user.id, refreshToken],
       (e2) => {
-        if (e2) return res.status(500).json({ error: e2.message });//
+        if (e2) return res.status(500).json({ error: e2.message });
         setRefreshCookie(res, refreshToken);
         res.json({ message: 'Login sukses', accessToken, role: user.role });
       }
@@ -79,7 +77,7 @@ router.post('/login', (req, res) => {
   });
 });
 
-// REFRESH → jep access token të ri, verifikon cookie + DB, ROTATE refresh token
+// REFRESH
 router.post('/refresh', (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
   if (!refreshToken) return res.status(401).json({ error: 'Nuk ka refresh token' });
@@ -96,42 +94,45 @@ router.post('/refresh', (req, res) => {
         if (e3 || r2.length === 0) return res.status(403).json({ error: 'User jo valid' });
 
         const user = r2[0];
-
-        // 👉 gjenero access të ri
         const newAccess = generateAccessToken(user);
 
-        // 👉 (opsionale, por e rekomanduar) ROTATE refresh token:
+        // ROTATE refresh token
         const newRefresh = generateRefreshToken(user);
         db.query('DELETE FROM refresh_tokens WHERE token = ?', [refreshToken], () => {
           db.query('INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)', [user.id, newRefresh], () => {
             setRefreshCookie(res, newRefresh);
-            return res.json({ accessToken: newAccess });
+            // 👉 tani kthejmë edhe rolin bashkë me token
+            return res.json({ accessToken: newAccess, role: user.role });
           });
         });
       });
     });
   });
 });
+
+// LOGOUT
 router.post("/logout", (req, res) => {
-  // Fshij refresh tokenin nga DB (nëse e ke ruajtur atje)
-  // p.sh.: await db.query("DELETE FROM refresh_tokens WHERE user_id=?", [req.user.id]);
-
-  // Pastaj i thua browser-it me e fshi cookie
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: true,      // përdore në prodhim (HTTPS)
-    sameSite: "Strict" // ose "Lax"
-  });
-
-  return res.json({ message: "Logout successful" });
+  const refreshToken = req.cookies?.refreshToken;
+  if (refreshToken) {
+    db.query("DELETE FROM refresh_tokens WHERE token = ?", [refreshToken], () => {
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+      });
+      return res.json({ message: "Logout successful" });
+    });
+  } else {
+    return res.json({ message: "Logout successful" });
+  }
 });
 
-// Shembull rruge e mbrojtur
+// Rrugë e mbrojtur vetëm për admin
 router.get('/dashboard', authenticateToken, isAdmin, (req, res) => {
   res.json({ message: 'Kjo është dashboard, vetëm admin e sheh' });
 });
 
-// Opsionale: verifiko access token-in aktual
+// Info user-i nga access token
 router.get('/me', authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });

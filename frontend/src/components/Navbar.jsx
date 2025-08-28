@@ -4,55 +4,55 @@ import { NavLink, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [token, setToken] = useState(!!localStorage.getItem('token')); // true nëse ka token
+  const [token, setToken] = useState(!!localStorage.getItem('accessToken')); 
+  const [role, setRole] = useState(localStorage.getItem('role'));
 
-  // handleLogout fshin token dhe ridrejton te login
- const handleLogout = async () => {
-  try {
-    // Thirr API logout për të fshirë refresh token nga serveri + cookie
-    await fetch('http://localhost:5000/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include', // lejon cookie
-    });
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
 
-    // Fshij access token dhe role nga localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('role');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('role');
+      setToken(false);
+      setRole(null);
+      navigate('/login');
+    } catch (err) {
+      console.error('Gabim gjatë logout', err);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('role');
+      setToken(false);
+      setRole(null);
+      navigate('/login');
+    }
+  };
 
-    // Përditëso state për Navbar
-    setToken(false);
-
-    // Ridrejto te login
-    navigate('/login');
-  } catch (err) {
-    console.error('Gabim gjatë logout', err);
-    // Edhe në rast gabimi, fshij token lokal për siguri
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('role');
-    setToken(false);
-    navigate('/login');
-  }
-};
-
-
-  // Thirret nga Login.jsx pas login suksesi
   const handleLogin = () => {
-    setToken(true); // shfaq profil + hamburger
+    setToken(true);
+    setRole(localStorage.getItem("role"));
   };
 
   useEffect(() => {
-    // kjo mund të përdoret nga Login.jsx me window.event ose props
     window.handleLogin = handleLogin;
   }, []);
 
   const goToSignUp = () => {
-    navigate('/login'); // shkon tek login/sign up
+    navigate('/login');
   };
 
   return (
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
-      <img onClick={() => navigate('/')} className="w-44 cursor-pointer" src={assets.logo} alt="Logo" />
+      {/* Logo */}
+      <img 
+        onClick={() => navigate('/')} 
+        className="w-44 cursor-pointer" 
+        src={assets.logo} 
+        alt="Logo" 
+      />
 
+      {/* Menu links */}
       <ul className="hidden md:flex items-start gap-5 font-medium">
         <NavLink to="/"><li>HOME</li></NavLink>
         <NavLink to="/doctors"><li>ALL DOCTORS</li></NavLink>
@@ -60,24 +60,57 @@ const Navbar = () => {
         <NavLink to="/contact"><li>CONTACT</li></NavLink>
       </ul>
 
+      {/* Profile / Auth */}
       <div className="flex items-center gap-4">
         {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">
             <img className="w-8 rounded-full" src={assets.profile_pic} alt="Profile" />
             <img className="w-2.5" src={assets.dropdown_icon} alt="Dropdown" />
 
-            <div className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200">
-              <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4">
-                <p onClick={() => navigate('my-profile')} className="hover:text-black cursor-pointer">My Profile</p>
-                <p onClick={() => navigate('my-appointments')} className="hover:text-black cursor-pointer">My Appointments</p>
-                <p onClick={handleLogout} className="hover:text-black cursor-pointer">Logout</p>
+            {/* Dropdown */}
+            <div className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 
+                            z-20 opacity-0 pointer-events-none 
+                            group-hover:opacity-100 group-hover:pointer-events-auto 
+                            transition-all duration-200">
+              <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4 shadow-lg">
+                <p 
+                  onClick={() => navigate('/my-profile')} 
+                  className="hover:text-black cursor-pointer"
+                >
+                  My Profile
+                </p>
+
+                <p 
+                  onClick={() => navigate('/my-appointments')} 
+                  className="hover:text-black cursor-pointer"
+                >
+                  My Appointments
+                </p>
+
+                {/* Vetëm për admin */}
+                {role === "admin" && (
+                  <p 
+                    onClick={() => navigate('/dashboard')} 
+                    className="hover:text-black cursor-pointer"
+                  >
+                    Admin Dashboard
+                  </p>
+                )}
+
+                <p 
+                  onClick={handleLogout} 
+                  className="hover:text-black cursor-pointer"
+                >
+                  Logout
+                </p>
               </div>
             </div>
           </div>
         ) : (
           <button
             onClick={goToSignUp}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-medium hidden md:block transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 
+                       rounded-full font-medium hidden md:block transition-colors"
           >
             Create Account
           </button>
