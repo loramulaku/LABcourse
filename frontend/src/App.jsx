@@ -41,15 +41,15 @@ const App = () => {
         <Route path="/pacientet" element={<ProtectedRoute><Pacientet /></ProtectedRoute>} />
         <Route path="/usersimple" element={<ProtectedRoute><UserSimple /></ProtectedRoute>} />
 
-        {/* për adminin kontrollo edhe rolin */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute requireRole="admin">
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Për adminin kontrollo edhe rolin */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
       </Routes>
 
       <Footer/>

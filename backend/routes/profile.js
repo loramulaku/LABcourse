@@ -67,6 +67,9 @@ router.put("/", authenticateToken, upload.single("profile_image"), async (req, r
     // nëse gender është bosh → NULL
     const genderValue = gender && gender.trim() !== "" ? gender : null;
 
+    // nëse dob është bosh → NULL
+    const dobValue = dob && dob.trim() !== "" ? dob : null;
+
     // kontrollo nëse ekziston profili
     const [existing] = await db.promise().query(
       "SELECT id FROM user_profiles WHERE user_id=?",
@@ -80,7 +83,7 @@ router.put("/", authenticateToken, upload.single("profile_image"), async (req, r
          SET phone=?, address_line1=?, address_line2=?, gender=?, dob=?, 
              profile_image=COALESCE(?, profile_image) 
          WHERE user_id=?`,
-        [phone, address_line1, address_line2, genderValue, dob, profileImage, userId]
+        [phone, address_line1, address_line2, genderValue, dobValue, profileImage, userId]
       );
     } else {
       // insert profile
@@ -88,7 +91,7 @@ router.put("/", authenticateToken, upload.single("profile_image"), async (req, r
         `INSERT INTO user_profiles 
          (user_id, phone, address_line1, address_line2, gender, dob, profile_image) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userId, phone, address_line1, address_line2, genderValue, dob, profileImage || "uploads/default.png"]
+        [userId, phone, address_line1, address_line2, genderValue, dobValue, profileImage || "uploads/default.png"]
       );
     }
 
