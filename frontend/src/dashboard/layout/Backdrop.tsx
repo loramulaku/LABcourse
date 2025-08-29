@@ -1,14 +1,15 @@
-import { useSidebar } from "../context/SidebarContext";
+// src/components/layout/Backdrop.tsx
+import React from "react";
 
-const Backdrop: React.FC = () => {
-  const { isMobileOpen, toggleMobileSidebar } = useSidebar();
+interface BackdropProps {
+  onClick?: () => void;
+}
 
-  if (!isMobileOpen) return null;
-
+const Backdrop: React.FC<BackdropProps> = ({ onClick }) => {
   return (
     <div
-      className="fixed inset-0 z-40 bg-gray-900/50 lg:hidden"
-      onClick={toggleMobileSidebar}
+      className="fixed inset-0 bg-black bg-opacity-40 z-30 lg:hidden"
+      onClick={onClick}
     />
   );
 };
