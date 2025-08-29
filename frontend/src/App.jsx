@@ -37,6 +37,7 @@ import BarChart from './dashboard/pages/Charts/BarChart'
 import SignIn from './dashboard/pages/AuthPages/SignIn'
 import SignUp from './dashboard/pages/AuthPages/SignUp'
 import NotFound from './dashboard/pages/OtherPage/NotFound'
+import BasicTableOne from './dashboard/components/tables/BasicTables/BasicTableOne'
 
 const App = () => {
   return (
@@ -69,6 +70,7 @@ const App = () => {
           <Route index element={<DashboardHome />} />
           <Route path="profile" element={<UserProfiles />} />
           <Route path="calendar" element={<Calendar />} />
+          <Route path="users" element={<BasicTableOne />} /> 
           <Route path="blank" element={<Blank />} />
           <Route path="form-elements" element={<FormElements />} />
           <Route path="basic-tables" element={<BasicTables />} />

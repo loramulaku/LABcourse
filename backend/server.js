@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
+const usersRoutes = require('./routes/users');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use(cookieParser());
 // rrugët
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/users', usersRoutes);
 
 // bëj folderin uploads publik
 app.use('/uploads', express.static('uploads'));
