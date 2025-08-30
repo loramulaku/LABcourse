@@ -1,4 +1,3 @@
-// src/components/layout/AppSidebar.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -14,7 +13,7 @@ import {
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
-} from "../icons"; // sigurohu që ikonat i ke në këtë path
+} from "../icons"; 
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 
@@ -65,7 +64,7 @@ const navItems: NavItem[] = [
     icon: <PageIcon />,
     subItems: [
       { name: "Blank Page", path: "/dashboard/blank" },
-      { name: "404 Error", path: "/dashboard/error-404" }, // nëse e ke këtë rute
+      { name: "404 Error", path: "/dashboard/error-404" },
     ],
   },
 ];
@@ -91,14 +90,7 @@ const othersItems: NavItem[] = [
       { name: "Videos", path: "/dashboard/videos" },
     ],
   },
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin" }, // këto auth pages i ke jashtë dashboard
-      { name: "Sign Up", path: "/signup" },
-    ],
-  },
+ 
 ];
 
 // ---------------- COMPONENT ----------------
@@ -146,7 +138,6 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  // Toggle submenu
   const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
     setOpenSubmenu((prev) =>
       prev && prev.type === menuType && prev.index === index
@@ -155,7 +146,6 @@ const AppSidebar: React.FC = () => {
     );
   };
 
-  // Render menu items
   const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => (
@@ -213,7 +203,6 @@ const AppSidebar: React.FC = () => {
             )
           )}
 
-          {/* Submenu */}
           {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
             <div
               ref={(el) => {
@@ -239,30 +228,6 @@ const AppSidebar: React.FC = () => {
                       }`}
                     >
                       {subItem.name}
-                      <span className="flex items-center gap-1 ml-auto">
-                        {subItem.new && (
-                          <span
-                            className={`ml-auto menu-dropdown-badge ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            }`}
-                          >
-                            new
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`ml-auto menu-dropdown-badge ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            }`}
-                          >
-                            pro
-                          </span>
-                        )}
-                      </span>
                     </Link>
                   </li>
                 ))}
@@ -276,8 +241,9 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200
-      ${isExpanded || isMobileOpen ? "w-[290px]" : isHovered ? "w-[290px]" : "w-[90px]"}
+      className={`flex flex-col px-5 bg-white dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out border-r border-gray-200
+    ${isExpanded || isMobileOpen ? "w-[240px]" : isHovered ? "w-[240px]" : "w-[90px]"}
+
       ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -287,20 +253,8 @@ const AppSidebar: React.FC = () => {
         <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
+              <img className="dark:hidden" src="/images/logo/logo.svg" alt="Logo" width={150} height={40} />
+              <img className="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Logo" width={150} height={40} />
             </>
           ) : (
             <img src="/images/logo/logo-icon.svg" alt="Logo" width={32} height={32} />
@@ -308,10 +262,9 @@ const AppSidebar: React.FC = () => {
         </Link>
       </div>
 
-      {/* Menu + Logout */}
+      {/* Menu */}
       <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6 flex flex-col gap-4">
-          {/* Main */}
           <div>
             <h2
               className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
@@ -323,7 +276,6 @@ const AppSidebar: React.FC = () => {
             {renderMenuItems(navItems, "main")}
           </div>
 
-          {/* Others */}
           <div>
             <h2
               className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
@@ -336,7 +288,6 @@ const AppSidebar: React.FC = () => {
           </div>
         </nav>
 
-        {/* Logout i shtyrë në fund */}
         {(isExpanded || isHovered || isMobileOpen) && (
           <div className="mt-auto mb-4">
             <SidebarWidget

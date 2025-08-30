@@ -18,7 +18,7 @@ function generateRefreshToken(user) {
   return jwt.sign(
     { id: user.id },
     process.env.REFRESH_SECRET,
-    { expiresIn: process.env.REFRESH_EXPIRES_IN || '7d' } // zakonisht ditë
+    { expiresIn: process.env.REFRESH_EXPIRES_IN || '1d' } // zakonisht ditë
   );
 }
 

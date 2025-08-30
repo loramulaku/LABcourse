@@ -1,20 +1,9 @@
-import { ReactNode } from "react";
+import * as React from "react"
 
-interface ButtonProps {
-  children: ReactNode; // Button text or content
-  size?: "sm" | "md"; // Button size
-  variant?: "primary" | "outline"; // Button variant
-  startIcon?: ReactNode; // Icon before the text
-  endIcon?: ReactNode; // Icon after the text
-  onClick?: () => void; // Click handler
-  disabled?: boolean; // Disabled state
-  className?: string; // Disabled state
-}
-
-const Button: React.FC<ButtonProps> = ({
+const Button = ({
   children,
-  size = "md",
-  variant = "primary",
+  size = "md",        // "sm" | "md"
+  variant = "primary", // "primary" | "outline"
   startIcon,
   endIcon,
   onClick,
@@ -37,9 +26,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg transition ${className} ${
-        sizeClasses[size]
-      } ${variantClasses[variant]} ${
+      className={`inline-flex items-center justify-center gap-2 rounded-lg transition ${className} ${sizeClasses[size]} ${variantClasses[variant]} ${
         disabled ? "cursor-not-allowed opacity-50" : ""
       }`}
       onClick={onClick}

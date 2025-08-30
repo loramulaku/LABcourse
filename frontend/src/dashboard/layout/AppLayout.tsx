@@ -1,32 +1,32 @@
-// src/components/layout/AppLayout.tsx
+// AppLayout.tsx
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 import AppSidebar from "./AppSidebar";
-import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
+import SearchBar from "../components/SearchBar";
 
 const AppLayout: React.FC = () => {
-  const { isMobileOpen, toggleMobileSidebar } = useSidebar();
+  const { isMobileOpen, toggleMobileSidebar, searchQuery } = useSidebar();
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-200">
       {/* Sidebar */}
       <AppSidebar />
 
-      {/* Backdrop for mobile */}
-      {isMobileOpen && (
-        <Backdrop onClick={toggleMobileSidebar} />
-      )}
+      {/* Backdrop pÃ«r mobile */}
+      {isMobileOpen && <Backdrop onClick={toggleMobileSidebar} />}
 
       {/* Main content */}
       <div className="flex flex-col flex-1">
-        {/* Header */}
-        <AppHeader />
+        {/* Search bar global */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+          <SearchBar />
+        </div>
 
-        {/* Page Content */}
-        <main className="mt-16 flex-1 overflow-y-auto px-4 lg:px-8 py-6">
-          <Outlet />
+        {/* Content */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          <Outlet context={{ searchQuery }} />
         </main>
       </div>
     </div>
