@@ -21,7 +21,7 @@ import UserSimple from './components/UserSimple';
 
 import { ScrollToTop } from './dashboard/components/common/ScrollToTop';
 import DashboardHome from './dashboard/pages/Dashboard/Home';
-import AdminProfile from "./dashboard/pages/AdminProfile";
+import AdminProfile from "./dashboard/pages/AdminProfile.jsx";
 import Calendar from './dashboard/pages/Calendar';
 import Blank from './dashboard/pages/Blank';
 import FormElements from './dashboard/pages/Forms/FormElements';

@@ -1,7 +1,7 @@
 //C:\ProjektiLab\frontend\src\dashboard\components\AdminProfile\UserMetaCard.jsx
 import React from "react";
 
-export default function UserMetaCard({ name, email, roleLabel, avatarUrl, socials }) {
+export default function UserMetaCard({ name, email, roleLabel, avatarUrl, socials, onAvatarError }) {
   const SocialIcon = ({ href, src, alt }) => (
     <a
       href={href || "#"}
@@ -24,6 +24,9 @@ export default function UserMetaCard({ name, email, roleLabel, avatarUrl, social
               src={avatarUrl}
               alt="avatar"
               className="h-16 w-16 rounded-full object-cover ring-2 ring-white/10"
+              onError={onAvatarError || ((e) => {
+                e.target.src = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/uploads/avatars/default.png`;
+              })}
             />
           </div>
           <div>

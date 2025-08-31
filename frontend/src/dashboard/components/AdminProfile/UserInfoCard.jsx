@@ -24,7 +24,7 @@ function Modal({ open, onClose, children, title }) {
   );
 }
 
-export default function UserInfoCard({fullName, email, profile, onSave  }) {
+export default function UserInfoCard({ name, email, profile, onSave }) {
   const [open, setOpen] = useState(false);
 
   // form state
@@ -108,20 +108,20 @@ export default function UserInfoCard({fullName, email, profile, onSave  }) {
             />
           </div>
 
-          {/* Avatar */}
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div>
-              <Label>Avatar</Label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                className="mt-2 block w-full cursor-pointer rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-sm hover:file:bg-white/20"
-              />
-              <p className="mt-1 text-xs text-white/50">
-                Në backend ruhet vetëm path. Default: <code>/uploads/avatars/default.png</code>
-              </p>
-            </div>
+                     {/* Avatar */}
+           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+             <div>
+               <Label>Avatar</Label>
+               <input
+                 type="file"
+                 accept="image/*"
+                 onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                 className="mt-2 block w-full cursor-pointer rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-sm hover:file:bg-white/20"
+               />
+               <p className="mt-1 text-xs text-white/50">
+                 Nëse nuk zgjidhni foto, do të përdoret fotoja default: <code>/uploads/avatars/default.png</code>
+               </p>
+             </div>
             <button
               type="submit"
               disabled={saving}

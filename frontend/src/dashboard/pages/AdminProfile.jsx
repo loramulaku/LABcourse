@@ -1,4 +1,4 @@
-//C:\ProjektiLab\frontend\src\dashboard\pages\AdminProfile.tsx
+//C:\ProjektiLab\frontend\src\dashboard\pages\AdminProfile.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import PageMeta from "../components/common/PageMeta";
@@ -10,7 +10,7 @@ import UserAddressCard from "../components/AdminProfile/UserAddressCard";
 import apiFetch, { getAccessToken } from "../../api";
 
 const BASE_API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const ADMIN_PROFILE_BASE = `${BASE_API}/api/admin-profile`;
+const ADMIN_PROFILE_BASE = `${BASE_API}/api/admin-profiles`;
 
 function decodeJwtPayload() {
   try {
@@ -23,24 +23,33 @@ function decodeJwtPayload() {
   }
 }
 
-export default function UserProfiles() {
+export default function AdminProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState({ name: "", email: "" });
 
   const tokenData = useMemo(() => decodeJwtPayload(), []);
-  const tokenName = tokenData?.name || "";
-  const tokenEmail = tokenData?.email || "";
   const userId = tokenData?.id || tokenData?.sub || null;
 
   const fullAvatarUrl = (p) => {
-    if (!p) return `${BASE_API}/uploads/avatars/default.png`;
+    if (!p || p === "/uploads/avatars/default.png" || p === "") {
+      return `${BASE_API}/uploads/avatars/default.png`;
+    }
     return p.startsWith("http") ? p : `${BASE_API}${p}`;
+  };
+
+  const handleAvatarError = (e) => {
+    e.target.src = `${BASE_API}/uploads/avatars/default.png`;
   };
 
   async function fetchProfile() {
     try {
       const data = await apiFetch(`${ADMIN_PROFILE_BASE}/me`, { method: "GET" });
       setProfile(data);
+      
+      // Fetch user data from users table
+      const userResponse = await apiFetch(`${BASE_API}/api/users/me`, { method: "GET" });
+      setUserData(userResponse);
     } catch (e) {
       // nëse nuk ekziston ende, backendi mund ta krijojë default-in;
       // për frontin thjesht shfaq default-et
@@ -81,6 +90,9 @@ export default function UserProfiles() {
         body: fd,
       });
       payload.avatar_path = r.avatar_path; // rruga e kthyer nga backend
+    } else {
+      // If no avatar file is selected, use default
+      payload.avatar_path = "/uploads/avatars/default.png";
     }
 
     // 2) personal & social
@@ -127,10 +139,11 @@ export default function UserProfiles() {
 
         <div className="space-y-6">
           <UserMetaCard
-            name={tokenName}
-            email={tokenEmail}
+            name={userData.name || ""}
+            email={userData.email || ""}
             roleLabel="Team Manager"
             avatarUrl={fullAvatarUrl(profile.avatar_path)}
+            onAvatarError={handleAvatarError}
             socials={{
               facebook: profile.facebook,
               x: profile.x,
@@ -140,8 +153,8 @@ export default function UserProfiles() {
           />
 
           <UserInfoCard
-            name={tokenName}
-            email={tokenEmail}
+            name={userData.name || ""}
+            email={userData.email || ""}
             profile={profile}
             onSave={(payload, avatarFile) => updatePersonal(payload, avatarFile)}
           />
