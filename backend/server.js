@@ -3,10 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
+// Importo rruget
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const usersRoutes = require('./routes/users');
-const adminProfileRoutes = require("./routes/adminProfile");
+const adminProfileRoutes = require('./routes/adminProfile'); // ✅
 
 const app = express();
 
@@ -27,13 +28,11 @@ app.use(express.urlencoded({ extended: true }));
 // cookie parser
 app.use(cookieParser());
 
-
-
-// rrugët
+// Rrugët kryesore
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', usersRoutes);
-app.use("/api/admin", adminProfileRoutes);
+app.use('/api/admin-profiles', adminProfileRoutes); // ✅ tash është aktiv
 
 // bëj folderin uploads publik
 app.use('/uploads', express.static('uploads'));

@@ -21,7 +21,7 @@ import UserSimple from './components/UserSimple';
 
 import { ScrollToTop } from './dashboard/components/common/ScrollToTop';
 import DashboardHome from './dashboard/pages/Dashboard/Home';
-import UserProfiles from './dashboard/pages/UserProfiles';
+import AdminProfile from "./dashboard/pages/AdminProfile";
 import Calendar from './dashboard/pages/Calendar';
 import Blank from './dashboard/pages/Blank';
 import FormElements from './dashboard/pages/Forms/FormElements';
@@ -75,7 +75,7 @@ const App = () => {
           }
         >
           <Route index element={<DashboardHome />} />
-          <Route path="profile" element={<UserProfiles />} />
+          <Route path="profile" element={<AdminProfile />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="users" element={<BasicTableOne />} />
           <Route path="blank" element={<Blank />} />

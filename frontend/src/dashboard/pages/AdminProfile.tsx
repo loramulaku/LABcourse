@@ -1,0 +1,157 @@
+//C:\ProjektiLab\frontend\src\dashboard\pages\AdminProfile.tsx
+import React, { useEffect, useMemo, useState } from "react";
+import PageBreadcrumb from "../components/common/PageBreadCrumb";
+import PageMeta from "../components/common/PageMeta";
+
+import UserMetaCard from "../components/AdminProfile/UserMetaCard";
+import UserInfoCard from "../components/AdminProfile/UserInfoCard";
+import UserAddressCard from "../components/AdminProfile/UserAddressCard";
+
+import apiFetch, { getAccessToken } from "../../api";
+
+const BASE_API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const ADMIN_PROFILE_BASE = `${BASE_API}/api/admin-profile`;
+
+function decodeJwtPayload() {
+  try {
+    const token = getAccessToken();
+    if (!token) return {};
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload || {};
+  } catch {
+    return {};
+  }
+}
+
+export default function UserProfiles() {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const tokenData = useMemo(() => decodeJwtPayload(), []);
+  const tokenName = tokenData?.name || "";
+  const tokenEmail = tokenData?.email || "";
+  const userId = tokenData?.id || tokenData?.sub || null;
+
+  const fullAvatarUrl = (p) => {
+    if (!p) return `${BASE_API}/uploads/avatars/default.png`;
+    return p.startsWith("http") ? p : `${BASE_API}${p}`;
+  };
+
+  async function fetchProfile() {
+    try {
+      const data = await apiFetch(`${ADMIN_PROFILE_BASE}/me`, { method: "GET" });
+      setProfile(data);
+    } catch (e) {
+      // nëse nuk ekziston ende, backendi mund ta krijojë default-in;
+      // për frontin thjesht shfaq default-et
+      setProfile({
+        user_id: userId,
+        first_name: "",
+        last_name: "",
+        phone: "",
+        bio: "Team Manager",
+        avatar_path: "/uploads/avatars/default.png",
+        facebook: "",
+        x: "",
+        linkedin: "",
+        instagram: "",
+        country: "",
+        city_state: "",
+        postal_code: "",
+        tax_id: "",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ------- handlers update -------
+  const updatePersonal = async (payload, avatarFile) => {
+    // 1) avatar (nëse është zgjedhur)
+    if (avatarFile) {
+      const fd = new FormData();
+      fd.append("avatar", avatarFile);
+      const r = await apiFetch(`${ADMIN_PROFILE_BASE}/avatar`, {
+        method: "POST",
+        body: fd,
+      });
+      payload.avatar_path = r.avatar_path; // rruga e kthyer nga backend
+    }
+
+    // 2) personal & social
+    const updated = await apiFetch(`${ADMIN_PROFILE_BASE}/personal`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+
+    setProfile((prev) => ({ ...prev, ...updated }));
+  };
+
+  const updateAddress = async (payload) => {
+    const updated = await apiFetch(`${ADMIN_PROFILE_BASE}/address`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+    setProfile((prev) => ({ ...prev, ...updated }));
+  };
+
+  if (loading || !profile) {
+    return (
+      <>
+        <PageMeta title="Profile" description="Admin Profile" />
+        <PageBreadcrumb pageTitle="Profile" />
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="h-32 animate-pulse rounded-xl bg-black/5 dark:bg-white/5" />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <PageMeta
+        title="Profile"
+        description="Admin Profile"
+      />
+      <PageBreadcrumb pageTitle="Profile" />
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+        <h3 className="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
+          Profile
+        </h3>
+
+        <div className="space-y-6">
+          <UserMetaCard
+            name={tokenName}
+            email={tokenEmail}
+            roleLabel="Team Manager"
+            avatarUrl={fullAvatarUrl(profile.avatar_path)}
+            socials={{
+              facebook: profile.facebook,
+              x: profile.x,
+              linkedin: profile.linkedin,
+              instagram: profile.instagram,
+            }}
+          />
+
+          <UserInfoCard
+            name={tokenName}
+            email={tokenEmail}
+            profile={profile}
+            onSave={(payload, avatarFile) => updatePersonal(payload, avatarFile)}
+          />
+
+          <UserAddressCard
+            profile={profile}
+            onSave={(payload) => updateAddress(payload)}
+          />
+        </div>
+      </div>
+    </>
+  );
+}

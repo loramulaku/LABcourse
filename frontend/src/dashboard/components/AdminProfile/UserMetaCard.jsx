@@ -1,106 +1,45 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
-import Button from "../../components/ui/button/Button.jsx";
-import { Input } from "../../components/ui/input.jsx";
-import { Label } from "../../components/ui/label.jsx";
-import apiFetch from "../../../api.js";
+//C:\ProjektiLab\frontend\src\dashboard\components\AdminProfile\UserMetaCard.jsx
+import React from "react";
 
-
-
-export default function UserMetaCard() {
-  const [formData, setFormData] = useState({
-    facebook: "",
-    twitter: "",
-    linkedin: "",
-    instagram: "",
-  });
-
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    // Fetch profile data on mount
-    const fetchProfile = async () => {
-      try {
-        const res = await apiFetch("/api/admin/profile");
-        if (res.profile) {
-          setFormData((prev) => ({
-            ...prev,
-            ...res.profile,
-          }));
-        }
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      await apiFetch("/api/admin/profile", {
-        method: "PUT",
-        body: JSON.stringify(formData),
-      });
-      alert("Social links updated successfully!");
-    } catch (err) {
-      console.error("Error updating social links:", err);
-      alert("Error updating social links");
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function UserMetaCard({ name, email, roleLabel, avatarUrl, socials }) {
+  const SocialIcon = ({ href, src, alt }) => (
+    <a
+      href={href || "#"}
+      target="_blank"
+      rel="noreferrer"
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 transition
+        ${href ? "hover:bg-white/10" : "opacity-40 cursor-not-allowed"}`}
+      aria-label={alt}
+    >
+      <img src={src} alt={alt} className="h-5 w-5" />
+    </a>
+  );
 
   return (
-    <Card className="shadow-md rounded-2xl">
-      <CardHeader>
-        <CardTitle>Social Links</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4">
-          <div>
-            <Label>Facebook</Label>
-            <Input
-              name="facebook"
-              value={formData.facebook}
-              onChange={handleChange}
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <img
+              src={avatarUrl}
+              alt="avatar"
+              className="h-16 w-16 rounded-full object-cover ring-2 ring-white/10"
             />
           </div>
           <div>
-            <Label>Twitter</Label>
-            <Input
-              name="twitter"
-              value={formData.twitter}
-              onChange={handleChange}
-            />
+            <div className="text-sm font-medium text-white/90">{name || "-"}</div>
+            <div className="text-xs text-white/60">{roleLabel}</div>
+            <div className="mt-1 text-xs text-white/60">{email || "-"}</div>
           </div>
-          <div>
-            <Label>LinkedIn</Label>
-            <Input
-              name="linkedin"
-              value={formData.linkedin}
-              onChange={handleChange}
-            />
-          </div>
-          <div>
-            <Label>Instagram</Label>
-            <Input
-              name="instagram"
-              value={formData.instagram}
-              onChange={handleChange}
-            />
-          </div>
-          <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save Changes"}
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+
+        <div className="flex items-center gap-3">
+          <SocialIcon href={socials.facebook} src="/social/facebook.jpg" alt="Facebook" />
+          <SocialIcon href={socials.x}         src="/social/x.jpg"         alt="X" />
+          <SocialIcon href={socials.linkedin}  src="/social/linkedin.jpg"  alt="LinkedIn" />
+          <SocialIcon href={socials.instagram} src="/social/instagram.jpg" alt="Instagram" />
+        </div>
+      </div>
+    </div>
   );
 }
