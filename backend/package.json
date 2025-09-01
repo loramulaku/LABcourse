@@ -22,5 +22,10 @@
     "multer": "^2.0.2",
     "mysql2": "^3.14.3",
     "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@svgr/core": "^8.1.0",
+    "nodemon": "^3.1.10",
+    "vite-plugin-svgr": "^4.5.0"
   }
 }
