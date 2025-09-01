@@ -1,11 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { assets } from '../assets/assets';
 import { NavLink, useNavigate } from 'react-router-dom';
+import apiFetch from '../api';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState(!!localStorage.getItem('accessToken')); 
   const [role, setRole] = useState(localStorage.getItem('role'));
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch user profile info for navbar
+  const fetchUserInfo = async () => {
+    if (!token) return;
+    
+    try {
+      setLoading(true);
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const data = await apiFetch(`${API_URL}/api/auth/navbar-info`);
+      setUserInfo(data);
+    } catch (err) {
+      console.error('Error fetching user info:', err);
+      // Fallback to default values
+      setUserInfo({
+        profilePhoto: '/uploads/avatars/default.png',
+        name: 'User',
+        role: role
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchUserInfo();
+    }
+  }, [token]);
 
   const handleLogout = async () => {
     try {
@@ -18,6 +49,7 @@ const Navbar = () => {
       localStorage.removeItem('role');
       setToken(false);
       setRole(null);
+      setUserInfo(null);
       navigate('/login');
     } catch (err) {
       console.error('Gabim gjatë logout', err);
@@ -25,6 +57,7 @@ const Navbar = () => {
       localStorage.removeItem('role');
       setToken(false);
       setRole(null);
+      setUserInfo(null);
       navigate('/login');
     }
   };
@@ -40,6 +73,32 @@ const Navbar = () => {
 
   const goToSignUp = () => {
     navigate('/login');
+  };
+
+  // Get the correct profile photo URL
+  const getProfilePhotoUrl = () => {
+    if (!userInfo || !userInfo.profilePhoto) {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      return `${API_URL}/uploads/avatars/default.png`;
+    }
+    
+    // If it's already a full URL, return as is
+    if (userInfo.profilePhoto.startsWith('http')) {
+      return userInfo.profilePhoto;
+    }
+    
+    // If it's a relative path, construct the full URL
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    return `${API_URL}${userInfo.profilePhoto}`;
+  };
+
+  // Navigate to the correct profile page based on user role
+  const navigateToProfile = () => {
+    if (role === 'admin') {
+      navigate('/dashboard/profile');
+    } else {
+      navigate('/my-profile');
+    }
   };
 
   return (
@@ -64,7 +123,15 @@ const Navbar = () => {
       <div className="flex items-center gap-4">
         {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">
-            <img className="w-8 rounded-full" src={assets.profile_pic} alt="Profile" />
+            <img 
+              className="w-8 rounded-full object-cover" 
+              src={getProfilePhotoUrl()} 
+              alt="Profile"
+              onError={(e) => {
+                const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                e.target.src = `${API_URL}/uploads/avatars/default.png`;
+              }}
+            />
             <img className="w-2.5" src={assets.dropdown_icon} alt="Dropdown" />
 
             {/* Dropdown */}
@@ -74,7 +141,7 @@ const Navbar = () => {
                             transition-all duration-200">
               <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4 shadow-lg">
                 <p 
-                  onClick={() => navigate('/my-profile')} 
+                  onClick={navigateToProfile} 
                   className="hover:text-black cursor-pointer"
                 >
                   My Profile

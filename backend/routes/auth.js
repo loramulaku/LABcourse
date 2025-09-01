@@ -137,4 +137,75 @@ router.get('/me', authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });
 
+// Get user profile info for navbar (photo, name, role)
+router.get('/navbar-info', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    
+    // Get basic user info
+    const [[user]] = await db.promise().query(
+      'SELECT id, name, email FROM users WHERE id = ?',
+      [userId]
+    );
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    let profilePhoto = '/uploads/avatars/default.png';
+    let firstName = '';
+    let lastName = '';
+    
+    if (userRole === 'admin') {
+      // Get admin profile info
+      const [[adminProfile]] = await db.promise().query(
+        'SELECT avatar_path, first_name, last_name FROM admin_profiles WHERE user_id = ?',
+        [userId]
+      );
+      
+      if (adminProfile && adminProfile.avatar_path && adminProfile.avatar_path !== '/uploads/avatars/default.png') {
+        // Add leading slash if not present
+        profilePhoto = adminProfile.avatar_path.startsWith('/') ? adminProfile.avatar_path : `/${adminProfile.avatar_path}`;
+        firstName = adminProfile.first_name || '';
+        lastName = adminProfile.last_name || '';
+      }
+    } else {
+      // Get user profile info
+      const [[userProfile]] = await db.promise().query(
+        'SELECT profile_image FROM user_profiles WHERE user_id = ?',
+        [userId]
+      );
+      
+      if (userProfile && userProfile.profile_image && userProfile.profile_image !== 'uploads/avatars/default.png') {
+        // Add leading slash if not present
+        profilePhoto = userProfile.profile_image.startsWith('/') ? userProfile.profile_image : `/${userProfile.profile_image}`;
+        console.log(`📸 Found user profile image: ${profilePhoto}`);
+      }
+    }
+    
+    // Debug logging
+    console.log(`🔍 Navbar info for user ${userId} (${userRole}):`, {
+      userId,
+      userRole,
+      profilePhoto,
+      userEmail: user.email,
+      userName: user.name
+    });
+    
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: userRole,
+      profilePhoto,
+      firstName,
+      lastName
+    });
+  } catch (err) {
+    console.error('❌ Error in navbar-info:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

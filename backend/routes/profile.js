@@ -11,9 +11,9 @@ const router = express.Router();
 // Konfigurimi i multer për ruajtjen e fotove
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = path.join(__dirname, "..", "uploads");
+    const dir = path.join(__dirname, "..", "uploads", "avatars");
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
+      fs.mkdirSync(dir, { recursive: true });
     }
     cb(null, dir);
   },
@@ -48,8 +48,8 @@ router.get("/", authenticateToken, async (req, res) => {
       address_line1: profile?.address_line1 || "",
       address_line2: profile?.address_line2 || "",
       gender: profile?.gender || "",
-      dob: profile?.dob ? new Date(profile.dob).toLocaleDateString("en-CA") : "",
-      profile_image: profile?.profile_image || "uploads/default.png",
+      dob: profile?.dob ? new Date(profile.dob).toISOString().split('T')[0] : "",
+      profile_image: profile?.profile_image || "uploads/avatars/default.png",
     });
   } catch (err) {
     console.error(err);
@@ -61,8 +61,15 @@ router.get("/", authenticateToken, async (req, res) => {
 router.put("/", authenticateToken, upload.single("profile_image"), async (req, res) => {
   try {
     const userId = req.user.id;
-    const { phone, address_line1, address_line2, gender, dob } = req.body;
-    const profileImage = req.file ? `uploads/${req.file.filename}` : null;
+    const { phone, address_line1, address_line2, gender, dob, removePhoto } = req.body;
+    
+    // Handle photo removal separately
+    let profileImage = null;
+    if (removePhoto === "true") {
+      profileImage = "uploads/avatars/default.png";
+    } else if (req.file) {
+      profileImage = `uploads/avatars/${req.file.filename}`;
+    }
 
     // nëse gender është bosh → NULL
     const genderValue = gender && gender.trim() !== "" ? gender : null;
@@ -77,21 +84,38 @@ router.put("/", authenticateToken, upload.single("profile_image"), async (req, r
     );
 
     if (existing.length > 0) {
-      // update profile
-      await db.promise().query(
-        `UPDATE user_profiles 
-         SET phone=?, address_line1=?, address_line2=?, gender=?, dob=?, 
-             profile_image=COALESCE(?, profile_image) 
-         WHERE user_id=?`,
-        [phone, address_line1, address_line2, genderValue, dobValue, profileImage, userId]
-      );
+      if (removePhoto === "true") {
+        // Only remove photo, keep all other fields unchanged
+        await db.promise().query(
+          `UPDATE user_profiles 
+           SET profile_image=?
+           WHERE user_id=?`,
+          ["uploads/avatars/default.png", userId]
+        );
+      } else if (profileImage !== null) {
+        // Update everything including new photo
+        await db.promise().query(
+          `UPDATE user_profiles 
+           SET phone=?, address_line1=?, address_line2=?, gender=?, dob=?, profile_image=?
+           WHERE user_id=?`,
+          [phone, address_line1, address_line2, genderValue, dobValue, profileImage, userId]
+        );
+      } else {
+        // Only update other fields, keep existing photo
+        await db.promise().query(
+          `UPDATE user_profiles 
+           SET phone=?, address_line1=?, address_line2=?, gender=?, dob=?
+           WHERE user_id=?`,
+          [phone, address_line1, address_line2, genderValue, dobValue, userId]
+        );
+      }
     } else {
       // insert profile
       await db.promise().query(
         `INSERT INTO user_profiles 
          (user_id, phone, address_line1, address_line2, gender, dob, profile_image) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userId, phone, address_line1, address_line2, genderValue, dobValue, profileImage || "uploads/default.png"]
+        [userId, phone, address_line1, address_line2, genderValue, dobValue, profileImage || "uploads/avatars/default.png"]
       );
     }
 
@@ -115,8 +139,8 @@ router.put("/", authenticateToken, upload.single("profile_image"), async (req, r
       address_line1: updatedProfile?.address_line1 || "",
       address_line2: updatedProfile?.address_line2 || "",
       gender: updatedProfile?.gender || "",
-      dob: updatedProfile?.dob ? new Date(updatedProfile.dob).toLocaleDateString("en-CA") : "",
-      profile_image: updatedProfile?.profile_image || "uploads/default.png",
+      dob: updatedProfile?.dob ? new Date(updatedProfile.dob).toISOString().split('T')[0] : "",
+      profile_image: updatedProfile?.profile_image || "uploads/avatars/default.png",
     });
   } catch (err) {
     console.error(err);
