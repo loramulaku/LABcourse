@@ -20,7 +20,6 @@ import UserSimple from './components/UserSimple';
 // ====== Dashboard imports ======
 
 import { ScrollToTop } from './dashboard/components/common/ScrollToTop';
-import DashboardHome from './dashboard/pages/Dashboard/Home';
 import AdminProfile from "./dashboard/pages/AdminProfile.jsx";
 import Calendar from './dashboard/pages/Calendar';
 import Blank from './dashboard/pages/Blank';
@@ -38,6 +37,7 @@ import NotFound from './dashboard/pages/OtherPage/NotFound';
 import BasicTableOne from './dashboard/components/tables/BasicTables/BasicTableOne';
 import { SidebarProvider } from './dashboard/context/SidebarContext';
 import AppLayout from './dashboard/layout/AppLayout';
+import DoctorsCrud from './dashboard/pages/DoctorsCrud.jsx';
 
 const App = () => {
   const location = useLocation(); // kjo ndjek path-in aktual
@@ -74,11 +74,12 @@ const App = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<DashboardHome />} />
+          
           <Route path="profile" element={<AdminProfile />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="users" element={<BasicTableOne />} />
           <Route path="blank" element={<Blank />} />
+          <Route path="doctors-crud" element={<DoctorsCrud />} />
           <Route path="form-elements" element={<FormElements />} />
           <Route path="basic-tables" element={<BasicTables />} />
           <Route path="alerts" element={<Alerts />} />

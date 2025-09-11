@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets';
+import { API_URL } from '../api';
 
 
 const Appointment = () => {
@@ -16,12 +17,18 @@ const Appointment = () => {
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState('');
 
-  const fetchDocInfo = () => {
-    console.log("🔍 docId:", docId);
-    console.log("📦 doctors:", doctors);
-    const found = doctors.find(doc => doc._id === docId);
-    setDocInfo(found);
-    console.log("✅ Gjetëm këtë doktor:", found);
+  const fetchDocInfo = async () => {
+    // Try to find in context list first for basic fields
+    const basic = doctors.find(doc => String(doc.id) === String(docId));
+    if (basic) setDocInfo(basic);
+    // Always fetch full details from backend to avoid static fields
+    try {
+      const res = await fetch(`${API_URL}/api/doctors/${docId}`);
+      if (res.ok) {
+        const full = await res.json();
+        setDocInfo(full);
+      }
+    } catch {}
   };
 
   const getAvailableSlots = () => {
@@ -92,7 +99,12 @@ const Appointment = () => {
       {/* ---------- Doctor Details ----------- */}
       <div className='flex flex-col sm:flex-row gap-4'>
         <div>
-          <img className='bg-primary w-full sm:max-w-72 rounded-lg' src={docInfo.image} alt="" />
+          <img
+            className='bg-primary w-full sm:max-w-72 rounded-lg'
+            src={docInfo?.image?.startsWith('http') ? docInfo.image : `${API_URL}${docInfo?.image || ''}`}
+            alt=""
+            onError={(e)=>{ e.currentTarget.src = '/vite.svg'; }}
+          />
         </div>
 
         <div className='flex-1 border border-[#ADADAD] rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0'>
@@ -100,8 +112,10 @@ const Appointment = () => {
             {docInfo.name} <img className='w-5' src={assets.verified_icon} alt="" />
           </p>
           <div className='flex items-center gap-2 mt-1 text-gray-600'>
-            <p>{docInfo.degree} - {docInfo.speciality}</p>
-            <button className='py-0.5 px-2 border text-xs rounded-full'>{docInfo.experience}</button>
+            <p>{[docInfo.degree, docInfo.speciality].filter(Boolean).join(' - ')}</p>
+            {docInfo.experience && (
+              <button className='py-0.5 px-2 border text-xs rounded-full'>{docInfo.experience}</button>
+            )}
           </div>
 
           <div>
@@ -112,7 +126,7 @@ const Appointment = () => {
           </div>
 
           <p className='text-gray-600 font-medium mt-4'>
-            Appointment fee: <span className='text-gray-800'>{currencySymbol}{docInfo.fees}</span>
+            Appointment fee: <span className='text-gray-800'>{docInfo.fees}</span>
           </p>
         </div>
       </div>

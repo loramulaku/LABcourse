@@ -1,9 +1,8 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import { API_URL, getAccessToken } from "../api";
+const API_BASE_URL = `${API_URL}/api`;
 
 // Helper function to get auth token
-const getAuthToken = () => {
-  return localStorage.getItem('token') || sessionStorage.getItem('token');
-};
+const getAuthToken = () => getAccessToken();
 
 // Helper function to make API calls
 const apiCall = async (endpoint, options = {}) => {

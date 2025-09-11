@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { doctors } from '../assets/assets';
+import React, { useContext, useMemo, useState } from 'react';
+import { AppContext } from '../context/AppContext';
+import { API_URL } from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const TopDoctors = () => {
   const navigate = useNavigate();
+  const { doctors } = useContext(AppContext);
 
   const itemsPerPage = 8;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.ceil(doctors.length / itemsPerPage);
-  const currentItems = doctors.slice(
+  const totalPages = useMemo(() => Math.max(1, Math.ceil((doctors?.length || 0) / itemsPerPage)), [doctors]);
+  const currentItems = useMemo(() => (doctors || []).slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
+  ), [doctors, currentPage]);
 
   const changePage = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -32,9 +34,14 @@ const TopDoctors = () => {
           <div
             className='border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:-translate-y-2 transition-transform duration-300 shadow-md'
             key={index}
-            onClick={() => navigate(`/appointment/${item._id}`)} // ✅ klikuesi i duhur
+            onClick={() => navigate(`/appointment/${item.id}`)}
           >
-            <img className='w-full bg-blue-50 object-cover h-48' src={item.image} alt={item.name} />
+            <img
+              className='w-full bg-blue-50 object-cover h-48'
+              src={item?.image?.startsWith('http') ? item.image : `${API_URL}${item?.image || ''}`}
+              alt={item.name}
+              onError={(e) => { e.currentTarget.src = '/public/vite.svg'; }}
+            />
             <div className='p-4'>
               <div className='flex items-center gap-2 text-sm text-green-500'>
                 <div className='w-2 h-2 bg-green-500 rounded-full'></div>

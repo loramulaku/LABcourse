@@ -2,7 +2,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
-import AppSidebar from "./AppSidebar";
+import AppSidebar from "./AppSidebar.jsx";
 import Backdrop from "./Backdrop";
 import SearchBar from "../components/SearchBar";
 

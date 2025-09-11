@@ -13,27 +13,12 @@ import {
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
-} from "../icons"; 
+} from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 
-// Types
-type SubItem = {
-  name: string;
-  path: string;
-  pro?: boolean;
-  new?: boolean;
-};
-
-type NavItem = {
-  name: string;
-  icon: React.ReactNode;
-  path?: string;
-  subItems?: SubItem[];
-};
-
 // ---------------- NAV ITEMS ----------------
-const navItems: NavItem[] = [
+const navItems = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
@@ -64,12 +49,13 @@ const navItems: NavItem[] = [
     icon: <PageIcon />,
     subItems: [
       { name: "Add Doctor", path: "/dashboard/blank" },
+      { name: "Edit & Delete Doctors", path: "/dashboard/doctors-crud" },
       { name: "404 Error", path: "/dashboard/error-404" },
     ],
   },
 ];
 
-const othersItems: NavItem[] = [
+const othersItems = [
   {
     icon: <PieChartIcon />,
     name: "Charts",
@@ -90,21 +76,20 @@ const othersItems: NavItem[] = [
       { name: "Videos", path: "/dashboard/videos" },
     ],
   },
- 
 ];
 
 // ---------------- COMPONENT ----------------
-const AppSidebar: React.FC = () => {
+const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
 
-  const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [openSubmenu, setOpenSubmenu] = useState(null);
+  const [subMenuHeight, setSubMenuHeight] = useState({});
+  const subMenuRefs = useRef({});
 
   // Active route check
   const isActive = useCallback(
-    (path: string) => location.pathname === path,
+    (path) => location.pathname === path,
     [location.pathname]
   );
 
@@ -116,7 +101,7 @@ const AppSidebar: React.FC = () => {
       items.forEach((nav, index) => {
         nav.subItems?.forEach((subItem) => {
           if (isActive(subItem.path)) {
-            setOpenSubmenu({ type: menuType as "main" | "others", index });
+            setOpenSubmenu({ type: menuType, index });
             submenuMatched = true;
           }
         });
@@ -138,7 +123,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
+  const handleSubmenuToggle = (index, menuType) => {
     setOpenSubmenu((prev) =>
       prev && prev.type === menuType && prev.index === index
         ? null
@@ -146,7 +131,7 @@ const AppSidebar: React.FC = () => {
     );
   };
 
-  const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
+  const renderMenuItems = (items, menuType) => (
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => (
         <li key={nav.name}>
@@ -303,3 +288,5 @@ const AppSidebar: React.FC = () => {
 };
 
 export default AppSidebar;
+
+
