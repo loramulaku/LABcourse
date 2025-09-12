@@ -29,6 +29,9 @@ app.use(express.urlencoded({ extended: true }));
 // cookie parser
 app.use(cookieParser());
 
+const laboratoryRoutes = require('./routes/laboratoryRoutes');
+app.use('/api/laboratories', laboratoryRoutes);
+
 // Rrugët kryesore
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
