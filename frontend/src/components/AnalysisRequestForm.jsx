@@ -34,9 +34,10 @@ const AnalysisRequestForm = () => {
     try {
       const response = await fetch(`${API_URL}/api/laboratories/request-analysis`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}` 
         },
         body: JSON.stringify({
           ...formData,

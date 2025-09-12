@@ -9,8 +9,9 @@ const MyAnalyses = () => {
     const fetchMyAnalyses = async () => {
       try {
         const response = await fetch(`${API_URL}/api/laboratories/my-analyses`, {
+          credentials: 'include',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           }
         });
         if (response.ok) {
