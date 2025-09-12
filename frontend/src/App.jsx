@@ -16,7 +16,9 @@ import Footer from './components/Footer';
 import Pacientet from './components/Pacientet';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserSimple from './components/UserSimple';
-
+import AnalysisRequestForm from './components/AnalysisRequestForm';
+import MyAnalyses from './components/MyAnalyses';
+import LaboratoriesList from './components/LaboratoriesList';
 // ====== Dashboard imports ======
 
 import { ScrollToTop } from './dashboard/components/common/ScrollToTop';
@@ -62,7 +64,9 @@ const App = () => {
         <Route path="/appointment/:docId" element={<ProtectedRoute><Appointment /></ProtectedRoute>} />
         <Route path="/pacientet" element={<ProtectedRoute><Pacientet /></ProtectedRoute>} />
         <Route path="/usersimple" element={<ProtectedRoute><UserSimple /></ProtectedRoute>} />
-
+        <Route path="/laboratories" element={<LaboratoriesList />} />
+        <Route path="/laboratory/:labId/request" element={<AnalysisRequestForm />} />
+        <Route path="/my-analyses" element={<MyAnalyses />} />
         {/* =================== DASHBOARD (ADMIN) =================== */}
         <Route
           path="/dashboard"
