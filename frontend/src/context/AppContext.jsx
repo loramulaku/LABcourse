@@ -9,9 +9,25 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     fetch(`${API_URL}/api/doctors`)
-      .then((res) => res.json())
-      .then((data) => setDoctors(data))
-      .catch((err) => console.error("❌ Gabim duke marrë doktorët:", err));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setDoctors(data);
+        } else {
+          console.warn("Doctors data is not an array:", data);
+          setDoctors([]);
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Gabim duke marrë doktorët:", err);
+        setDoctors([]); // Set empty array on error
+      });
   }, []);
 
   return (

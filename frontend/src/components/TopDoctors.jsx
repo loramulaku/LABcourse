@@ -10,11 +10,14 @@ const TopDoctors = () => {
   const itemsPerPage = 8;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil((doctors?.length || 0) / itemsPerPage)), [doctors]);
-  const currentItems = useMemo(() => (doctors || []).slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  ), [doctors, currentPage]);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil((Array.isArray(doctors) ? doctors.length : 0) / itemsPerPage)), [doctors]);
+  const currentItems = useMemo(() => {
+    const doctorsArray = Array.isArray(doctors) ? doctors : [];
+    return doctorsArray.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  }, [doctors, currentPage]);
 
   const changePage = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
