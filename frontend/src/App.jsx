@@ -40,6 +40,8 @@ import BasicTableOne from './dashboard/components/tables/BasicTables/BasicTableO
 import { SidebarProvider } from './dashboard/context/SidebarContext';
 import AppLayout from './dashboard/layout/AppLayout';
 import DoctorsCrud from './dashboard/pages/DoctorsCrud.jsx';
+import AdminLaboratories from './dashboard/pages/AdminLaboratories.jsx';
+import LaboratoriesCrud from './dashboard/pages/LaboratoriesCrud.jsx';
 
 const App = () => {
   const location = useLocation(); // kjo ndjek path-in aktual
@@ -84,6 +86,8 @@ const App = () => {
           <Route path="users" element={<BasicTableOne />} />
           <Route path="blank" element={<Blank />} />
           <Route path="doctors-crud" element={<DoctorsCrud />} />
+          <Route path="add-laboratory" element={<AdminLaboratories />} />
+          <Route path="laboratories-crud" element={<LaboratoriesCrud />} />
           <Route path="form-elements" element={<FormElements />} />
           <Route path="basic-tables" element={<BasicTables />} />
           <Route path="alerts" element={<Alerts />} />

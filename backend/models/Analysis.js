@@ -14,6 +14,15 @@ class Analysis {
 
     static async createRequest(data) {
         const { user_id, analysis_type_id, laboratory_id, appointment_date, notes } = data;
+        
+        // Check if the time slot is available
+        const Laboratory = require('./Laboratory');
+        const isAvailable = await Laboratory.isTimeSlotAvailable(laboratory_id, appointment_date);
+        
+        if (!isAvailable) {
+            throw new Error('This time slot is already booked. Please choose another time.');
+        }
+        
         const [result] = await db.promise().query(
             'INSERT INTO patient_analyses (user_id, analysis_type_id, laboratory_id, appointment_date, notes) VALUES (?, ?, ?, ?, ?)',
             [user_id, analysis_type_id, laboratory_id, appointment_date, notes]

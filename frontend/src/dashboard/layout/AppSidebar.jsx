@@ -50,6 +50,8 @@ const navItems = [
     subItems: [
       { name: "Add Doctor", path: "/dashboard/blank" },
       { name: "Edit & Delete Doctors", path: "/dashboard/doctors-crud" },
+      { name: "Add Laboratory", path: "/dashboard/add-laboratory" },
+      { name: "Edit & Delete Laboratories", path: "/dashboard/laboratories-crud" },
       { name: "404 Error", path: "/dashboard/error-404" },
     ],
   },
