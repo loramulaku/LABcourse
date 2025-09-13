@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@svgr/core": "^8.1.0",
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
     "vite-plugin-svgr": "^4.5.0"
   }
