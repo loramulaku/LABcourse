@@ -56,33 +56,10 @@ class Laboratory {
         console.log('Laboratory.isTimeSlotAvailable called with:', { labId, appointmentDate });
         
         try {
-            const appointmentDateTime = new Date(appointmentDate);
-            const thirtyMinutesBefore = new Date(appointmentDateTime.getTime() - 30 * 60 * 1000);
-            const thirtyMinutesAfter = new Date(appointmentDateTime.getTime() + 30 * 60 * 1000);
-            
-            console.log('Date range:', {
-                appointment: appointmentDateTime.toISOString(),
-                before: thirtyMinutesBefore.toISOString(),
-                after: thirtyMinutesAfter.toISOString()
-            });
-            
-            // Convert to MySQL datetime format
-            const beforeMySQL = thirtyMinutesBefore.toISOString().slice(0, 19).replace('T', ' ');
-            const afterMySQL = thirtyMinutesAfter.toISOString().slice(0, 19).replace('T', ' ');
-            
-            console.log('MySQL datetime range:', { before: beforeMySQL, after: afterMySQL });
-            console.log('Original appointment date:', appointmentDate);
-            
-            const [rows] = await db.promise().query(
-                `SELECT COUNT(*) as count FROM patient_analyses 
-                 WHERE laboratory_id = ? 
-                 AND status != "cancelled"
-                 AND appointment_date BETWEEN ? AND ?`,
-                [labId, beforeMySQL, afterMySQL]
-            );
-            
-            console.log('Query result:', rows[0]);
-            return rows[0].count === 0;
+            // Use the same logic as the display method for consistency
+            const isAvailable = await this.isTimeSlotAvailableForDisplay(labId, appointmentDate);
+            console.log('Time slot available:', isAvailable);
+            return isAvailable;
         } catch (error) {
             console.error('Error in isTimeSlotAvailable:', error);
             throw error;
@@ -126,6 +103,33 @@ class Laboratory {
         const result = Array.from(blockedSlots);
         console.log(`Total blocked slots: ${result.length}`);
         return result;
+    }
+
+    // Check if a specific time slot is available (used by both frontend and backend)
+    static async isTimeSlotAvailableForDisplay(labId, slotISO) {
+        try {
+            const appointmentDateTime = new Date(slotISO);
+            const thirtyMinutesBefore = new Date(appointmentDateTime.getTime() - 30 * 60 * 1000);
+            const thirtyMinutesAfter = new Date(appointmentDateTime.getTime() + 30 * 60 * 1000);
+            
+            // Convert to MySQL datetime format
+            const beforeMySQL = thirtyMinutesBefore.toISOString().slice(0, 19).replace('T', ' ');
+            const afterMySQL = thirtyMinutesAfter.toISOString().slice(0, 19).replace('T', ' ');
+            
+            // Simple check: if any existing appointment falls within our 30-minute margin range, block this slot
+            const [rows] = await db.promise().query(
+                `SELECT COUNT(*) as count FROM patient_analyses 
+                 WHERE laboratory_id = ? 
+                 AND status != "cancelled"
+                 AND appointment_date BETWEEN ? AND ?`,
+                [labId, beforeMySQL, afterMySQL]
+            );
+            
+            return rows[0].count === 0;
+        } catch (error) {
+            console.error('Error in isTimeSlotAvailableForDisplay:', error);
+            return false; // If there's an error, consider it unavailable
+        }
     }
 
     // Check if a date is fully booked (all time slots blocked)

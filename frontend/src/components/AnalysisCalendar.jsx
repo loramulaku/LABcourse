@@ -75,7 +75,6 @@ const AnalysisCalendar = ({ labId, selectedDate, onDateSelect, onTimeSelect }) =
       if (response.ok) {
         const slots = await response.json();
         console.log('Available slots received:', slots);
-        console.log('Sample slot:', slots[0]);
         setAvailableSlots(slots);
       }
     } catch (error) {
@@ -250,17 +249,11 @@ const AnalysisCalendar = ({ labId, selectedDate, onDateSelect, onTimeSelect }) =
                     p-3 text-sm rounded-lg transition-all duration-200 border-2
                     ${slot.isAvailable
                       ? 'bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer border-green-300 hover:border-green-400'
-                      : 'bg-red-100 text-red-600 cursor-not-allowed border-red-300 opacity-75'
+                      : 'bg-red-500 text-white cursor-not-allowed border-red-500'
                     }
                   `}
                 >
                   {slot.displayTime}
-                  {!slot.isAvailable && (
-                    <div className="text-xs text-red-500 mt-1 font-medium">❌ Booked</div>
-                  )}
-                  {slot.isAvailable && (
-                    <div className="text-xs text-green-600 mt-1 font-medium">✅ Available</div>
-                  )}
                 </button>
               ))}
             </div>
@@ -283,26 +276,6 @@ const AnalysisCalendar = ({ labId, selectedDate, onDateSelect, onTimeSelect }) =
           )}
         </div>
       )}
-
-      {/* Legend */}
-      <div className="mt-6 pt-4 border-t">
-        <div className="flex items-center justify-center space-x-6 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
-            <span className="text-gray-600">✅ Available Time Slots</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
-            <span className="text-gray-600">❌ Booked Time Slots</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-100 rounded relative">
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-red-500 rounded-full"></div>
-            </div>
-            <span className="text-gray-600">Fully Booked Day</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

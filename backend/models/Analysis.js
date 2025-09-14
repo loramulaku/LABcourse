@@ -24,6 +24,10 @@ class Analysis {
         
         console.log('Validating time slot availability...');
         
+        // Convert ISO datetime to MySQL datetime format (YYYY-MM-DD HH:MM:SS)
+        const mysqlDateTime = new Date(appointment_date).toISOString().slice(0, 19).replace('T', ' ');
+        console.log('Converted datetime for MySQL:', mysqlDateTime);
+        
         // Check if the time slot is available
         const Laboratory = require('./Laboratory');
         const isAvailable = await Laboratory.isTimeSlotAvailable(laboratory_id, appointment_date);
@@ -36,17 +40,42 @@ class Analysis {
         
         console.log('Inserting analysis request into database...');
         
-        // Convert ISO datetime to MySQL datetime format (YYYY-MM-DD HH:MM:SS)
-        const mysqlDateTime = new Date(appointment_date).toISOString().slice(0, 19).replace('T', ' ');
-        console.log('Converted datetime for MySQL:', mysqlDateTime);
+        // Use a transaction to prevent race conditions
+        const connection = await db.promise().getConnection();
         
-        const [result] = await db.promise().query(
-            'INSERT INTO patient_analyses (user_id, analysis_type_id, laboratory_id, appointment_date, notes) VALUES (?, ?, ?, ?, ?)',
-            [user_id, analysis_type_id, laboratory_id, mysqlDateTime, notes]
-        );
-        
-        console.log('Analysis request created with ID:', result.insertId);
-        return result.insertId;
+        try {
+            await connection.beginTransaction();
+            
+            // Double-check availability within the transaction
+            const [checkRows] = await connection.query(
+                `SELECT COUNT(*) as count FROM patient_analyses 
+                 WHERE laboratory_id = ? 
+                 AND status != "cancelled"
+                 AND appointment_date = ?`,
+                [laboratory_id, mysqlDateTime]
+            );
+            
+            if (checkRows[0].count > 0) {
+                await connection.rollback();
+                throw new Error('TIME_SLOT_BOOKED');
+            }
+            
+            // Insert the new request
+            const [result] = await connection.query(
+                'INSERT INTO patient_analyses (user_id, analysis_type_id, laboratory_id, appointment_date, notes) VALUES (?, ?, ?, ?, ?)',
+                [user_id, analysis_type_id, laboratory_id, mysqlDateTime, notes]
+            );
+            
+            await connection.commit();
+            console.log('Analysis request created with ID:', result.insertId);
+            return result.insertId;
+            
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
     }
 
     static async getPatientAnalyses(userId) {
