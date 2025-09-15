@@ -12,7 +12,11 @@ const Navbar = () => {
 
   // Fetch user profile info for navbar
   const fetchUserInfo = async () => {
-    if (!token) return;
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      setToken(false);
+      return;
+    }
     
     try {
       setLoading(true);
@@ -21,7 +25,16 @@ const Navbar = () => {
       setUserInfo(data);
     } catch (err) {
       console.error('Error fetching user info:', err);
-      // Fallback to default values
+      // If 401/403, user is not authenticated, clear token
+      if (err.status === 401 || err.status === 403) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('role');
+        setToken(false);
+        setRole(null);
+        setUserInfo(null);
+        return;
+      }
+      // Fallback to default values for other errors
       setUserInfo({
         profilePhoto: '/uploads/avatars/default.png',
         name: 'User',

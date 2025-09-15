@@ -1,117 +1,139 @@
 import TopDoctors from '../components/TopDoctors';
+import AppointmentConfirmation from '../components/AppointmentConfirmation';
 import { toast } from 'react-toastify';
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets';
-import { API_URL } from '../api';
+import { API_URL, getAccessToken } from '../api';
 
 
 const Appointment = () => {
   const { docId } = useParams();
   const navigate = useNavigate();
-  const { doctors, currencySymbol } = useContext(AppContext);
+  const { doctors } = useContext(AppContext);
   const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   const [docInfo, setDocInfo] = useState(null);
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedDateTime, setSelectedDateTime] = useState(null);
 
   const fetchDocInfo = async () => {
-    // Try to find in context list first for basic fields
-    const basic = doctors.find(doc => String(doc.id) === String(docId));
-    if (basic) setDocInfo(basic);
-    // Always fetch full details from backend to avoid static fields
     try {
+      setLoading(true);
+      // Try to find in context list first for basic fields
+      const basic = doctors.find(doc => String(doc.id) === String(docId));
+      if (basic) setDocInfo(basic);
+      
+      // Always fetch full details from backend to avoid static fields
       const res = await fetch(`${API_URL}/api/doctors/${docId}`);
       if (res.ok) {
         const full = await res.json();
         setDocInfo(full);
+      } else {
+        toast.error('Failed to load doctor information');
       }
-    } catch {}
+    } catch (error) {
+      console.error('Error fetching doctor info:', error);
+      toast.error('Failed to load doctor information');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getAvailableSlots = () => {
     setDocSlots([]);
-    let today = new Date();
+    const today = new Date();
+    const slots = [];
 
     for (let i = 0; i < 7; i++) {
-      let currentDate = new Date(today);
+      const currentDate = new Date(today);
       currentDate.setDate(today.getDate() + i);
-
-      let endTime = new Date(today);
-      endTime.setDate(today.getDate() + i);
+      
+      // Set start and end times for the day
+      const startTime = new Date(currentDate);
+      const endTime = new Date(currentDate);
+      
+      if (i === 0) {
+        // For today, start from next hour if it's before 10 AM, otherwise from current hour + 1
+        const now = new Date();
+        if (now.getHours() < 10) {
+          startTime.setHours(10, 0, 0, 0);
+        } else {
+          startTime.setHours(now.getHours() + 1, 0, 0, 0);
+        }
+      } else {
+        startTime.setHours(10, 0, 0, 0);
+      }
+      
       endTime.setHours(21, 0, 0, 0);
 
-      if (today.getDate() === currentDate.getDate()) {
-        currentDate.setHours(currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10);
-        currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0);
-      } else {
-        currentDate.setHours(10);
-        currentDate.setMinutes(0);
-      }
-
-      let timeSlots = [];
-      while (currentDate < endTime) {
-        let formattedTime = currentDate.toLocaleTimeString([], {
+      const timeSlots = [];
+      const slotTime = new Date(startTime);
+      
+      while (slotTime < endTime) {
+        const formattedTime = slotTime.toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
         });
 
         timeSlots.push({
-          datetime: new Date(currentDate),
+          datetime: new Date(slotTime),
           time: formattedTime,
         });
 
-        currentDate.setMinutes(currentDate.getMinutes() + 30);
+        slotTime.setMinutes(slotTime.getMinutes() + 30);
       }
 
-      setDocSlots((prev) => [...prev, timeSlots]);
+      slots.push(timeSlots);
     }
+    
+    setDocSlots(slots);
   };
 
-  const bookAppointment = async () => {
+  const proceedToConfirmation = () => {
+    // Check if user is logged in
+    const token = getAccessToken();
+    if (!token) {
+      toast.error("Please log in to book an appointment.");
+      navigate('/login');
+      return;
+    }
+
     if (!slotTime) {
       toast.error("Please select a time slot before booking.");
       return;
     }
-    try {
-      // Build scheduled_for ISO from selected day index and slotTime string
-      const daySlots = docSlots[slotIndex];
-      if (!daySlots || daySlots.length === 0) return;
-      const chosen = daySlots.find(s => s.time === slotTime);
-      const scheduledISO = chosen?.datetime?.toISOString();
-      if (!scheduledISO) return;
 
-      const res = await fetch(`${API_URL}/api/appointments/create-checkout-session`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({
-          doctor_id: Number(docId),
-          scheduled_for: scheduledISO,
-          reason: 'Online booking',
-        }),
-      });
-      if (!res.ok) {
-        const e = await res.json().catch(() => ({}));
-        if (e.error === 'TIME_SLOT_BOOKED') toast.error('That time slot was just booked. Pick another.');
-        else toast.error(e.error || 'Failed to start checkout');
-        return;
-      }
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast.error('No checkout url received.');
-      }
-    } catch (err) {
-      toast.error('Network error.');
+    // Build scheduled_for from selected day index and slotTime string
+    const daySlots = docSlots[slotIndex];
+    if (!daySlots || daySlots.length === 0) {
+      toast.error("No time slots available for the selected date.");
+      return;
     }
+    
+    const chosen = daySlots.find(s => s.time === slotTime);
+    if (!chosen) {
+      toast.error("Selected time slot is no longer available.");
+      return;
+    }
+    
+    setSelectedDateTime(chosen.datetime);
+    setShowConfirmation(true);
+  };
+
+  const handleBookingSuccess = () => {
+    toast.success('Appointment booked successfully!');
+    navigate('/my-appointments');
+  };
+
+  const handleBackToTimeSelection = () => {
+    setShowConfirmation(false);
+    setSelectedDateTime(null);
   };
 
   useEffect(() => {
@@ -126,8 +148,46 @@ const Appointment = () => {
     }
   }, [docInfo]);
 
+  if (loading && !docInfo) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading doctor information...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!docInfo) {
-    return <p style={{ textAlign: 'center', marginTop: '2rem' }}>Loading doctor information...</p>;
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 text-lg">Failed to load doctor information</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show confirmation form if user has selected a time slot
+  if (showConfirmation && selectedDateTime && docInfo) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <AppointmentConfirmation
+          doctor={docInfo}
+          selectedDate={selectedDateTime}
+          selectedTime={selectedDateTime}
+          onBack={handleBackToTimeSelection}
+          onSuccess={handleBookingSuccess}
+        />
+      </div>
+    );
   }
 
   return (
@@ -211,10 +271,15 @@ const Appointment = () => {
 
       {/* Butoni */}
       <button
-        onClick={bookAppointment}
-        className="bg-blue-600 text-white text-sm font-light px-20 py-3 rounded-full my-8 hover:bg-blue-700 transition-colors duration-300"
-        >
-        Book an appointment
+        onClick={proceedToConfirmation}
+        disabled={!slotTime}
+        className={`text-sm font-light px-20 py-3 rounded-full my-8 transition-colors duration-300 ${
+          !slotTime
+            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+            : 'bg-blue-600 text-white hover:bg-blue-700'
+        }`}
+      >
+        Continue to Booking
       </button>
      </div>
 

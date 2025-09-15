@@ -56,25 +56,31 @@ app.use('/uploads', express.static(uploadsDir));
 const db = require('./db');
 const ensureTables = async () => {
   try {
+    // Create appointments table with proper structure
     await db.promise().query(`
-      CREATE TABLE IF NOT EXISTS doctor_appointments (
+      CREATE TABLE IF NOT EXISTS appointments (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         doctor_id INT NOT NULL,
         scheduled_for DATETIME NOT NULL,
         reason VARCHAR(500) NOT NULL,
+        phone VARCHAR(20),
+        notes TEXT,
         status ENUM('PENDING','CONFIRMED','DECLINED','CANCELLED') DEFAULT 'PENDING',
         stripe_session_id VARCHAR(255),
         payment_status ENUM('unpaid','paid','refunded') DEFAULT 'unpaid',
+        amount DECIMAL(10,2) DEFAULT 20.00,
+        currency VARCHAR(3) DEFAULT 'EUR',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         UNIQUE KEY uniq_doctor_time (doctor_id, scheduled_for),
-        CONSTRAINT fk_appt_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        CONSTRAINT fk_appt_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        CONSTRAINT fk_appt_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
-    console.log('✅ Ensured doctor_appointments table');
+    console.log('✅ Ensured appointments table');
   } catch (e) {
-    console.error('❌ Failed to ensure doctor_appointments table', e);
+    console.error('❌ Failed to ensure appointments table', e);
   }
 };
 

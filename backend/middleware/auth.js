@@ -9,6 +9,11 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ error: "Nuk ka token, login ose refresh" });
   }
 
+  if (!process.env.JWT_SECRET) {
+    console.error('JWT_SECRET not set in environment variables');
+    return res.status(500).json({ error: "Server configuration error" });
+  }
+
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ error: "Token i pavlefshëm ose skadoi" });

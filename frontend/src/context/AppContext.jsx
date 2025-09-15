@@ -6,16 +6,18 @@ export { AppContext };
 
 export const AppProvider = ({ children }) => {
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/doctors`)
-      .then((res) => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/doctors`);
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        return res.json();
-      })
-      .then((data) => {
+        const data = await res.json();
+        
         // Ensure data is an array
         if (Array.isArray(data)) {
           setDoctors(data);
@@ -23,15 +25,23 @@ export const AppProvider = ({ children }) => {
           console.warn("Doctors data is not an array:", data);
           setDoctors([]);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("❌ Gabim duke marrë doktorët:", err);
         setDoctors([]); // Set empty array on error
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
   }, []);
 
   return (
-    <AppContext.Provider value={{ doctors }}>
+    <AppContext.Provider value={{ 
+      doctors, 
+      loading, 
+      currencySymbol: '€' // Default currency symbol
+    }}>
       {children}
     </AppContext.Provider>
   );
