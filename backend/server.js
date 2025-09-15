@@ -32,6 +32,10 @@ app.use(cookieParser());
 const laboratoryRoutes = require('./routes/laboratoryRoutes');
 app.use('/api/laboratories', laboratoryRoutes);
 
+// Appointments routes (doctor bookings + Stripe)
+const appointmentsRoutes = require('./routes/appointments');
+app.use('/api/appointments', appointmentsRoutes);
+
 // Rrugët kryesore
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
@@ -47,6 +51,34 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsDir));
+
+// Ensure SQL tables for doctor appointments exist
+const db = require('./db');
+const ensureTables = async () => {
+  try {
+    await db.promise().query(`
+      CREATE TABLE IF NOT EXISTS doctor_appointments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        doctor_id INT NOT NULL,
+        scheduled_for DATETIME NOT NULL,
+        reason VARCHAR(500) NOT NULL,
+        status ENUM('PENDING','CONFIRMED','DECLINED','CANCELLED') DEFAULT 'PENDING',
+        stripe_session_id VARCHAR(255),
+        payment_status ENUM('unpaid','paid','refunded') DEFAULT 'unpaid',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_doctor_time (doctor_id, scheduled_for),
+        CONSTRAINT fk_appt_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ Ensured doctor_appointments table');
+  } catch (e) {
+    console.error('❌ Failed to ensure doctor_appointments table', e);
+  }
+};
+
+ensureTables();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server po punon në portën ${PORT}`));

@@ -1,7 +1,7 @@
 import TopDoctors from '../components/TopDoctors';
 import { toast } from 'react-toastify';
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets';
 import { API_URL } from '../api';
@@ -9,6 +9,7 @@ import { API_URL } from '../api';
 
 const Appointment = () => {
   const { docId } = useParams();
+  const navigate = useNavigate();
   const { doctors, currencySymbol } = useContext(AppContext);
   const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
@@ -70,12 +71,47 @@ const Appointment = () => {
     }
   };
 
-  const bookAppointment = () => {
+  const bookAppointment = async () => {
     if (!slotTime) {
       toast.error("Please select a time slot before booking.");
       return;
     }
-    toast.success("Takimi u rezervua me sukses!");
+    try {
+      // Build scheduled_for ISO from selected day index and slotTime string
+      const daySlots = docSlots[slotIndex];
+      if (!daySlots || daySlots.length === 0) return;
+      const chosen = daySlots.find(s => s.time === slotTime);
+      const scheduledISO = chosen?.datetime?.toISOString();
+      if (!scheduledISO) return;
+
+      const res = await fetch(`${API_URL}/api/appointments/create-checkout-session`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({
+          doctor_id: Number(docId),
+          scheduled_for: scheduledISO,
+          reason: 'Online booking',
+        }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        if (e.error === 'TIME_SLOT_BOOKED') toast.error('That time slot was just booked. Pick another.');
+        else toast.error(e.error || 'Failed to start checkout');
+        return;
+      }
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error('No checkout url received.');
+      }
+    } catch (err) {
+      toast.error('Network error.');
+    }
   };
 
   useEffect(() => {

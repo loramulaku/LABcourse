@@ -13,6 +13,8 @@ import MyProfile from './pages/MyProfile';
 import MyAppointments from './pages/MyAppointments';
 import Appointment from './pages/Appointment';
 import Footer from './components/Footer';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancelled from './pages/PaymentCancelled';
 import Pacientet from './components/Pacientet';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserSimple from './components/UserSimple';
@@ -69,6 +71,8 @@ const App = () => {
         <Route path="/laboratories" element={<LaboratoriesList />} />
         <Route path="/laboratory/:labId/request" element={<AnalysisRequestForm />} />
         <Route path="/my-analyses" element={<MyAnalyses />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
         {/* =================== DASHBOARD (ADMIN) =================== */}
         <Route
           path="/dashboard"

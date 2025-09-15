@@ -64,7 +64,7 @@ const AnalysisRequestForm = () => {
       if (response.ok) {
         navigate('/my-analyses');
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error('Server error response:', errorData);
         
         if (errorData.error === 'TIME_SLOT_BOOKED') {

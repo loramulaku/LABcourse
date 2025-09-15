@@ -51,7 +51,7 @@ class Laboratory {
         return rows.map(row => row.booked_time);
     }
 
-    // Check if a specific date/time is available with 30-minute margin
+    // Check if a specific date/time is available (reserve exact 30-minute slot only)
     static async isTimeSlotAvailable(labId, appointmentDate) {
         console.log('Laboratory.isTimeSlotAvailable called with:', { labId, appointmentDate });
         
@@ -66,10 +66,9 @@ class Laboratory {
         }
     }
 
-    // Get all time slots with 30-minute margins for a specific date
+    // Get all booked time slots for a specific date (no margins)
     static async getTimeSlotsWithMargins(labId, date) {
-        console.log(`Getting time slots with margins for lab ${labId} on date ${date}`);
-        
+        console.log(`Getting booked time slots for lab ${labId} on date ${date}`);
         const [rows] = await db.promise().query(
             `SELECT appointment_date FROM patient_analyses 
              WHERE laboratory_id = ? 
@@ -78,53 +77,23 @@ class Laboratory {
              ORDER BY appointment_date`,
             [labId, date]
         );
-        
-        console.log(`Found ${rows.length} existing bookings for this date`);
-        
-        const bookedSlots = rows.map(row => new Date(row.appointment_date));
-        const blockedSlots = new Set();
-        
-        // Add 30-minute margins around each booked slot
-        bookedSlots.forEach(slot => {
-            const thirtyMinutesBefore = new Date(slot.getTime() - 30 * 60 * 1000);
-            const thirtyMinutesAfter = new Date(slot.getTime() + 30 * 60 * 1000);
-            
-            blockedSlots.add(thirtyMinutesBefore.toISOString());
-            blockedSlots.add(slot.toISOString());
-            blockedSlots.add(thirtyMinutesAfter.toISOString());
-            
-            console.log(`Blocked slots around ${slot.toISOString()}:`, {
-                before: thirtyMinutesBefore.toISOString(),
-                slot: slot.toISOString(),
-                after: thirtyMinutesAfter.toISOString()
-            });
-        });
-        
-        const result = Array.from(blockedSlots);
-        console.log(`Total blocked slots: ${result.length}`);
-        return result;
+        const booked = rows.map(row => new Date(row.appointment_date).toISOString());
+        console.log(`Booked slots (exact only): ${booked.length}`);
+        return booked;
     }
 
-    // Check if a specific time slot is available (used by both frontend and backend)
+    // Check if a specific time slot is available (exact 30-minute slot only)
     static async isTimeSlotAvailableForDisplay(labId, slotISO) {
         try {
             const appointmentDateTime = new Date(slotISO);
-            const thirtyMinutesBefore = new Date(appointmentDateTime.getTime() - 30 * 60 * 1000);
-            const thirtyMinutesAfter = new Date(appointmentDateTime.getTime() + 30 * 60 * 1000);
-            
-            // Convert to MySQL datetime format
-            const beforeMySQL = thirtyMinutesBefore.toISOString().slice(0, 19).replace('T', ' ');
-            const afterMySQL = thirtyMinutesAfter.toISOString().slice(0, 19).replace('T', ' ');
-            
-            // Simple check: if any existing appointment falls within our 30-minute margin range, block this slot
+            const mysqlDateTime = appointmentDateTime.toISOString().slice(0, 19).replace('T', ' ');
             const [rows] = await db.promise().query(
                 `SELECT COUNT(*) as count FROM patient_analyses 
                  WHERE laboratory_id = ? 
                  AND status != "cancelled"
-                 AND appointment_date BETWEEN ? AND ?`,
-                [labId, beforeMySQL, afterMySQL]
+                 AND appointment_date = ?`,
+                [labId, mysqlDateTime]
             );
-            
             return rows[0].count === 0;
         } catch (error) {
             console.error('Error in isTimeSlotAvailableForDisplay:', error);
@@ -132,9 +101,9 @@ class Laboratory {
         }
     }
 
-    // Check if a date is fully booked (all time slots blocked)
+    // Check if a date is fully booked (all time slots booked)
     static async isDateFullyBooked(labId, date) {
-        const timeSlots = await this.getTimeSlotsWithMargins(labId, date);
+        const bookedSlots = await this.getTimeSlotsWithMargins(labId, date);
         
         // Generate all possible 30-minute slots for the day (8 AM to 6 PM)
         const allPossibleSlots = [];
@@ -143,13 +112,13 @@ class Laboratory {
         
         for (let hour = startHour; hour < endHour; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
-                const slotTime = new Date(date + `T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`);
+                const slotTime = new Date(date + `T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00Z`);
                 allPossibleSlots.push(slotTime.toISOString());
             }
         }
         
-        // Check if all slots are blocked
-        return allPossibleSlots.every(slot => timeSlots.includes(slot));
+        // Check if all slots are booked exactly
+        return allPossibleSlots.every(slot => bookedSlots.includes(slot));
     }
 }
 
