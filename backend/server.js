@@ -56,29 +56,99 @@ app.use('/uploads', express.static(uploadsDir));
 const db = require('./db');
 const ensureTables = async () => {
   try {
-    // Create appointments table with proper structure
-    await db.promise().query(`
-      CREATE TABLE IF NOT EXISTS appointments (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        doctor_id INT NOT NULL,
-        scheduled_for DATETIME NOT NULL,
-        reason VARCHAR(500) NOT NULL,
-        phone VARCHAR(20),
-        notes TEXT,
-        status ENUM('PENDING','CONFIRMED','DECLINED','CANCELLED') DEFAULT 'PENDING',
-        stripe_session_id VARCHAR(255),
-        payment_status ENUM('unpaid','paid','refunded') DEFAULT 'unpaid',
-        amount DECIMAL(10,2) DEFAULT 20.00,
-        currency VARCHAR(3) DEFAULT 'EUR',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY uniq_doctor_time (doctor_id, scheduled_for),
-        CONSTRAINT fk_appt_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        CONSTRAINT fk_appt_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    // Check if appointments table exists
+    const [tables] = await db.promise().query(`
+      SELECT TABLE_NAME 
+      FROM information_schema.TABLES 
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'appointments'
     `);
-    console.log('✅ Ensured appointments table');
+    
+    if (tables.length === 0) {
+      // Create appointments table with proper structure
+      await db.promise().query(`
+        CREATE TABLE appointments (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          doctor_id INT NOT NULL,
+          scheduled_for DATETIME NOT NULL,
+          reason VARCHAR(500) NOT NULL,
+          phone VARCHAR(20),
+          notes TEXT,
+          status ENUM('PENDING','CONFIRMED','DECLINED','CANCELLED') DEFAULT 'PENDING',
+          stripe_session_id VARCHAR(255),
+          payment_status ENUM('unpaid','paid','refunded') DEFAULT 'unpaid',
+          amount DECIMAL(10,2) DEFAULT 20.00,
+          currency VARCHAR(3) DEFAULT 'EUR',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          UNIQUE KEY uniq_doctor_time (doctor_id, scheduled_for),
+          CONSTRAINT fk_appointments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          CONSTRAINT fk_appointments_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+      console.log('✅ Created appointments table');
+    } else {
+      console.log('✅ Appointments table already exists');
+      
+      // Table exists, check if it has the required columns
+      const [columns] = await db.promise().query(`
+        SELECT COLUMN_NAME 
+        FROM information_schema.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'appointments'
+      `);
+      
+      const columnNames = columns.map(col => col.COLUMN_NAME);
+      const requiredColumns = ['id', 'user_id', 'doctor_id', 'scheduled_for', 'reason', 'status', 'payment_status', 'amount'];
+      
+      const missingColumns = requiredColumns.filter(col => !columnNames.includes(col));
+      
+      if (missingColumns.length > 0) {
+        console.log('⚠️  Appointments table exists but missing columns:', missingColumns);
+        // Add missing columns if needed
+        for (const col of missingColumns) {
+          try {
+            let alterQuery = '';
+            switch (col) {
+              case 'status':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN status ENUM('PENDING','CONFIRMED','DECLINED','CANCELLED') DEFAULT 'PENDING'`;
+                break;
+              case 'payment_status':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN payment_status ENUM('unpaid','paid','refunded') DEFAULT 'unpaid'`;
+                break;
+              case 'amount':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN amount DECIMAL(10,2) DEFAULT 20.00`;
+                break;
+              case 'currency':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN currency VARCHAR(3) DEFAULT 'EUR'`;
+                break;
+              case 'stripe_session_id':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN stripe_session_id VARCHAR(255)`;
+                break;
+              case 'phone':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN phone VARCHAR(20)`;
+                break;
+              case 'notes':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN notes TEXT`;
+                break;
+              case 'created_at':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
+                break;
+              case 'updated_at':
+                alterQuery = `ALTER TABLE appointments ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`;
+                break;
+            }
+            if (alterQuery) {
+              await db.promise().query(alterQuery);
+              console.log(`✅ Added column: ${col}`);
+            }
+          } catch (err) {
+            console.log(`⚠️  Could not add column ${col}:`, err.message);
+          }
+        }
+      } else {
+        console.log('✅ All required columns present in appointments table');
+      }
+    }
   } catch (e) {
     console.error('❌ Failed to ensure appointments table', e);
   }

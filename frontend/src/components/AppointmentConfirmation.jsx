@@ -74,14 +74,28 @@ const AppointmentConfirmation = ({
       }
 
       const data = await res.json();
+      console.log('Appointment response:', data);
+      
       if (data.url) {
         // Redirect to Stripe checkout
+        console.log('Redirecting to Stripe checkout:', data.url);
+        toast.info('Redirecting to payment...');
         window.location.href = data.url;
       } else if (data.status === 'confirmed') {
         // Appointment confirmed directly (no payment required)
-        toast.success('Appointment booked successfully!');
+        console.log('Appointment confirmed directly');
+        if (data.payment_required === false) {
+          toast.success('Appointment booked successfully! Payment not required.');
+        } else {
+          toast.success('Appointment booked successfully!');
+        }
+        // Redirect to appointments page after successful booking
+        setTimeout(() => {
+          window.location.href = '/my-appointments';
+        }, 1500);
         onSuccess();
       } else {
+        console.error('Unexpected response:', data);
         toast.error('No checkout URL received from server.');
       }
     } catch (err) {
@@ -208,7 +222,7 @@ const AppointmentConfirmation = ({
                 <span>Processing...</span>
               </div>
             ) : (
-              `Proceed to Payment - €${doctor.fees || '20.00'}`
+              `Book Appointment - €${doctor.fees || '20.00'}`
             )}
           </button>
         </div>

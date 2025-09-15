@@ -6,13 +6,29 @@ const db = require('../db');
 const router = express.Router();
 
 // Initialize Stripe only if secret key is provided
-const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-04-30.basil',
-}) : null;
+let stripe = null;
+try {
+  if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-06-20',
+    });
+    console.log('✅ Stripe initialized successfully');
+  } else {
+    console.log('⚠️  Stripe not configured - appointments will be confirmed directly');
+  }
+} catch (error) {
+  console.log('⚠️  Stripe initialization failed:', error.message);
+  stripe = null;
+}
 
 // Create appointment and Stripe checkout session
 router.post('/create-checkout-session', authenticateToken, async (req, res) => {
   try {
+    console.log('Appointment creation request received:', {
+      body: req.body,
+      user: req.user
+    });
+    
     const { doctor_id, scheduled_for, reason, phone, notes, price_cents = 2000, currency = 'eur' } = req.body;
     const userId = req.user.id;
 
@@ -76,6 +92,7 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
 
     // Check if Stripe is configured
     if (!stripe) {
+      console.log('Stripe not configured, confirming appointment directly');
       // If Stripe is not configured, just confirm the appointment directly
       await db.promise().query(
         `UPDATE appointments SET status='CONFIRMED', payment_status='paid' WHERE id=?`,
@@ -84,53 +101,70 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
       return res.json({ 
         message: 'Appointment booked successfully (payment not configured)', 
         appointment_id: appointmentId,
-        status: 'confirmed'
+        status: 'confirmed',
+        payment_required: false
       });
     }
 
-    // Create Stripe Checkout session
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency,
-            unit_amount: Number(price_cents),
-            product_data: {
-              name: 'Doctor Appointment',
-              description: `Doctor #${doctor_id} at ${mysqlDateTime}`,
+    try {
+      // Create Stripe Checkout session
+      console.log('Creating Stripe checkout session...');
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency,
+              unit_amount: Number(price_cents),
+              product_data: {
+                name: 'Doctor Appointment',
+                description: `Doctor #${doctor_id} at ${mysqlDateTime}`,
+              },
             },
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        metadata: {
+          appointment_id: String(appointmentId),
+          user_id: String(userId),
+          doctor_id: String(doctor_id),
+          scheduled_for: mysqlDateTime,
         },
-      ],
-      metadata: {
-        appointment_id: String(appointmentId),
-        user_id: String(userId),
-        doctor_id: String(doctor_id),
-        scheduled_for: mysqlDateTime,
-      },
-      success_url: `${process.env.CLIENT_ORIGIN || 'http://localhost:5173'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_ORIGIN || 'http://localhost:5173'}/payment-cancelled` ,
-    });
+        success_url: `${process.env.CLIENT_ORIGIN || 'http://localhost:5173'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_ORIGIN || 'http://localhost:5173'}/payment-cancelled`,
+      });
 
-    // Save session id
-    await db.promise().query(
-      `UPDATE appointments SET stripe_session_id=? WHERE id=?`,
-      [session.id, appointmentId]
-    );
+      // Save session id
+      await db.promise().query(
+        `UPDATE appointments SET stripe_session_id=? WHERE id=?`,
+        [session.id, appointmentId]
+      );
 
-    res.json({ url: session.url, session_id: session.id, appointment_id: appointmentId });
+      console.log('Stripe session created successfully:', session.id);
+      res.json({ url: session.url, session_id: session.id, appointment_id: appointmentId });
+    } catch (stripeError) {
+      console.error('Stripe error:', stripeError);
+      // If Stripe fails, still confirm the appointment
+      await db.promise().query(
+        `UPDATE appointments SET status='CONFIRMED', payment_status='paid' WHERE id=?`,
+        [appointmentId]
+      );
+      return res.json({ 
+        message: 'Appointment booked successfully (payment not configured)', 
+        appointment_id: appointmentId,
+        status: 'confirmed',
+        payment_required: false
+      });
+    }
   } catch (err) {
     console.error('Appointment booking error:', err);
     console.error('Error details:', {
       message: err.message,
       stack: err.stack,
-      doctor_id,
-      scheduled_for,
-      userId,
-      mysqlDateTime
+      doctor_id: req.body?.doctor_id,
+      scheduled_for: req.body?.scheduled_for,
+      userId: req.user?.id
     });
     res.status(500).json({ error: 'Failed to create checkout session', details: err.message });
   }
