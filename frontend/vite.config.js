@@ -21,4 +21,27 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Enable code splitting
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate vendor libraries
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          // Separate UI libraries
+          ui: ['@fullcalendar/react', 'react-toastify', 'swiper'],
+          // Separate chart libraries
+          charts: ['apexcharts', 'react-apexcharts'],
+        },
+      },
+    },
+    // Enable source maps for better debugging
+    sourcemap: true,
+    // Optimize chunk size
+    chunkSizeWarningLimit: 1000,
+  },
+  // Performance optimizations
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+  },
 })

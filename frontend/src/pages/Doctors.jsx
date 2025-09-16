@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import { useNavigate, useParams } from 'react-router-dom'
+import LazyImage from '../components/LazyImage'
 
 const Doctors = () => {
 
@@ -40,7 +41,13 @@ const Doctors = () => {
         <div className='w-full grid gap-y-6 gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
           {filterDoc.map((item, index) => (
             <div onClick={() => { navigate(`/appointment/${item.id}`); scrollTo(0, 0) }} className='border border-[#C9D8FF] rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500' key={index}>
-              <img className='bg-[#EAEFFF]' src={item?.image?.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${item?.image || ''}` } alt="" onError={(e)=>{ e.currentTarget.src = '/vite.svg'; }} />
+              <LazyImage 
+                className='bg-[#EAEFFF] w-full h-48 object-cover' 
+                src={item?.image?.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${item?.image || ''}`} 
+                alt={`Dr. ${item.name}`}
+                fallbackSrc='/vite.svg'
+                placeholder={<div className="text-gray-400">👨‍⚕️</div>}
+              />
               <div className='p-4'>
                 <div className={`flex items-center gap-2 text-sm text-center ${item.available ? 'text-green-500' : "text-gray-500"}`}>
                   <p className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : "bg-gray-500"}`}></p><p>{item.available ? 'Available' : "Not Available"}</p>

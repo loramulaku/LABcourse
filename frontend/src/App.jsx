@@ -1,59 +1,74 @@
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Doctors from './pages/Doctors';
-import Login from './pages/Login';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import MyProfile from './pages/MyProfile';
-import MyAppointments from './pages/MyAppointments';
-import Appointment from './pages/Appointment';
 import Footer from './components/Footer';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentCancelled from './pages/PaymentCancelled';
-import Pacientet from './components/Pacientet';
 import ProtectedRoute from './components/ProtectedRoute';
-import UserSimple from './components/UserSimple';
-import AnalysisRequestForm from './components/AnalysisRequestForm';
-import MyAnalyses from './components/MyAnalyses';
-import LaboratoriesList from './components/LaboratoriesList';
-// ====== Dashboard imports ======
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy load pages for better performance
+const Home = React.lazy(() => import('./pages/Home'));
+const Doctors = React.lazy(() => import('./pages/Doctors'));
+const Login = React.lazy(() => import('./pages/Login'));
+const About = React.lazy(() => import('./pages/About'));
+const Contact = React.lazy(() => import('./pages/Contact'));
+const MyProfile = React.lazy(() => import('./pages/MyProfile'));
+const MyAppointments = React.lazy(() => import('./pages/MyAppointments'));
+const Appointment = React.lazy(() => import('./pages/Appointment'));
+const PaymentSuccess = React.lazy(() => import('./pages/PaymentSuccess'));
+const PaymentCancelled = React.lazy(() => import('./pages/PaymentCancelled'));
+const Pacientet = React.lazy(() => import('./components/Pacientet'));
+const UserSimple = React.lazy(() => import('./components/UserSimple'));
+const AnalysisRequestForm = React.lazy(() => import('./components/AnalysisRequestForm'));
+const MyAnalyses = React.lazy(() => import('./components/MyAnalyses'));
+const LaboratoriesList = React.lazy(() => import('./components/LaboratoriesList'));
+// ====== Dashboard imports (lazy loaded) ======
 
 import { ScrollToTop } from './dashboard/components/common/ScrollToTop';
-import AdminProfile from "./dashboard/pages/AdminProfile.jsx";
-import Calendar from './dashboard/pages/Calendar';
-import Blank from './dashboard/pages/Blank';
-import FormElements from './dashboard/pages/Forms/FormElements';
-import BasicTables from './dashboard/pages/Tables/BasicTables';
-import Alerts from './dashboard/pages/UiElements/Alerts';
-import Avatars from './dashboard/pages/UiElements/Avatars';
-import Badges from './dashboard/pages/UiElements/Badges';
-import Buttons from './dashboard/pages/UiElements/Buttons';
-import Images from './dashboard/pages/UiElements/Images';
-import Videos from './dashboard/pages/UiElements/Videos';
-import LineChart from './dashboard/pages/Charts/LineChart';
-import BarChart from './dashboard/pages/Charts/BarChart';
-import NotFound from './dashboard/pages/OtherPage/NotFound';
-import BasicTableOne from './dashboard/components/tables/BasicTables/BasicTableOne';
 import { SidebarProvider } from './dashboard/context/SidebarContext';
-import AppLayout from './dashboard/layout/AppLayout';
-import DoctorsCrud from './dashboard/pages/DoctorsCrud.jsx';
-import AdminLaboratories from './dashboard/pages/AdminLaboratories.jsx';
-import LaboratoriesCrud from './dashboard/pages/LaboratoriesCrud.jsx';
+
+// Lazy load dashboard components
+const AdminProfile = React.lazy(() => import('./dashboard/pages/AdminProfile.jsx'));
+const Calendar = React.lazy(() => import('./dashboard/pages/Calendar'));
+const Blank = React.lazy(() => import('./dashboard/pages/Blank'));
+const FormElements = React.lazy(() => import('./dashboard/pages/Forms/FormElements'));
+const BasicTables = React.lazy(() => import('./dashboard/pages/Tables/BasicTables'));
+const Alerts = React.lazy(() => import('./dashboard/pages/UiElements/Alerts'));
+const Avatars = React.lazy(() => import('./dashboard/pages/UiElements/Avatars'));
+const Badges = React.lazy(() => import('./dashboard/pages/UiElements/Badges'));
+const Buttons = React.lazy(() => import('./dashboard/pages/UiElements/Buttons'));
+const Images = React.lazy(() => import('./dashboard/pages/UiElements/Images'));
+const Videos = React.lazy(() => import('./dashboard/pages/UiElements/Videos'));
+const LineChart = React.lazy(() => import('./dashboard/pages/Charts/LineChart'));
+const BarChart = React.lazy(() => import('./dashboard/pages/Charts/BarChart'));
+const NotFound = React.lazy(() => import('./dashboard/pages/OtherPage/NotFound'));
+const BasicTableOne = React.lazy(() => import('./dashboard/components/tables/BasicTables/BasicTableOne'));
+const AppLayout = React.lazy(() => import('./dashboard/layout/AppLayout'));
+const DoctorsCrud = React.lazy(() => import('./dashboard/pages/DoctorsCrud.jsx'));
+const AdminLaboratories = React.lazy(() => import('./dashboard/pages/AdminLaboratories.jsx'));
+const LaboratoriesCrud = React.lazy(() => import('./dashboard/pages/LaboratoriesCrud.jsx'));
+
+// Loading component for Suspense fallback
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center min-h-[200px]">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 const App = () => {
   const location = useLocation(); // kjo ndjek path-in aktual
 
   return (
-    <div className="mx-4 sm:mx-[10%]">
-      {/* Navbar gjithmonë on top */}
-      <Navbar />
-      <ToastContainer position="top-center" autoClose={3000} />
-      <ScrollToTop />
+    <ErrorBoundary>
+      <div className="mx-4 sm:mx-[10%]">
+        {/* Navbar gjithmonë on top */}
+        <Navbar />
+        <ToastContainer position="top-center" autoClose={3000} />
+        <ScrollToTop />
+
+        <Suspense fallback={<LoadingSpinner />}>
 
       <Routes>
         {/* =================== APP NORMAL =================== */}
@@ -79,7 +94,9 @@ const App = () => {
           element={
             <ProtectedRoute requireRole="admin">
               <SidebarProvider>
-              <AppLayout /> {/* Sidebar + Outlet */}
+                <Suspense fallback={<LoadingSpinner />}>
+                  <AppLayout /> {/* Sidebar + Outlet */}
+                </Suspense>
               </SidebarProvider>
             </ProtectedRoute>
           }
@@ -108,10 +125,12 @@ const App = () => {
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+        </Suspense>
 
-      {/* Footer vetëm kur nuk je në dashboard */}
-      {!location.pathname.startsWith("/dashboard") && <Footer />}
-    </div>
+        {/* Footer vetëm kur nuk je në dashboard */}
+        {!location.pathname.startsWith("/dashboard") && <Footer />}
+      </div>
+    </ErrorBoundary>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { assets } from '../assets/assets';
 import { NavLink, useNavigate } from 'react-router-dom';
 import apiFetch from '../api';
+import LazyImage from './LazyImage';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -141,14 +142,12 @@ const Navbar = () => {
       <div className="flex items-center gap-4">
         {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">
-            <img 
-              className="w-8 rounded-full object-cover" 
+            <LazyImage 
+              className="w-8 h-8 rounded-full object-cover" 
               src={getProfilePhotoUrl()} 
               alt="Profile"
-              onError={(e) => {
-                const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-                e.target.src = `${API_URL}/uploads/avatars/default.png`;
-              }}
+              fallbackSrc={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/uploads/avatars/default.png`}
+              placeholder={<div className="w-8 h-8 rounded-full bg-gray-300 animate-pulse" />}
             />
             <img className="w-2.5" src={assets.dropdown_icon} alt="Dropdown" />
 
