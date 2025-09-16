@@ -206,11 +206,21 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   }
 });
 
-// Get my appointments
+// Get my appointments (as patient)
 router.get('/my', authenticateToken, async (req, res) => {
   try {
     const [rows] = await db.promise().query(
-      `SELECT a.*, d.speciality, u.name as doctor_name 
+      `SELECT 
+         a.*, 
+         d.speciality, 
+         u.name as doctor_name,
+         (
+           SELECT t.therapy_text 
+           FROM therapies t 
+           WHERE t.appointment_id = a.id 
+           ORDER BY t.created_at DESC 
+           LIMIT 1
+         ) AS therapy_text
        FROM appointments a 
        JOIN doctors d ON a.doctor_id = d.id 
        JOIN users u ON d.user_id = u.id 
@@ -221,6 +231,103 @@ router.get('/my', authenticateToken, async (req, res) => {
     res.json(rows);
   } catch (e) {
     res.status(500).json({ error: 'Failed to fetch appointments' });
+  }
+});
+
+// Get refused/cancelled appointments for the authenticated doctor
+router.get('/doctor/refused', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'doctor') {
+      return res.status(403).json({ error: 'Only doctors can access this resource' });
+    }
+
+    // Find doctor id by current user id
+    const [docRows] = await db.promise().query(
+      `SELECT id FROM doctors WHERE user_id = ? LIMIT 1`,
+      [req.user.id]
+    );
+    if (docRows.length === 0) {
+      return res.status(404).json({ error: 'Doctor profile not found for this user' });
+    }
+    const doctorId = docRows[0].id;
+
+    const [rows] = await db.promise().query(
+      `SELECT 
+         a.id AS appointment_id,
+         a.user_id AS patient_id,
+         a.scheduled_for,
+         a.reason,
+         a.status,
+         a.notes,
+         u.name AS patient_name,
+         u.email AS patient_email,
+         COALESCE(up.phone, '') AS patient_phone,
+         (
+           SELECT COUNT(*) FROM appointments a2
+           WHERE a2.user_id = a.user_id AND a2.doctor_id = a.doctor_id 
+             AND a2.status IN ('CANCELLED','DECLINED')
+         ) AS refusal_count
+       FROM appointments a
+       JOIN users u ON u.id = a.user_id
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE a.doctor_id = ? AND a.status IN ('CANCELLED','DECLINED')
+       ORDER BY a.scheduled_for DESC`,
+      [doctorId]
+    );
+
+    res.json(rows);
+  } catch (e) {
+    console.error('Failed to fetch refused appointments for doctor:', e);
+    res.status(500).json({ error: 'Failed to fetch refused appointments' });
+  }
+});
+
+// Submit therapy for an appointment by doctor
+router.post('/:id/therapy', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'doctor') {
+      return res.status(403).json({ error: 'Only doctors can submit therapy' });
+    }
+
+    const appointmentId = Number(req.params.id);
+    const { therapy_text } = req.body || {};
+    if (!appointmentId || !therapy_text || String(therapy_text).trim().length === 0) {
+      return res.status(400).json({ error: 'therapy_text is required' });
+    }
+
+    // Resolve doctor id for current user
+    const [docRows] = await db.promise().query(
+      `SELECT id FROM doctors WHERE user_id = ? LIMIT 1`,
+      [req.user.id]
+    );
+    if (docRows.length === 0) {
+      return res.status(404).json({ error: 'Doctor profile not found for this user' });
+    }
+    const doctorId = docRows[0].id;
+
+    // Verify appointment exists and belongs to this doctor
+    const [apptRows] = await db.promise().query(
+      `SELECT id, user_id, doctor_id FROM appointments WHERE id = ? LIMIT 1`,
+      [appointmentId]
+    );
+    if (apptRows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    const appt = apptRows[0];
+    if (Number(appt.doctor_id) !== Number(doctorId)) {
+      return res.status(403).json({ error: 'You can only add therapy to your own appointments' });
+    }
+
+    // Insert therapy record
+    await db.promise().query(
+      `INSERT INTO therapies (appointment_id, doctor_id, user_id, therapy_text) VALUES (?,?,?,?)`,
+      [appointmentId, doctorId, appt.user_id, therapy_text]
+    );
+
+    res.json({ message: 'Therapy saved successfully' });
+  } catch (e) {
+    console.error('Failed to submit therapy:', e);
+    res.status(500).json({ error: 'Failed to submit therapy' });
   }
 });
 

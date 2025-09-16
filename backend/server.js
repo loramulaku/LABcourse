@@ -149,6 +149,31 @@ const ensureTables = async () => {
         console.log('✅ All required columns present in appointments table');
       }
     }
+
+    // Ensure therapies table exists
+    const [therapiesTables] = await db.promise().query(`
+      SELECT TABLE_NAME 
+      FROM information_schema.TABLES 
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'therapies'
+    `);
+    if (therapiesTables.length === 0) {
+      await db.promise().query(`
+        CREATE TABLE therapies (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          appointment_id INT NOT NULL,
+          doctor_id INT NOT NULL,
+          user_id INT NOT NULL,
+          therapy_text TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT fk_therapies_appt FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+          CONSTRAINT fk_therapies_doc FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+          CONSTRAINT fk_therapies_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+      console.log('✅ Created therapies table');
+    } else {
+      console.log('✅ Therapies table already exists');
+    }
   } catch (e) {
     console.error('❌ Failed to ensure appointments table', e);
   }
