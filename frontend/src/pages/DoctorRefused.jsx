@@ -9,8 +9,6 @@ const DoctorRefused = () => {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
-  const [therapyText, setTherapyText] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,31 +46,10 @@ const DoctorRefused = () => {
 
   const handleSelect = (it) => {
     setSelected(it);
-    setTherapyText('');
   };
 
-  const submitTherapy = async (e) => {
-    e.preventDefault();
-    if (!selected || !therapyText.trim()) return;
-    try {
-      setSubmitting(true);
-      const res = await fetch(`${API_URL}/api/appointments/${selected.appointment_id}/therapy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-        body: JSON.stringify({ therapy_text: therapyText.trim() }),
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Failed to save therapy');
-      setTherapyText('');
-      alert('Therapy saved');
-    } catch (e) {
-      alert(e.message || 'Error');
-    } finally {
-      setSubmitting(false);
-    }
+  const goToTherapy = (appointmentId) => {
+    navigate(`/doctor/therapy/${appointmentId}`);
   };
 
   if (loading) {
@@ -141,7 +118,7 @@ const DoctorRefused = () => {
           </table>
         </div>
 
-        {/* Detail + prescribe */}
+        {/* Detail */}
         <div className="border border-gray-200 rounded-lg p-5">
           {selected ? (
             <>
@@ -184,25 +161,21 @@ const DoctorRefused = () => {
               </div>
 
               <hr className="my-5" />
-              <h3 className="text-lg font-semibold mb-2">Prescribe Therapy</h3>
-              <form onSubmit={submitTherapy}>
-                <textarea
-                  className="w-full border border-gray-300 rounded px-3 py-2 min-h-[120px]"
-                  placeholder="Write therapy/prescription details for this patient..."
-                  value={therapyText}
-                  onChange={(e) => setTherapyText(e.target.value)}
-                />
-                <div className="mt-3 flex gap-3">
-                  <button
-                    type="submit"
-                    disabled={submitting || !therapyText.trim()}
-                    className={`px-4 py-2 rounded text-white ${submitting || !therapyText.trim() ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-                  >
-                    {submitting ? 'Saving...' : 'Save Therapy'}
-                  </button>
-                  <button type="button" className="px-4 py-2 rounded border" onClick={() => navigate('/my-appointments')}>Go to My Appointments</button>
-                </div>
-              </form>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => goToTherapy(selected.appointment_id)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Prescribe Therapy/Medications
+                </button>
+                <button 
+                  type="button" 
+                  className="px-4 py-2 border rounded" 
+                  onClick={() => navigate('/my-appointments')}
+                >
+                  Go to My Appointments
+                </button>
+              </div>
             </>
           ) : (
             <div className="text-gray-600">Select a patient on the left to view details and prescribe therapy.</div>

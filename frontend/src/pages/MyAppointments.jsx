@@ -144,6 +144,13 @@ const MyAppointments = () => {
                         <p className="text-sm text-gray-900">{appointment.notes}</p>
                       </div>
                     )}
+                    
+                    {appointment.therapy_text && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm font-medium text-blue-800 mb-2">📋 Doctor's Prescription & Therapy</p>
+                        <p className="text-sm text-blue-900 whitespace-pre-wrap">{appointment.therapy_text}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

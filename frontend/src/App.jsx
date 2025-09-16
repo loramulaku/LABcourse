@@ -50,6 +50,7 @@ const DoctorsCrud = React.lazy(() => import('./dashboard/pages/DoctorsCrud.jsx')
 const AdminLaboratories = React.lazy(() => import('./dashboard/pages/AdminLaboratories.jsx'));
 const LaboratoriesCrud = React.lazy(() => import('./dashboard/pages/LaboratoriesCrud.jsx'));
 const DoctorRefused = React.lazy(() => import('./pages/DoctorRefused.jsx'));
+const DoctorTherapy = React.lazy(() => import('./pages/DoctorTherapy.jsx'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -83,6 +84,7 @@ const App = () => {
         <Route path="/my-appointments" element={<ProtectedRoute><MyAppointments /></ProtectedRoute>} />
         <Route path="/appointment/:docId" element={<ProtectedRoute><Appointment /></ProtectedRoute>} />
         <Route path="/doctor/refused" element={<ProtectedRoute requireRole="doctor"><DoctorRefused /></ProtectedRoute>} />
+        <Route path="/doctor/therapy/:appointmentId" element={<ProtectedRoute requireRole="doctor"><DoctorTherapy /></ProtectedRoute>} />
         <Route path="/pacientet" element={<ProtectedRoute><Pacientet /></ProtectedRoute>} />
         <Route path="/usersimple" element={<ProtectedRoute><UserSimple /></ProtectedRoute>} />
         <Route path="/laboratories" element={<LaboratoriesList />} />
