@@ -3,29 +3,62 @@ const db = require('../db');
 
 class Laboratory {
     static async getAll() {
-        const [rows] = await db.promise().query('SELECT * FROM laboratories');
+        const [rows] = await db.promise().query(
+            `SELECT l.id,
+                    l.user_id,
+                    u.name AS name,
+                    u.email AS login_email,
+                    l.email AS contact_email,
+                    l.address,
+                    l.phone,
+                    l.description,
+                    l.working_hours,
+                    l.created_at,
+                    l.updated_at
+             FROM laboratories l
+             JOIN users u ON u.id = l.user_id
+             WHERE u.role = 'lab'`
+        );
         return rows;
     }
 
     static async getById(id) {
-        const [rows] = await db.promise().query('SELECT * FROM laboratories WHERE id = ?', [id]);
+        const [rows] = await db.promise().query(
+            `SELECT l.id,
+                    l.user_id,
+                    u.name AS name,
+                    u.email AS login_email,
+                    l.email AS contact_email,
+                    l.address,
+                    l.phone,
+                    l.description,
+                    l.working_hours,
+                    l.created_at,
+                    l.updated_at
+             FROM laboratories l
+             JOIN users u ON u.id = l.user_id
+             WHERE l.id = ?`,
+            [id]
+        );
         return rows[0];
     }
 
     static async create(data) {
-        const { name, address, phone, email, description, working_hours } = data;
+        // Prefer route-level transaction for creating user + laboratory.
+        // Kept for compatibility if used elsewhere: expects user_id provided.
+        const { user_id, address, phone, contact_email, description, working_hours } = data;
         const [result] = await db.promise().query(
-            'INSERT INTO laboratories (name, address, phone, email, description, working_hours) VALUES (?, ?, ?, ?, ?, ?)',
-            [name, address, phone, email, description, working_hours]
+            'INSERT INTO laboratories (user_id, address, phone, email, description, working_hours) VALUES (?, ?, ?, ?, ?, ?)',
+            [user_id, address, phone, contact_email, description, working_hours]
         );
         return result.insertId;
     }
 
     static async update(id, data) {
-        const { name, address, phone, email, description, working_hours } = data;
+        const { address, phone, contact_email, description, working_hours } = data;
         await db.promise().query(
-            'UPDATE laboratories SET name=?, address=?, phone=?, email=?, description=?, working_hours=? WHERE id=?',
-            [name, address, phone, email, description, working_hours, id]
+            'UPDATE laboratories SET address=?, phone=?, email=?, description=?, working_hours=? WHERE id=?',
+            [address, phone, contact_email, description, working_hours, id]
         );
     }
 
@@ -54,12 +87,24 @@ class Laboratory {
     // Check if a specific date/time is available (reserve exact 30-minute slot only)
     static async isTimeSlotAvailable(labId, appointmentDate) {
         console.log('Laboratory.isTimeSlotAvailable called with:', { labId, appointmentDate });
-        
+
         try {
-            // Use the same logic as the display method for consistency
-            const isAvailable = await this.isTimeSlotAvailableForDisplay(labId, appointmentDate);
-            console.log('Time slot available:', isAvailable);
-            return isAvailable;
+            // Normalize to MySQL 'YYYY-MM-DD HH:MM:SS' without timezone conversion
+            const normalized = typeof appointmentDate === 'string'
+                ? (appointmentDate.includes('T') ? appointmentDate.replace('T', ' ') : appointmentDate)
+                : appointmentDate;
+            const mysqlDateTime = /\d{2}:\d{2}$/.test(normalized) ? `${normalized}:00` : normalized;
+
+            const [rows] = await db.promise().query(
+                `SELECT COUNT(*) as count FROM patient_analyses 
+                 WHERE laboratory_id = ? 
+                 AND status != "cancelled"
+                 AND appointment_date = ?`,
+                [labId, mysqlDateTime]
+            );
+            const available = rows[0].count === 0;
+            console.log('Time slot available:', available);
+            return available;
         } catch (error) {
             console.error('Error in isTimeSlotAvailable:', error);
             throw error;
@@ -77,16 +122,28 @@ class Laboratory {
              ORDER BY appointment_date`,
             [labId, date]
         );
-        const booked = rows.map(row => new Date(row.appointment_date).toISOString());
+        const booked = rows.map(row => {
+            // Keep as local 'YYYY-MM-DD HH:MM:SS'
+            const d = new Date(row.appointment_date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hour = String(d.getHours()).padStart(2, '0');
+            const minute = String(d.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:00`;
+        });
         console.log(`Booked slots (exact only): ${booked.length}`);
         return booked;
     }
 
     // Check if a specific time slot is available (exact 30-minute slot only)
-    static async isTimeSlotAvailableForDisplay(labId, slotISO) {
+    static async isTimeSlotAvailableForDisplay(labId, slotLocal) {
         try {
-            const appointmentDateTime = new Date(slotISO);
-            const mysqlDateTime = appointmentDateTime.toISOString().slice(0, 19).replace('T', ' ');
+            // Expect 'YYYY-MM-DDTHH:MM' or 'YYYY-MM-DD HH:MM(:SS)'
+            const normalized = typeof slotLocal === 'string'
+                ? (slotLocal.includes('T') ? slotLocal.replace('T', ' ') : slotLocal)
+                : slotLocal;
+            const mysqlDateTime = /\d{2}:\d{2}$/.test(normalized) ? `${normalized}:00` : normalized;
             const [rows] = await db.promise().query(
                 `SELECT COUNT(*) as count FROM patient_analyses 
                  WHERE laboratory_id = ? 
@@ -112,8 +169,7 @@ class Laboratory {
         
         for (let hour = startHour; hour < endHour; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
-                const slotTime = new Date(date + `T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00Z`);
-                allPossibleSlots.push(slotTime.toISOString());
+                allPossibleSlots.push(`${date} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`);
             }
         }
         

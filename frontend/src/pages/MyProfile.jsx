@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import apiFetch from '../api'; // 🔹 wrapper me auto-refresh të token-it
-const API_URL = "http://localhost:5000";
+import apiFetch, { API_URL } from '../api'; // 🔹 wrapper me auto-refresh të token-it
 
 const MyProfile = () => {
   const [userData, setUserData] = useState({
@@ -21,7 +20,9 @@ const MyProfile = () => {
   useEffect(() => {
   const loadProfile = async () => {
     try {
+      console.log("Loading profile from:", `${API_URL}/api/profile`);
       const data = await apiFetch(`${API_URL}/api/profile`);
+      console.log("Profile data received:", data);
 
       setUserData({
         ...data,

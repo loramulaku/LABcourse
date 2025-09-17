@@ -33,7 +33,7 @@ export default function LaboratoriesCrud() {
     const q = (searchQuery || "").toLowerCase().trim();
     if (!q) return laboratories;
     return laboratories.filter((lab) =>
-      [lab.name, lab.address, lab.email, lab.phone].some((v) => 
+      [lab.name, lab.address, lab.contact_email, lab.phone, lab.login_email].some((v) => 
         String(v || "").toLowerCase().includes(q)
       )
     );
@@ -131,9 +131,10 @@ export default function LaboratoriesCrud() {
               <thead className="text-gray-600">
                 <tr>
                   <th className="py-2 pr-4">Name</th>
+                  <th className="py-2 pr-4">Login Email</th>
                   <th className="py-2 pr-4">Address</th>
                   <th className="py-2 pr-4">Phone</th>
-                  <th className="py-2 pr-4">Email</th>
+                  <th className="py-2 pr-4">Contact Email</th>
                   <th className="py-2 pr-4">Actions</th>
                 </tr>
               </thead>
@@ -141,9 +142,10 @@ export default function LaboratoriesCrud() {
                 {filtered.map((lab) => (
                   <tr key={lab.id} className="border-t border-gray-200">
                     <td className="py-2 pr-4 font-medium">{lab.name}</td>
+                    <td className="py-2 pr-4">{lab.login_email}</td>
                     <td className="py-2 pr-4">{lab.address}</td>
                     <td className="py-2 pr-4">{lab.phone}</td>
-                    <td className="py-2 pr-4">{lab.email}</td>
+                    <td className="py-2 pr-4">{lab.contact_email}</td>
                     <td className="py-2 pr-4 flex gap-2">
                       <button 
                         onClick={() => startEdit(lab.id)} 
@@ -180,11 +182,28 @@ export default function LaboratoriesCrud() {
               required
             />
             <input 
-              name="email" 
-              value={form.email || ""} 
+              name="login_email" 
+              value={form.login_email || ""} 
               onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
               className="p-2 rounded bg-gray-800 text-white" 
-              placeholder="Email"
+              placeholder="Login Email"
+              type="email"
+              required
+            />
+            <input 
+              name="password" 
+              value={form.password || ""} 
+              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
+              className="p-2 rounded bg-gray-800 text-white" 
+              placeholder="New Password (leave blank to keep)"
+              type="password"
+            />
+            <input 
+              name="contact_email" 
+              value={form.contact_email || ""} 
+              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
+              className="p-2 rounded bg-gray-800 text-white" 
+              placeholder="Contact Email"
               type="email"
               required
             />

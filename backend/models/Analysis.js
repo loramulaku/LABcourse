@@ -24,13 +24,28 @@ class Analysis {
         
         console.log('Validating time slot availability...');
         
-        // Convert ISO datetime to MySQL datetime format (YYYY-MM-DD HH:MM:SS)
-        const mysqlDateTime = new Date(appointment_date).toISOString().slice(0, 19).replace('T', ' ');
+        // Expect local datetime string (YYYY-MM-DDTHH:MM or HH:MM:SS), store as-is in MySQL local time
+        const mysqlDateTime = (() => {
+            // Normalize to 'YYYY-MM-DD HH:MM:SS'
+            if (typeof appointment_date === 'string') {
+                const hasSeconds = appointment_date.match(/T\d{2}:\d{2}:\d{2}$/);
+                const base = appointment_date.replace('T', ' ');
+                return hasSeconds ? base : `${base}:00`;
+            }
+            // Fallback to Date if somehow a Date object is passed
+            const d = new Date(appointment_date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hour = String(d.getHours()).padStart(2, '0');
+            const minute = String(d.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:00`;
+        })();
         console.log('Converted datetime for MySQL:', mysqlDateTime);
         
         // Check if the time slot is available
         const Laboratory = require('./Laboratory');
-        const isAvailable = await Laboratory.isTimeSlotAvailable(laboratory_id, appointment_date);
+        const isAvailable = await Laboratory.isTimeSlotAvailable(laboratory_id, mysqlDateTime);
         
         console.log('Time slot available:', isAvailable);
         
@@ -80,11 +95,26 @@ class Analysis {
 
     static async getPatientAnalyses(userId) {
         const [rows] = await db.promise().query(
-            `SELECT pa.*, at.name as analysis_name, l.name as laboratory_name 
-             FROM patient_analyses pa 
-             JOIN analysis_types at ON pa.analysis_type_id = at.id 
-             JOIN laboratories l ON pa.laboratory_id = l.id 
-             WHERE pa.user_id = ?`,
+            `SELECT 
+                pa.id,
+                pa.user_id,
+                pa.analysis_type_id,
+                pa.laboratory_id,
+                pa.result,
+                pa.status,
+                DATE_FORMAT(pa.appointment_date, '%Y-%m-%d %H:%i:%s') AS appointment_date,
+                DATE_FORMAT(pa.completion_date, '%Y-%m-%d %H:%i:%s') AS completion_date,
+                pa.notes,
+                DATE_FORMAT(pa.created_at, '%Y-%m-%d %H:%i:%s') AS created_at,
+                DATE_FORMAT(pa.updated_at, '%Y-%m-%d %H:%i:%s') AS updated_at,
+                at.name AS analysis_name,
+                u.name AS laboratory_name
+             FROM patient_analyses pa
+             JOIN analysis_types at ON pa.analysis_type_id = at.id
+             JOIN laboratories l ON pa.laboratory_id = l.id
+             JOIN users u ON u.id = l.user_id
+             WHERE pa.user_id = ?
+             ORDER BY pa.created_at DESC`,
             [userId]
         );
         return rows;

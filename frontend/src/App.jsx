@@ -49,8 +49,16 @@ const AppLayout = React.lazy(() => import('./dashboard/layout/AppLayout'));
 const DoctorsCrud = React.lazy(() => import('./dashboard/pages/DoctorsCrud.jsx'));
 const AdminLaboratories = React.lazy(() => import('./dashboard/pages/AdminLaboratories.jsx'));
 const LaboratoriesCrud = React.lazy(() => import('./dashboard/pages/LaboratoriesCrud.jsx'));
+const AnalysisTypes = React.lazy(() => import('./dashboard/pages/AnalysisTypes.jsx'));
 const DoctorRefused = React.lazy(() => import('./pages/DoctorRefused.jsx'));
 const DoctorTherapy = React.lazy(() => import('./pages/DoctorTherapy.jsx'));
+const LabLayout = React.lazy(() => import('./lab/layout/LabLayout.jsx'));
+const LabHistory = React.lazy(() => import('./lab/pages/LabHistory.jsx'));
+const LabCalendar = React.lazy(() => import('./lab/pages/LabCalendar.jsx'));
+const LabConfirmed = React.lazy(() => import('./lab/pages/LabConfirmed.jsx'));
+const LabPending = React.lazy(() => import('./lab/pages/LabPending.jsx'));
+const LabProfile = React.lazy(() => import('./lab/pages/LabProfile.jsx'));
+const LabAnalysisTypes = React.lazy(() => import('./lab/pages/LabAnalysisTypes.jsx'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -113,6 +121,7 @@ const App = () => {
           <Route path="doctors-crud" element={<DoctorsCrud />} />
           <Route path="add-laboratory" element={<AdminLaboratories />} />
           <Route path="laboratories-crud" element={<LaboratoriesCrud />} />
+          <Route path="analysis-types" element={<AnalysisTypes />} />
           <Route path="form-elements" element={<FormElements />} />
           <Route path="basic-tables" element={<BasicTables />} />
           <Route path="alerts" element={<Alerts />} />
@@ -123,6 +132,25 @@ const App = () => {
           <Route path="videos" element={<Videos />} />
           <Route path="line-chart" element={<LineChart />} />
           <Route path="bar-chart" element={<BarChart />} />
+        </Route>
+
+        {/* =================== LAB DASHBOARD (LAB ROLE) =================== */}
+        <Route
+          path="/lab"
+          element={
+            <ProtectedRoute requireRole="lab">
+              <Suspense fallback={<LoadingSpinner />}>
+                <LabLayout />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        >
+          <Route path="profile" element={<LabProfile />} />
+          <Route path="analysis-types" element={<LabAnalysisTypes />} />
+          <Route path="history" element={<LabHistory />} />
+          <Route path="calendar" element={<LabCalendar />} />
+          <Route path="confirmed" element={<LabConfirmed />} />
+          <Route path="pending" element={<LabPending />} />
         </Route>
 
 

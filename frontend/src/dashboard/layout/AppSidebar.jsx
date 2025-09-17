@@ -52,6 +52,7 @@ const navItems = [
       { name: "Edit & Delete Doctors", path: "/dashboard/doctors-crud" },
       { name: "Add Laboratory", path: "/dashboard/add-laboratory" },
       { name: "Edit & Delete Laboratories", path: "/dashboard/laboratories-crud" },
+          { name: "Analysis Types", path: "/dashboard/analysis-types" },
       { name: "404 Error", path: "/dashboard/error-404" },
     ],
   },

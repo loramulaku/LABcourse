@@ -6,6 +6,34 @@ const MyAnalyses = () => {
   const [analyses, setAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const parseLocalDateTime = (dateTimeString) => {
+    if (!dateTimeString) return null;
+    // Handle formats like 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DDTHH:MM(:SS)'
+    const normalized = dateTimeString.replace('T', ' ');
+    const [datePart, timePart = '00:00:00'] = normalized.split(' ');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute, second = 0] = timePart.split(':').map(Number);
+    return new Date(year, (month || 1) - 1, day || 1, hour || 0, minute || 0, second || 0);
+  };
+
+  const formatLocalDateTime = (dateTimeString, options = {}) => {
+    const d = parseLocalDateTime(dateTimeString);
+    if (!d) return '';
+    const { includeWeekday = false, includeSeconds = false } = options;
+    const dateOpts = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      ...(includeWeekday ? { weekday: 'long' } : {})
+    };
+    const timeOpts = {
+      hour: '2-digit',
+      minute: '2-digit',
+      ...(includeSeconds ? { second: '2-digit' } : {})
+    };
+    return `${d.toLocaleDateString(undefined, dateOpts)} at ${d.toLocaleTimeString([], timeOpts)}`;
+  };
+
   useEffect(() => {
     const fetchMyAnalyses = async () => {
       try {
@@ -101,10 +129,7 @@ const MyAnalyses = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Appointment Date</p>
-                      <p className="font-medium">
-                        {new Date(analysis.appointment_date).toLocaleDateString()} at{' '}
-                        {new Date(analysis.appointment_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </p>
+                      <p className="font-medium">{formatLocalDateTime(analysis.appointment_date)}</p>
                     </div>
                   </div>
 
@@ -123,7 +148,7 @@ const MyAnalyses = () => {
                   <div className="text-green-700 whitespace-pre-wrap">{analysis.result}</div>
                   {analysis.completion_date && (
                     <p className="text-sm text-green-600 mt-2">
-                      Completed on: {new Date(analysis.completion_date).toLocaleString()}
+                      Completed on: {formatLocalDateTime(analysis.completion_date, { includeSeconds: true })}
                     </p>
                   )}
                 </div>
@@ -147,7 +172,7 @@ const MyAnalyses = () => {
 
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
-                  Request ID: #{analysis.id} • Submitted: {new Date(analysis.created_at).toLocaleDateString()}
+                  Request ID: #{analysis.id} • Submitted: {formatLocalDateTime(analysis.created_at)}
                 </p>
               </div>
             </div>

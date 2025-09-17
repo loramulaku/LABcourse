@@ -4,9 +4,11 @@ import { API_URL } from "../../api";
 export default function AdminLaboratories() {
   const [form, setForm] = useState({
     name: "",
+    login_email: "",
+    password: "",
     address: "",
     phone: "",
-    email: "",
+    contact_email: "",
     description: "",
     working_hours: "",
   });
@@ -31,9 +33,11 @@ export default function AdminLaboratories() {
         alert("Laboratory added successfully!");
         setForm({
           name: "",
+          login_email: "",
+          password: "",
           address: "",
           phone: "",
-          email: "",
+          contact_email: "",
           description: "",
           working_hours: "",
         });
@@ -60,11 +64,29 @@ export default function AdminLaboratories() {
           required
         />
         <input 
-          name="email" 
-          placeholder="Email" 
+          name="login_email" 
+          placeholder="Login Email (for authentication)" 
           type="email"
           className="p-2 rounded bg-gray-800" 
-          value={form.email}
+          value={form.login_email}
+          onChange={onChange}
+          required
+        />
+        <input 
+          name="password" 
+          placeholder="Password" 
+          type="password"
+          className="p-2 rounded bg-gray-800" 
+          value={form.password}
+          onChange={onChange}
+          required
+        />
+        <input 
+          name="contact_email" 
+          placeholder="Private Contact Email (public)" 
+          type="email"
+          className="p-2 rounded bg-gray-800" 
+          value={form.contact_email}
           onChange={onChange}
           required
         />

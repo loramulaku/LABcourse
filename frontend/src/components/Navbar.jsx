@@ -122,13 +122,22 @@ const Navbar = () => {
 
   return (
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
-      {/* Logo */}
-      <img 
-        onClick={() => navigate('/')} 
-        className="w-44 cursor-pointer" 
-        src={assets.logo} 
-        alt="Logo" 
-      />
+      {/* Branding */}
+      {token && role === 'lab' ? (
+        <div className="flex items-center gap-3 select-none">
+          <img src={assets.lab_icon} alt="Lab" className="w-8 h-8" />
+          <button onClick={() => navigate('/lab/history')} className="text-xl font-semibold tracking-tight hover:text-blue-700">
+            {userInfo?.name || 'Laboratory'}
+          </button>
+        </div>
+      ) : (
+        <img 
+          onClick={() => navigate('/')} 
+          className="w-44 cursor-pointer" 
+          src={assets.logo} 
+          alt="Logo" 
+        />
+      )}
 
       {/* Menu links */}
       <ul className="hidden md:flex items-start gap-5 font-medium">
@@ -138,17 +147,26 @@ const Navbar = () => {
         <NavLink to="/contact"><li>CONTACT</li></NavLink>
       </ul>
 
-      {/* Profile / Auth */}
+      {/* Profile / Auth */
+      }
       <div className="flex items-center gap-4">
         {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">
-            <LazyImage 
-              className="w-8 h-8 rounded-full object-cover" 
-              src={getProfilePhotoUrl()} 
-              alt="Profile"
-              fallbackSrc={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/uploads/avatars/default.png`}
-              placeholder={<div className="w-8 h-8 rounded-full bg-gray-300 animate-pulse" />}
-            />
+            {role === 'lab' ? (
+              <img
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-blue-600"
+                src="/src/lab/labicon/1.jpg"
+                alt="Lab Profile"
+              />
+            ) : (
+              <LazyImage 
+                className="w-8 h-8 rounded-full object-cover" 
+                src={getProfilePhotoUrl()} 
+                alt="Profile"
+                fallbackSrc={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/uploads/avatars/default.png`}
+                placeholder={<div className="w-8 h-8 rounded-full bg-gray-300 animate-pulse" />}
+              />
+            )}
             <img className="w-2.5" src={assets.dropdown_icon} alt="Dropdown" />
 
             {/* Dropdown */}
@@ -157,36 +175,32 @@ const Navbar = () => {
                             group-hover:opacity-100 group-hover:pointer-events-auto 
                             transition-all duration-200">
               <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4 shadow-lg">
-                <p 
-                  onClick={navigateToProfile} 
-                  className="hover:text-black cursor-pointer"
-                >
-                  My Profile
-                </p>
-
-                <p 
-                  onClick={() => navigate('/my-appointments')} 
-                  className="hover:text-black cursor-pointer"
-                >
-                  My Appointments
-                </p>
-
-                {/* Vetëm për admin */}
-                {role === "admin" && (
-                  <p 
-                    onClick={() => navigate('/dashboard')} 
-                    className="hover:text-black cursor-pointer"
-                  >
-                    Admin Dashboard
-                  </p>
+                {role === 'lab' ? (
+                  <>
+                    <p onClick={() => navigate('/lab/profile')} className="hover:text-black cursor-pointer">Lab Profile</p>
+                    <p onClick={() => navigate('/lab/history')} className="hover:text-black cursor-pointer">Lab Dashboard</p>
+                    <p onClick={handleLogout} className="hover:text-black cursor-pointer">Log Out</p>
+                  </>
+                ) : (
+                  <>
+                    <p 
+                      onClick={navigateToProfile} 
+                      className="hover:text-black cursor-pointer"
+                    >
+                      My Profile
+                    </p>
+                    <p 
+                      onClick={() => navigate('/my-appointments')} 
+                      className="hover:text-black cursor-pointer"
+                    >
+                      My Appointments
+                    </p>
+                    {role === "admin" && (
+                      <p onClick={() => navigate('/dashboard')} className="hover:text-black cursor-pointer">Admin Dashboard</p>
+                    )}
+                    <p onClick={handleLogout} className="hover:text-black cursor-pointer">Logout</p>
+                  </>
                 )}
-
-                <p 
-                  onClick={handleLogout} 
-                  className="hover:text-black cursor-pointer"
-                >
-                  Logout
-                </p>
               </div>
             </div>
           </div>

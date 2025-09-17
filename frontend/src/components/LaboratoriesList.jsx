@@ -75,7 +75,7 @@ const LaboratoriesList = () => {
                 
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-2">✉️</span>
-                  <p className="text-gray-600 text-sm">{lab.email}</p>
+                  <p className="text-gray-600 text-sm">{lab.contact_email}</p>
                 </div>
               </div>
 
