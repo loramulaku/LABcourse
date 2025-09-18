@@ -72,39 +72,44 @@ export default function LabCalendar() {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-      <h3 className="mb-4 text-lg font-semibold">Appointments Calendar</h3>
-      <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        events={events}
-        dateClick={handleDateClick}
-        height="auto"
-      />
+    <div>
+      <h3 className="mb-6 text-2xl font-bold text-green-800 flex items-center">
+        <img src="/src/lab/labicon/6.jpg" alt="Calendar" className="w-8 h-8 mr-3" />
+        Appointments Calendar
+      </h3>
+      <div className="bg-white rounded-xl shadow-lg border border-green-200 p-6">
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          events={events}
+          dateClick={handleDateClick}
+          height="auto"
+        />
+      </div>
 
       {selected && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
-            <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-base font-semibold">Appointments on {selected.date}</h4>
-              <button onClick={() => setSelected(null)} className="rounded px-2 py-1 text-sm hover:bg-gray-100">Close</button>
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-green-200">
+            <div className="mb-4 flex items-center justify-between">
+              <h4 className="text-lg font-bold text-green-800">Appointments on {selected.date}</h4>
+              <button onClick={() => setSelected(null)} className="rounded-lg px-3 py-2 text-sm hover:bg-green-50 text-green-600 border border-green-300 transition-all">Close</button>
             </div>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-3 text-sm">
               {(selected.items || []).map(item => (
-                <div key={item.id} className="rounded border p-3">
+                <div key={item.id} className="rounded-xl border border-green-200 bg-green-50 p-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="font-medium">{item.user_name}</div>
-                      <div className="text-gray-600 text-xs">{item.user_email} {item.user_phone ? `• ${item.user_phone}` : ''}</div>
+                      <div className="font-semibold text-green-800">{item.user_name}</div>
+                      <div className="text-green-600 text-xs">{item.user_email} {item.user_phone ? `• ${item.user_phone}` : ''}</div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-xs border ${ (item.status||'').toLowerCase()==='confirmed' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>{item.status}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${ (item.status||'').toLowerCase()==='confirmed' ? 'bg-green-100 text-green-700 border-green-300' : 'bg-yellow-100 text-yellow-800 border-yellow-300'}`}>{item.status}</span>
                   </div>
-                  <div className="mt-1 text-gray-700">Time: {item.time}</div>
-                  <div className="text-gray-700">Analysis: {item.analysis_name}</div>
-                  {item.notes && <div className="text-gray-700">Notes: {item.notes}</div>}
+                  <div className="mt-2 text-green-700">Time: {item.time}</div>
+                  <div className="text-green-700">Analysis: {item.analysis_name}</div>
+                  {item.notes && <div className="text-green-700">Notes: {item.notes}</div>}
                   {(item.status||'').toLowerCase() !== 'confirmed' && (
-                    <div className="mt-2">
-                      <button onClick={() => confirm(item.id)} className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Confirm</button>
+                    <div className="mt-3">
+                      <button onClick={() => confirm(item.id)} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl">Confirm</button>
                     </div>
                   )}
                 </div>

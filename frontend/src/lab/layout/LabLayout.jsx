@@ -5,7 +5,7 @@ export default function LabLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
       <div className="flex">
         {/* Modern Sidebar */}
         <aside className="w-64 bg-gradient-to-b from-green-600 to-green-700 shadow-xl min-h-screen">
@@ -122,8 +122,10 @@ export default function LabLayout() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
-          <Outlet />
+        <main className="flex-1 p-6 bg-gradient-to-br from-green-50 to-green-100">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-green-200">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
