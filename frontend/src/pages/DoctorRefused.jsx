@@ -169,6 +169,12 @@ const DoctorRefused = () => {
                   Prescribe Therapy/Medications
                 </button>
                 <button 
+                  onClick={() => navigate('/doctor/therapy-dashboard')}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Therapy Dashboard
+                </button>
+                <button 
                   type="button" 
                   className="px-4 py-2 border rounded" 
                   onClick={() => navigate('/my-appointments')}

@@ -32,6 +32,10 @@ app.use(cookieParser());
 const laboratoryRoutes = require('./routes/laboratoryRoutes');
 app.use('/api/laboratories', laboratoryRoutes);
 
+// Therapy routes
+const therapyRoutes = require('./routes/therapyRoutes');
+app.use('/api/therapies', therapyRoutes);
+
 // Appointments routes (doctor bookings + Stripe)
 const appointmentsRoutes = require('./routes/appointments');
 app.use('/api/appointments', appointmentsRoutes);
@@ -162,12 +166,20 @@ const ensureTables = async () => {
           id INT AUTO_INCREMENT PRIMARY KEY,
           appointment_id INT NOT NULL,
           doctor_id INT NOT NULL,
-          user_id INT NOT NULL,
+          patient_id INT NOT NULL,
           therapy_text TEXT NOT NULL,
+          medications TEXT,
+          dosage VARCHAR(255),
+          frequency VARCHAR(255),
+          duration VARCHAR(255),
+          instructions TEXT,
+          follow_up_date DATETIME,
+          status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           CONSTRAINT fk_therapies_appt FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
           CONSTRAINT fk_therapies_doc FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
-          CONSTRAINT fk_therapies_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+          CONSTRAINT fk_therapies_patient FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
       console.log('✅ Created therapies table');
