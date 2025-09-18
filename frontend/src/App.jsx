@@ -52,6 +52,8 @@ const LaboratoriesCrud = React.lazy(() => import('./dashboard/pages/Laboratories
 const AnalysisTypes = React.lazy(() => import('./dashboard/pages/AnalysisTypes.jsx'));
 const DoctorRefused = React.lazy(() => import('./pages/DoctorRefused.jsx'));
 const DoctorTherapy = React.lazy(() => import('./pages/DoctorTherapy.jsx'));
+const DoctorTherapyDashboard = React.lazy(() => import('./pages/DoctorTherapyDashboard.jsx'));
+const MyTherapies = React.lazy(() => import('./pages/MyTherapies.jsx'));
 const LabLayout = React.lazy(() => import('./lab/layout/LabLayout.jsx'));
 const LabHistory = React.lazy(() => import('./lab/pages/LabHistory.jsx'));
 const LabCalendar = React.lazy(() => import('./lab/pages/LabCalendar.jsx'));
@@ -93,6 +95,8 @@ const App = () => {
         <Route path="/appointment/:docId" element={<ProtectedRoute><Appointment /></ProtectedRoute>} />
         <Route path="/doctor/refused" element={<ProtectedRoute requireRole="doctor"><DoctorRefused /></ProtectedRoute>} />
         <Route path="/doctor/therapy/:appointmentId" element={<ProtectedRoute requireRole="doctor"><DoctorTherapy /></ProtectedRoute>} />
+        <Route path="/doctor/therapy-dashboard" element={<ProtectedRoute requireRole="doctor"><DoctorTherapyDashboard /></ProtectedRoute>} />
+        <Route path="/my-therapies" element={<ProtectedRoute><MyTherapies /></ProtectedRoute>} />
         <Route path="/pacientet" element={<ProtectedRoute><Pacientet /></ProtectedRoute>} />
         <Route path="/usersimple" element={<ProtectedRoute><UserSimple /></ProtectedRoute>} />
         <Route path="/laboratories" element={<LaboratoriesList />} />

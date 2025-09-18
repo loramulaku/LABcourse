@@ -9,6 +9,12 @@ const DoctorTherapy = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [therapyText, setTherapyText] = useState('');
+  const [medications, setMedications] = useState('');
+  const [dosage, setDosage] = useState('');
+  const [frequency, setFrequency] = useState('');
+  const [duration, setDuration] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [followUpDate, setFollowUpDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -54,13 +60,23 @@ const DoctorTherapy = () => {
     
     try {
       setSubmitting(true);
-      const res = await fetch(`${API_URL}/api/appointments/${appointmentId}/therapy`, {
+      const res = await fetch(`${API_URL}/api/therapies/doctor/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getAccessToken()}`,
         },
-        body: JSON.stringify({ therapy_text: therapyText.trim() }),
+        body: JSON.stringify({
+          appointment_id: parseInt(appointmentId),
+          patient_id: appointment.patient_id,
+          therapy_text: therapyText.trim(),
+          medications: medications.trim() || null,
+          dosage: dosage.trim() || null,
+          frequency: frequency.trim() || null,
+          duration: duration.trim() || null,
+          instructions: instructions.trim() || null,
+          follow_up_date: followUpDate || null
+        }),
         credentials: 'include',
       });
       
@@ -164,25 +180,106 @@ const DoctorTherapy = () => {
         {/* Therapy Form */}
         <div className="border border-gray-200 rounded-lg p-5">
           <h2 className="text-xl font-semibold mb-4">Therapy & Medication Prescription</h2>
-          <form onSubmit={submitTherapy}>
-            <div className="mb-4">
+          <form onSubmit={submitTherapy} className="space-y-4">
+            <div>
               <label htmlFor="therapy" className="block text-sm font-medium text-gray-700 mb-2">
-                Prescription Details *
+                Therapy Instructions *
               </label>
               <textarea
                 id="therapy"
-                className="w-full border border-gray-300 rounded px-3 py-2 min-h-[200px]"
-                placeholder="Write detailed therapy instructions, medications, dosages, frequency, duration, and any special instructions for this patient..."
+                className="w-full border border-gray-300 rounded px-3 py-2 min-h-[120px]"
+                placeholder="Write detailed therapy instructions and treatment plan..."
                 value={therapyText}
                 onChange={(e) => setTherapyText(e.target.value)}
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Include: medications, dosages, frequency, duration, special instructions, follow-up requirements
-              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="medications" className="block text-sm font-medium text-gray-700 mb-2">
+                  Medications
+                </label>
+                <input
+                  type="text"
+                  id="medications"
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  placeholder="e.g., Paracetamol, Ibuprofen"
+                  value={medications}
+                  onChange={(e) => setMedications(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="dosage" className="block text-sm font-medium text-gray-700 mb-2">
+                  Dosage
+                </label>
+                <input
+                  type="text"
+                  id="dosage"
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  placeholder="e.g., 500mg, 2 tablets"
+                  value={dosage}
+                  onChange={(e) => setDosage(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="frequency" className="block text-sm font-medium text-gray-700 mb-2">
+                  Frequency
+                </label>
+                <input
+                  type="text"
+                  id="frequency"
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  placeholder="e.g., Twice daily, Every 8 hours"
+                  value={frequency}
+                  onChange={(e) => setFrequency(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+                  Duration
+                </label>
+                <input
+                  type="text"
+                  id="duration"
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  placeholder="e.g., 7 days, 2 weeks"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
+                Special Instructions
+              </label>
+              <textarea
+                id="instructions"
+                className="w-full border border-gray-300 rounded px-3 py-2 min-h-[80px]"
+                placeholder="Any special instructions, side effects to watch for, dietary restrictions..."
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="followUpDate" className="block text-sm font-medium text-gray-700 mb-2">
+                Follow-up Date (Optional)
+              </label>
+              <input
+                type="datetime-local"
+                id="followUpDate"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                value={followUpDate}
+                onChange={(e) => setFollowUpDate(e.target.value)}
+              />
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-4">
               <button
                 type="submit"
                 disabled={submitting || !therapyText.trim()}
