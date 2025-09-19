@@ -34,11 +34,61 @@ const MyAnalyses = () => {
     return `${d.toLocaleDateString(undefined, dateOpts)} at ${d.toLocaleTimeString([], timeOpts)}`;
   };
 
+  const downloadPDF = async (analysisId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_URL}/api/patient-analyses/download-result/${analysisId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `result-${analysisId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF. Please try again.');
+    }
+  };
+
+  const viewPDF = async (analysisId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_URL}/api/patient-analyses/download-result/${analysisId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error viewing PDF:', error);
+      alert('Failed to open PDF. Please try again.');
+    }
+  };
+
   useEffect(() => {
     const fetchMyAnalyses = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/api/laboratories/my-analyses`, {
+        const response = await fetch(`${API_URL}/api/patient-analyses/my-analyses`, {
           credentials: 'include',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -46,7 +96,10 @@ const MyAnalyses = () => {
         });
         if (response.ok) {
           const data = await response.json();
+          console.log('MyAnalyses data received:', data);
           setAnalyses(data);
+        } else {
+          console.error('Failed to fetch analyses:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Error fetching analyses:', error);
@@ -62,8 +115,10 @@ const MyAnalyses = () => {
     switch (status) {
       case 'completed':
         return '✅';
-      case 'pending':
+      case 'pending_result':
         return '⏳';
+      case 'unconfirmed':
+        return '📋';
       case 'cancelled':
         return '❌';
       default:
@@ -75,8 +130,10 @@ const MyAnalyses = () => {
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending':
+      case 'pending_result':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'unconfirmed':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
@@ -142,10 +199,47 @@ const MyAnalyses = () => {
                 </div>
               </div>
 
-              {analysis.status === 'completed' && analysis.result && (
+              {analysis.status === 'completed' && (
                 <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                   <h3 className="font-semibold mb-2 text-green-800">📊 Results:</h3>
-                  <div className="text-green-700 whitespace-pre-wrap">{analysis.result}</div>
+                  
+                  {/* Text Results */}
+                  {analysis.result && (
+                    <div className="text-green-700 whitespace-pre-wrap mb-3">{analysis.result}</div>
+                  )}
+                  
+                  {/* Result Note */}
+                  {analysis.result_note && analysis.result_note !== 'READY_FOR_RESULT_UPLOAD' && (
+                    <div className="text-green-700 mb-3">
+                      <strong>Lab Notes:</strong> {analysis.result_note}
+                    </div>
+                  )}
+                  
+                  {/* PDF Download and Preview */}
+                  {analysis.result_pdf_path && (
+                    <div className="mt-3 flex space-x-3">
+                      <button
+                        onClick={() => downloadPDF(analysis.id)}
+                        className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download PDF
+                      </button>
+                      <button
+                        onClick={() => viewPDF(analysis.id)}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View PDF
+                      </button>
+                    </div>
+                  )}
+                  
                   {analysis.completion_date && (
                     <p className="text-sm text-green-600 mt-2">
                       Completed on: {formatLocalDateTime(analysis.completion_date, { includeSeconds: true })}
@@ -154,10 +248,13 @@ const MyAnalyses = () => {
                 </div>
               )}
 
-              {analysis.status === 'pending' && (
+              {(analysis.status === 'pending_result' || analysis.status === 'unconfirmed') && (
                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-yellow-700">
-                    <span className="font-semibold">⏳ Waiting for Response:</span> Your analysis request is being processed by the laboratory. 
+                    <span className="font-semibold">⏳ Processing:</span> 
+                    {analysis.status === 'unconfirmed' 
+                      ? ' Your analysis request is waiting for laboratory confirmation.' 
+                      : ' Your analysis is being processed by the laboratory.'}
                     You will be notified once the results are available.
                   </p>
                 </div>

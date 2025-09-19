@@ -79,15 +79,15 @@ export default function LabCalendarDate() {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      unconfirmed: { color: 'bg-gray-100 text-gray-800 border-gray-300', label: 'Unconfirmed' },
-      pending_result: { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', label: 'Pending Result' },
-      completed: { color: 'bg-green-100 text-green-800 border-green-300', label: 'Completed' },
-      cancelled: { color: 'bg-red-100 text-red-800 border-red-300', label: 'Cancelled' }
+      unconfirmed: { color: 'bg-green-200 text-green-800 border-green-400', label: 'Pending Confirmation' },
+      pending_result: { color: 'bg-green-300 text-green-900 border-green-500', label: 'Confirmed' },
+      completed: { color: 'bg-green-600 text-white border-green-700', label: 'Completed' },
+      cancelled: { color: 'bg-red-200 text-red-800 border-red-400', label: 'Cancelled' }
     };
     
     const config = statusConfig[status] || statusConfig.unconfirmed;
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${config.color}`}>
+      <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${config.color}`}>
         {config.label}
       </span>
     );
@@ -112,11 +112,11 @@ export default function LabCalendarDate() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border-2 border-green-200">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/lab/calendar')}
-            className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center px-4 py-2 text-green-700 hover:text-green-800 hover:bg-green-200 rounded-lg transition-colors border border-green-300 font-medium"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -124,7 +124,10 @@ export default function LabCalendarDate() {
             Back to Calendar
           </button>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-green-800 flex items-center">
+              <svg className="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               Appointments for {new Date(date).toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
@@ -132,29 +135,29 @@ export default function LabCalendarDate() {
                 day: 'numeric' 
               })}
             </h2>
-            <p className="text-gray-600">{appointments.length} appointment(s) scheduled</p>
+            <p className="text-green-700 font-medium">{appointments.length} appointment(s) scheduled</p>
           </div>
         </div>
       </div>
 
       {/* Unconfirmed Requests Section */}
       {unconfirmedRequests.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-white rounded-xl shadow-lg border-2 border-green-200 mb-6">
+          <div className="p-6 border-b border-green-200 bg-gradient-to-r from-green-50 to-green-100">
+            <h3 className="text-lg font-bold text-green-800 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
-              Unconfirmed Requests ({unconfirmedRequests.length})
+              Pending Confirmation ({unconfirmedRequests.length})
             </h3>
-            <p className="text-sm text-gray-600 mt-1">Requests waiting for confirmation</p>
+            <p className="text-sm text-green-700 mt-1 font-medium">Requests waiting for confirmation</p>
           </div>
           <div className="divide-y divide-gray-200">
             {unconfirmedRequests.map((appointment) => (
               <div
                 key={appointment.id}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
-                  selectedAppointment?.id === appointment.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                className={`p-6 hover:bg-green-50 transition-colors border-l-4 ${
+                  selectedAppointment?.id === appointment.id ? 'bg-green-100 border-green-500' : 'border-green-200'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -213,14 +216,14 @@ export default function LabCalendarDate() {
               </svg>
               Confirmed Appointments ({confirmedAppointments.length})
             </h3>
-            <p className="text-sm text-gray-600 mt-1">Confirmed appointments ready for results</p>
+            <p className="text-sm text-gray-600 mt-1">Confirmed appointments - use Pending Result page for result upload</p>
           </div>
           <div className="divide-y divide-gray-200">
             {confirmedAppointments.map((appointment) => (
               <div
                 key={appointment.id}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
-                  selectedAppointment?.id === appointment.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                className={`p-6 hover:bg-green-50 transition-colors border-l-4 ${
+                  selectedAppointment?.id === appointment.id ? 'bg-green-100 border-green-500' : 'border-green-200'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -250,17 +253,14 @@ export default function LabCalendarDate() {
                   
                   <div className="flex flex-col space-y-2 ml-6">
                     <button
-                      onClick={() => handleUploadClick(appointment)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      Upload Result
-                    </button>
-                    <button
                       onClick={() => updateStatus(appointment.id, 'cancelled')}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                     >
                       Cancel
                     </button>
+                    <div className="text-xs text-gray-500 text-center">
+                      Use Pending Result page<br/>for result upload
+                    </div>
                   </div>
                 </div>
               </div>
@@ -285,8 +285,8 @@ export default function LabCalendarDate() {
             {completedAppointments.map((appointment) => (
               <div
                 key={appointment.id}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
-                  selectedAppointment?.id === appointment.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                className={`p-6 hover:bg-green-50 transition-colors border-l-4 ${
+                  selectedAppointment?.id === appointment.id ? 'bg-green-100 border-green-500' : 'border-green-200'
                 }`}
               >
                 <div className="flex items-center justify-between">

@@ -199,6 +199,12 @@ const Navbar = () => {
                     >
                       My Appointments
                     </p>
+                    <p 
+                      onClick={() => navigate('/my-analyses')} 
+                      className="hover:text-black cursor-pointer"
+                    >
+                      My Analyses
+                    </p>
                     {role === "admin" && (
                       <p onClick={() => navigate('/dashboard')} className="hover:text-black cursor-pointer">Admin Dashboard</p>
                     )}

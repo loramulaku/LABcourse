@@ -119,7 +119,7 @@ router.get('/dashboard/appointments-by-date', authenticateToken, requireLab, asy
         if (!labId) return res.json({});
         const [rows] = await db.promise().query(
             `SELECT pa.id,
-                    DATE(pa.appointment_date) as date,
+                    DATE_FORMAT(pa.appointment_date, '%Y-%m-%d') as date,
                     TIME(pa.appointment_date) as time,
                     u.id as user_id,
                     u.name as user_name,
@@ -132,12 +132,13 @@ router.get('/dashboard/appointments-by-date', authenticateToken, requireLab, asy
              JOIN users u ON u.id = pa.user_id
              LEFT JOIN user_profiles up ON up.user_id = u.id
              JOIN analysis_types at ON at.id = pa.analysis_type_id
-             WHERE pa.laboratory_id = ?
+             WHERE pa.laboratory_id = ? AND pa.appointment_date IS NOT NULL AND pa.status != 'cancelled'
              ORDER BY pa.appointment_date ASC`,
             [labId]
         );
         const grouped = rows.reduce((acc, r) => {
-            const key = r.date.toISOString ? r.date.toISOString().slice(0,10) : r.date;
+            // DATE_FORMAT returns a string, so we can use it directly
+            const key = r.date;
             if (!acc[key]) acc[key] = [];
             acc[key].push(r);
             return acc;
@@ -154,7 +155,7 @@ router.post('/dashboard/update-status/:id', authenticateToken, requireLab, async
     try {
         const labId = await getCurrentLabId(req.user.id);
         const id = req.params.id;
-        const { status } = req.body;
+        const { status, result_note } = req.body;
         
         // Validate status
         const validStatuses = ['unconfirmed', 'pending_result', 'completed', 'cancelled'];
@@ -174,10 +175,20 @@ router.post('/dashboard/update-status/:id', authenticateToken, requireLab, async
         
         const oldStatus = currentRow.status;
         
-        // Update status
+        // Update status and optionally result_note
+        const updateFields = ['status = ?'];
+        const updateValues = [status];
+        
+        if (result_note !== undefined) {
+            updateFields.push('result_note = ?');
+            updateValues.push(result_note);
+        }
+        
+        updateValues.push(id, labId);
+        
         await db.promise().query(
-            `UPDATE patient_analyses SET status=? WHERE id=? AND laboratory_id=?`,
-            [status, id, labId]
+            `UPDATE patient_analyses SET ${updateFields.join(', ')} WHERE id=? AND laboratory_id=?`,
+            updateValues
         );
         
         // Log history
@@ -212,7 +223,7 @@ router.post('/dashboard/update-status/:id', authenticateToken, requireLab, async
                     break;
                 case 'cancelled':
                     notificationTitle = 'Appointment Cancelled';
-                    notificationMessage = `Sorry, your analysis request for ${row.analysis_name} was cancelled.`;
+                    notificationMessage = `Sorry, your analysis request was cancelled.`;
                     break;
                 case 'completed':
                     notificationTitle = 'Results Ready';
@@ -300,9 +311,10 @@ router.post('/dashboard/upload-result/:id', authenticateToken, requireLab, uploa
                 row.user_id,
                 req.user.id,
                 'Results Ready',
-                `Your test results for ${row.analysis_name} are now available for download.`,
+                `Your result is ready. Click to view and download your analysis results.`,
                 'result_ready',
-                `/api/patient-analyses/download-result/${id}`
+                `http://localhost:5173/my-analyses`,
+                resultPdfPath
             );
         }
         
@@ -347,7 +359,7 @@ router.get('/dashboard/history/:userId', authenticateToken, requireLab, async (r
         const labId = await getCurrentLabId(req.user.id);
         const userId = req.params.userId;
         const [rows] = await db.promise().query(
-            `SELECT pa.id, at.name as analysis_name, pa.appointment_date, pa.status, pa.result, pa.report_path
+            `SELECT pa.id, at.name as analysis_name, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path
              FROM patient_analyses pa
              JOIN analysis_types at ON at.id = pa.analysis_type_id
              WHERE pa.laboratory_id = ? AND pa.user_id = ?
@@ -475,14 +487,14 @@ router.get('/dashboard/confirmed', authenticateToken, requireLab, async (req, re
         const labId = await getCurrentLabId(req.user.id);
         if (!labId) return res.json([]);
         const [rows] = await db.promise().query(
-            `SELECT pa.id, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path,
+            `SELECT pa.id, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path, pa.notes,
                     u.name as patient_name, u.email as patient_email, up.phone as patient_phone,
                     at.name as analysis_name, at.price
              FROM patient_analyses pa
              JOIN users u ON u.id = pa.user_id
              LEFT JOIN user_profiles up ON up.user_id = u.id
              JOIN analysis_types at ON at.id = pa.analysis_type_id
-             WHERE pa.laboratory_id = ? AND pa.status = 'pending_result'
+             WHERE pa.laboratory_id = ? AND pa.status = 'pending_result' AND (pa.result_note IS NULL OR pa.result_note != 'READY_FOR_RESULT_UPLOAD')
              ORDER BY pa.appointment_date DESC`,
             [labId]
         );
@@ -493,20 +505,20 @@ router.get('/dashboard/confirmed', authenticateToken, requireLab, async (req, re
     }
 });
 
-// Pending patients: status = 'pending_result' (confirmed but waiting for results)
+// Pending Result patients: status = 'pending_result' AND result_pdf_path IS NOT NULL (moved from confirmed to pending result)
 router.get('/dashboard/pending', authenticateToken, requireLab, async (req, res) => {
     try {
         const labId = await getCurrentLabId(req.user.id);
         if (!labId) return res.json([]);
         const [rows] = await db.promise().query(
-            `SELECT pa.id, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path,
+            `SELECT pa.id, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path, pa.notes,
                     u.name as patient_name, u.email as patient_email, up.phone as patient_phone,
                     at.name as analysis_name, at.price
              FROM patient_analyses pa
              JOIN users u ON u.id = pa.user_id
              LEFT JOIN user_profiles up ON up.user_id = u.id
              JOIN analysis_types at ON at.id = pa.analysis_type_id
-             WHERE pa.laboratory_id = ? AND pa.status = 'pending_result'
+             WHERE pa.laboratory_id = ? AND pa.status = 'pending_result' AND pa.result_note = 'READY_FOR_RESULT_UPLOAD'
              ORDER BY pa.appointment_date DESC`,
             [labId]
         );

@@ -60,7 +60,7 @@ const LabHistory = React.lazy(() => import('./lab/pages/LabHistory.jsx'));
 const LabCalendar = React.lazy(() => import('./lab/pages/LabCalendar.jsx'));
 const LabCalendarDate = React.lazy(() => import('./lab/pages/LabCalendarDate.jsx'));
 const LabConfirmed = React.lazy(() => import('./lab/pages/LabConfirmed.jsx'));
-const LabPending = React.lazy(() => import('./lab/pages/LabPending.jsx'));
+const LabPendingResult = React.lazy(() => import('./lab/pages/LabPendingResult.jsx'));
 const LabProfile = React.lazy(() => import('./lab/pages/LabProfile.jsx'));
 const LabAnalysisTypes = React.lazy(() => import('./lab/pages/LabAnalysisTypes.jsx'));
 
@@ -158,7 +158,7 @@ const App = () => {
           <Route path="calendar" element={<LabCalendar />} />
           <Route path="calendar/:date" element={<LabCalendarDate />} />
           <Route path="confirmed" element={<LabConfirmed />} />
-          <Route path="pending" element={<LabPending />} />
+          <Route path="pending" element={<LabPendingResult />} />
         </Route>
 
 

@@ -31,11 +31,11 @@ const upload = multer({
 });
 
 // Helper function to create notification
-async function createNotification(userId, sentByUserId, title, message, type = 'general_message', optionalLink = null) {
+async function createNotification(userId, sentByUserId, title, message, type = 'general_message', optionalLink = null, attachmentPath = null) {
     try {
         await db.promise().query(
-            'INSERT INTO notifications (user_id, sent_by_user_id, title, message, notification_type, optional_link) VALUES (?, ?, ?, ?, ?, ?)',
-            [userId, sentByUserId, title, message, type, optionalLink]
+            'INSERT INTO notifications (user_id, sent_by_user_id, title, message, notification_type, optional_link, attachment_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [userId, sentByUserId, title, message, type, optionalLink, attachmentPath]
         );
     } catch (error) {
         console.error('Failed to create notification:', error);

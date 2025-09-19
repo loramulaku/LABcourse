@@ -24,22 +24,23 @@ class Analysis {
         
         console.log('Validating time slot availability...');
         
-        // Expect local datetime string (YYYY-MM-DDTHH:MM or HH:MM:SS), store as-is in MySQL local time
+        // Expect local datetime string (YYYY-MM-DDTHH:MM:SS), store exactly as provided
         const mysqlDateTime = (() => {
-            // Normalize to 'YYYY-MM-DD HH:MM:SS'
             if (typeof appointment_date === 'string') {
+                // Ensure we have seconds, then convert to MySQL format
                 const hasSeconds = appointment_date.match(/T\d{2}:\d{2}:\d{2}$/);
-                const base = appointment_date.replace('T', ' ');
-                return hasSeconds ? base : `${base}:00`;
+                const normalized = hasSeconds ? appointment_date : `${appointment_date}:00`;
+                return normalized.replace('T', ' ');
             }
-            // Fallback to Date if somehow a Date object is passed
+            // If somehow a Date object is passed, convert it carefully
             const d = new Date(appointment_date);
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             const hour = String(d.getHours()).padStart(2, '0');
             const minute = String(d.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hour}:${minute}:00`;
+            const second = String(d.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
         })();
         console.log('Converted datetime for MySQL:', mysqlDateTime);
         

@@ -5,10 +5,10 @@ export default function LabLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200">
       <div className="flex">
         {/* Modern Sidebar */}
-        <aside className="w-64 bg-gradient-to-b from-green-600 to-green-700 shadow-xl min-h-screen">
+        <aside className="w-64 bg-green-900 shadow-2xl min-h-screen border-r-2 border-green-600">
           <div className="p-6">
             {/* Branding */}
             <div className="flex items-center mb-8">
@@ -26,8 +26,8 @@ export default function LabLayout() {
                 className={({ isActive }) => 
                   `flex items-center px-4 py-3 rounded-lg text-white transition-all duration-200 ${
                     isActive 
-                      ? 'bg-white bg-opacity-20 shadow-lg' 
-                      : 'hover:bg-white hover:bg-opacity-10'
+                      ? 'bg-green-600 bg-opacity-40 shadow-lg border border-green-400' 
+                      : 'hover:bg-green-700 hover:bg-opacity-30'
                   }`
                 }
               >
@@ -40,8 +40,8 @@ export default function LabLayout() {
                 className={({ isActive }) => 
                   `flex items-center px-4 py-3 rounded-lg text-white transition-all duration-200 ${
                     isActive 
-                      ? 'bg-white bg-opacity-20 shadow-lg' 
-                      : 'hover:bg-white hover:bg-opacity-10'
+                      ? 'bg-green-600 bg-opacity-40 shadow-lg border border-green-400' 
+                      : 'hover:bg-green-700 hover:bg-opacity-30'
                   }`
                 }
               >
@@ -54,8 +54,8 @@ export default function LabLayout() {
                 className={({ isActive }) => 
                   `flex items-center px-4 py-3 rounded-lg text-white transition-all duration-200 ${
                     isActive 
-                      ? 'bg-white bg-opacity-20 shadow-lg' 
-                      : 'hover:bg-white hover:bg-opacity-10'
+                      ? 'bg-green-600 bg-opacity-40 shadow-lg border border-green-400' 
+                      : 'hover:bg-green-700 hover:bg-opacity-30'
                   }`
                 }
               >
@@ -68,8 +68,8 @@ export default function LabLayout() {
                 className={({ isActive }) => 
                   `flex items-center px-4 py-3 rounded-lg text-white transition-all duration-200 ${
                     isActive 
-                      ? 'bg-white bg-opacity-20 shadow-lg' 
-                      : 'hover:bg-white hover:bg-opacity-10'
+                      ? 'bg-green-600 bg-opacity-40 shadow-lg border border-green-400' 
+                      : 'hover:bg-green-700 hover:bg-opacity-30'
                   }`
                 }
               >
@@ -82,8 +82,8 @@ export default function LabLayout() {
                 className={({ isActive }) => 
                   `flex items-center px-4 py-3 rounded-lg text-white transition-all duration-200 ${
                     isActive 
-                      ? 'bg-white bg-opacity-20 shadow-lg' 
-                      : 'hover:bg-white hover:bg-opacity-10'
+                      ? 'bg-green-600 bg-opacity-40 shadow-lg border border-green-400' 
+                      : 'hover:bg-green-700 hover:bg-opacity-30'
                   }`
                 }
               >
@@ -96,13 +96,13 @@ export default function LabLayout() {
                 className={({ isActive }) => 
                   `flex items-center px-4 py-3 rounded-lg text-white transition-all duration-200 ${
                     isActive 
-                      ? 'bg-white bg-opacity-20 shadow-lg' 
-                      : 'hover:bg-white hover:bg-opacity-10'
+                      ? 'bg-green-600 bg-opacity-40 shadow-lg border border-green-400' 
+                      : 'hover:bg-green-700 hover:bg-opacity-30'
                   }`
                 }
               >
-                <img src="/src/lab/labicon/7.jpg" alt="Pending" className="w-5 h-5 mr-3" />
-                Pending Patients
+                <img src="/src/lab/labicon/7.jpg" alt="Pending Result" className="w-5 h-5 mr-3" />
+                Pending Result
               </NavLink>
             </nav>
 
@@ -123,7 +123,7 @@ export default function LabLayout() {
 
         {/* Main Content */}
         <main className="flex-1 p-6 bg-gradient-to-br from-green-50 to-green-100">
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-green-200">
+          <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-green-300 min-h-screen">
             <Outlet />
           </div>
         </main>
