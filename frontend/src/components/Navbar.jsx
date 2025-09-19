@@ -3,6 +3,7 @@ import { assets } from '../assets/assets';
 import { NavLink, useNavigate } from 'react-router-dom';
 import apiFetch from '../api';
 import LazyImage from './LazyImage';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -150,6 +151,9 @@ const Navbar = () => {
       {/* Profile / Auth */
       }
       <div className="flex items-center gap-4">
+        {token && role !== 'lab' && (
+          <NotificationBell />
+        )}
         {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">
             {role === 'lab' ? (

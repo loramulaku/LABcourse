@@ -47,8 +47,8 @@ export default function LabCalendar() {
 
   const handleDateClick = (info) => {
     const dateStr = info.dateStr;
-    const list = byDate[dateStr] || [];
-    setSelected({ date: dateStr, items: list });
+    // Navigate to the date-specific view instead of showing modal
+    navigate(`/lab/calendar/${dateStr}`);
   };
 
   const confirm = async (id) => {

@@ -8,6 +8,29 @@ const Analysis = require('../models/Analysis');
 const db = require('../db');
 const bcrypt = require('bcrypt');
 
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/reports/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only PDF files are allowed'), false);
+        }
+    }
+});
+
 const router = express.Router();
 
 // helper: ensure lab role
@@ -20,6 +43,20 @@ function requireLab(req, res, next) {
 async function getCurrentLabId(userId) {
     const [rows] = await db.promise().query('SELECT id FROM laboratories WHERE user_id=? LIMIT 1', [userId]);
     return rows[0]?.id || null;
+}
+
+// helper: log analysis history for audit
+async function logAnalysisHistory(patientAnalysisId, actionType, performedByUserId, oldStatus = null, newStatus = null, notes = null, resultPdfPath = null, resultNote = null) {
+    try {
+        await db.promise().query(
+            `INSERT INTO analysis_history 
+             (patient_analysis_id, action_type, old_status, new_status, performed_by_user_id, notes, result_pdf_path, result_note)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [patientAnalysisId, actionType, oldStatus, newStatus, performedByUserId, notes, resultPdfPath, resultNote]
+        );
+    } catch (error) {
+        console.error('Failed to log analysis history:', error);
+    }
 }
 
 // Get all laboratories
@@ -112,41 +149,195 @@ router.get('/dashboard/appointments-by-date', authenticateToken, requireLab, asy
     }
 });
 
-// Confirm reservation (sets status = 'confirmed')
-router.post('/dashboard/confirm/:id', authenticateToken, requireLab, async (req, res) => {
+// Update status (cancel, confirm, or set to pending_result)
+router.post('/dashboard/update-status/:id', authenticateToken, requireLab, async (req, res) => {
     try {
         const labId = await getCurrentLabId(req.user.id);
         const id = req.params.id;
-        await db.promise().query(
-            `UPDATE patient_analyses SET status='confirmed' WHERE id=? AND laboratory_id=?`,
+        const { status } = req.body;
+        
+        // Validate status
+        const validStatuses = ['unconfirmed', 'pending_result', 'completed', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+        
+        // Get current status before update
+        const [[currentRow]] = await db.promise().query(
+            'SELECT status FROM patient_analyses WHERE id=? AND laboratory_id=?',
             [id, labId]
         );
+        
+        if (!currentRow) {
+            return res.status(404).json({ error: 'Analysis not found' });
+        }
+        
+        const oldStatus = currentRow.status;
+        
+        // Update status
+        await db.promise().query(
+            `UPDATE patient_analyses SET status=? WHERE id=? AND laboratory_id=?`,
+            [status, id, labId]
+        );
+        
+        // Log history
+        await logAnalysisHistory(
+            id, 
+            'status_changed', 
+            req.user.id, 
+            oldStatus, 
+            status,
+            `Status changed from ${oldStatus} to ${status}`
+        );
+        
+        // Get appointment details for notification
         const [[row]] = await db.promise().query(
-            `SELECT pa.*, u.name as user_name, u.email as user_email
-             FROM patient_analyses pa JOIN users u ON u.id=pa.user_id WHERE pa.id=?`,
+            `SELECT pa.*, u.name as user_name, u.email as user_email, at.name as analysis_name
+             FROM patient_analyses pa 
+             JOIN users u ON u.id=pa.user_id 
+             JOIN analysis_types at ON at.id=pa.analysis_type_id
+             WHERE pa.id=?`,
             [id]
         );
-        // TODO: trigger email/notification here
+        
+        // Create notification based on status change
+        if (row) {
+            const { createNotification } = require('./notificationRoutes');
+            let notificationTitle, notificationMessage;
+            
+            switch (status) {
+                case 'pending_result':
+                    notificationTitle = 'Appointment Confirmed';
+                    notificationMessage = `Your appointment for ${row.analysis_name} has been confirmed. Please arrive on time.`;
+                    break;
+                case 'cancelled':
+                    notificationTitle = 'Appointment Cancelled';
+                    notificationMessage = `Sorry, your analysis request for ${row.analysis_name} was cancelled.`;
+                    break;
+                case 'completed':
+                    notificationTitle = 'Results Ready';
+                    notificationMessage = `Your test results for ${row.analysis_name} are now available for download.`;
+                    break;
+            }
+            
+            if (notificationTitle) {
+                await createNotification(
+                    row.user_id,
+                    req.user.id,
+                    notificationTitle,
+                    notificationMessage,
+                    status === 'completed' ? 'result_ready' : 'appointment_confirmed'
+                );
+            }
+        }
+        
         res.json(row || { id });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Failed to confirm reservation' });
+        res.status(500).json({ error: 'Failed to update status' });
     }
 });
 
-// Unconfirm (revert to pending)
-router.post('/dashboard/unconfirm/:id', authenticateToken, requireLab, async (req, res) => {
+// Upload result PDF and note
+router.post('/dashboard/upload-result/:id', authenticateToken, requireLab, upload.single('result_pdf'), async (req, res) => {
     try {
         const labId = await getCurrentLabId(req.user.id);
         const id = req.params.id;
-        await db.promise().query(
-            `UPDATE patient_analyses SET status='pending' WHERE id=? AND laboratory_id=?`,
+        const { result_note } = req.body;
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'PDF file is required' });
+        }
+        
+        const resultPdfPath = req.file.path;
+        
+        // Get current status before update
+        const [[currentRow]] = await db.promise().query(
+            'SELECT status FROM patient_analyses WHERE id=? AND laboratory_id=?',
             [id, labId]
         );
-        res.json({ success: true });
+        
+        if (!currentRow) {
+            return res.status(404).json({ error: 'Analysis not found' });
+        }
+        
+        const oldStatus = currentRow.status;
+        
+        // Update with result
+        await db.promise().query(
+            `UPDATE patient_analyses 
+             SET status='completed', result_pdf_path=?, result_note=?, completion_date=NOW()
+             WHERE id=? AND laboratory_id=?`,
+            [resultPdfPath, result_note, id, labId]
+        );
+        
+        // Log history for result upload
+        await logAnalysisHistory(
+            id, 
+            'result_uploaded', 
+            req.user.id, 
+            oldStatus, 
+            'completed',
+            'Result PDF uploaded and analysis completed',
+            resultPdfPath,
+            result_note
+        );
+        
+        // Get appointment details for notification
+        const [[row]] = await db.promise().query(
+            `SELECT pa.*, u.name as user_name, u.email as user_email, at.name as analysis_name
+             FROM patient_analyses pa 
+             JOIN users u ON u.id=pa.user_id 
+             JOIN analysis_types at ON at.id=pa.analysis_type_id
+             WHERE pa.id=?`,
+            [id]
+        );
+        
+        // Create notification for completed results
+        if (row) {
+            const { createNotification } = require('./notificationRoutes');
+            await createNotification(
+                row.user_id,
+                req.user.id,
+                'Results Ready',
+                `Your test results for ${row.analysis_name} are now available for download.`,
+                'result_ready',
+                `/api/patient-analyses/download-result/${id}`
+            );
+        }
+        
+        res.json({ success: true, result_pdf_path: resultPdfPath });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Failed to revert status' });
+        res.status(500).json({ error: 'Failed to upload result' });
+    }
+});
+
+// Get appointments for a specific date
+router.get('/dashboard/appointments-by-date/:date', authenticateToken, requireLab, async (req, res) => {
+    try {
+        const labId = await getCurrentLabId(req.user.id);
+        const { date } = req.params;
+        
+        // Get all appointments for the specific date
+        const [appointments] = await db.promise().query(
+            `SELECT pa.id, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path,
+                    u.name as patient_name, u.email as patient_email, up.phone as patient_phone,
+                    at.name as analysis_name, at.price
+             FROM patient_analyses pa
+             JOIN users u ON u.id = pa.user_id
+             LEFT JOIN user_profiles up ON up.user_id = u.id
+             JOIN analysis_types at ON at.id = pa.analysis_type_id
+             WHERE pa.laboratory_id = ? AND DATE(pa.appointment_date) = ?
+             ORDER BY pa.appointment_date ASC`,
+            [labId, date]
+        );
+
+        // Return all appointments for the day
+        res.json(appointments);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to load appointments for date' });
     }
 });
 
@@ -284,10 +475,14 @@ router.get('/dashboard/confirmed', authenticateToken, requireLab, async (req, re
         const labId = await getCurrentLabId(req.user.id);
         if (!labId) return res.json([]);
         const [rows] = await db.promise().query(
-            `SELECT pa.id, u.name as patient_name, pa.appointment_date
+            `SELECT pa.id, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path,
+                    u.name as patient_name, u.email as patient_email, up.phone as patient_phone,
+                    at.name as analysis_name, at.price
              FROM patient_analyses pa
              JOIN users u ON u.id = pa.user_id
-             WHERE pa.laboratory_id = ? AND pa.status = 'confirmed'
+             LEFT JOIN user_profiles up ON up.user_id = u.id
+             JOIN analysis_types at ON at.id = pa.analysis_type_id
+             WHERE pa.laboratory_id = ? AND pa.status = 'pending_result'
              ORDER BY pa.appointment_date DESC`,
             [labId]
         );
@@ -298,17 +493,20 @@ router.get('/dashboard/confirmed', authenticateToken, requireLab, async (req, re
     }
 });
 
-// Pending patients: status = 'pending'
+// Pending patients: status = 'pending_result' (confirmed but waiting for results)
 router.get('/dashboard/pending', authenticateToken, requireLab, async (req, res) => {
     try {
         const labId = await getCurrentLabId(req.user.id);
         if (!labId) return res.json([]);
         const [rows] = await db.promise().query(
-            `SELECT pa.id, u.name as patient_name, at.name as analysis_name, pa.appointment_date
+            `SELECT pa.id, pa.appointment_date, pa.status, pa.result_note, pa.result_pdf_path,
+                    u.name as patient_name, u.email as patient_email, up.phone as patient_phone,
+                    at.name as analysis_name, at.price
              FROM patient_analyses pa
              JOIN users u ON u.id = pa.user_id
+             LEFT JOIN user_profiles up ON up.user_id = u.id
              JOIN analysis_types at ON at.id = pa.analysis_type_id
-             WHERE pa.laboratory_id = ? AND pa.status = 'pending'
+             WHERE pa.laboratory_id = ? AND pa.status = 'pending_result'
              ORDER BY pa.appointment_date DESC`,
             [labId]
         );
@@ -336,11 +534,6 @@ router.post('/dashboard/mark-pending/:id', authenticateToken, requireLab, async 
 });
 
 // handle PDF uploads and results
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, path.join(process.cwd(), 'uploads')),
-    filename: (req, file, cb) => cb(null, `lab_report_${Date.now()}${path.extname(file.originalname)}`)
-});
-const upload = multer({ storage });
 
 router.post('/dashboard/submit-result/:id', authenticateToken, requireLab, upload.single('report'), async (req, res) => {
     try {

@@ -37,16 +37,27 @@ const AnalysisRequestForm = () => {
     e.preventDefault();
     setError('');
     
-    if (!selectedTimeSlot) {
-      setError('Please select a time slot from the calendar.');
+    if (!selectedTimeSlot || !selectedDate) {
+      setError('Please select both a date and time slot from the calendar.');
+      return;
+    }
+    
+    if (!formData.analysis_type_id) {
+      setError('Please select an analysis type.');
       return;
     }
     
     try {
+      // selectedTimeSlot already contains the full datetime (e.g., "2025-09-19T08:00")
+      // We just need to add seconds if not present
+      const fullDateTime = selectedTimeSlot.includes(':00') ? selectedTimeSlot : `${selectedTimeSlot}:00`;
+      console.log('Using datetime:', fullDateTime);
+      
       const requestData = {
-        ...formData,
-        appointment_date: selectedTimeSlot,
-        laboratory_id: parseInt(labId)
+        analysis_type_id: parseInt(formData.analysis_type_id),
+        appointment_date: fullDateTime,
+        laboratory_id: parseInt(labId),
+        notes: formData.notes || ''
       };
       
       console.log('Sending analysis request:', requestData);

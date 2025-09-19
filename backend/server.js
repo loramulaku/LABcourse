@@ -40,6 +40,14 @@ app.use('/api/therapies', therapyRoutes);
 const appointmentsRoutes = require('./routes/appointments');
 app.use('/api/appointments', appointmentsRoutes);
 
+// Notification routes
+const { router: notificationRoutes } = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
+// Patient routes
+const patientRoutes = require('./routes/patientRoutes');
+app.use('/api/patient-analyses', patientRoutes);
+
 // Rrugët kryesore
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);

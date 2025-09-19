@@ -50,6 +50,7 @@ const DoctorsCrud = React.lazy(() => import('./dashboard/pages/DoctorsCrud.jsx')
 const AdminLaboratories = React.lazy(() => import('./dashboard/pages/AdminLaboratories.jsx'));
 const LaboratoriesCrud = React.lazy(() => import('./dashboard/pages/LaboratoriesCrud.jsx'));
 const AnalysisTypes = React.lazy(() => import('./dashboard/pages/AnalysisTypes.jsx'));
+const AdminMessaging = React.lazy(() => import('./dashboard/pages/AdminMessaging.jsx'));
 const DoctorRefused = React.lazy(() => import('./pages/DoctorRefused.jsx'));
 const DoctorTherapy = React.lazy(() => import('./pages/DoctorTherapy.jsx'));
 const DoctorTherapyDashboard = React.lazy(() => import('./pages/DoctorTherapyDashboard.jsx'));
@@ -57,6 +58,7 @@ const MyTherapies = React.lazy(() => import('./pages/MyTherapies.jsx'));
 const LabLayout = React.lazy(() => import('./lab/layout/LabLayout.jsx'));
 const LabHistory = React.lazy(() => import('./lab/pages/LabHistory.jsx'));
 const LabCalendar = React.lazy(() => import('./lab/pages/LabCalendar.jsx'));
+const LabCalendarDate = React.lazy(() => import('./lab/pages/LabCalendarDate.jsx'));
 const LabConfirmed = React.lazy(() => import('./lab/pages/LabConfirmed.jsx'));
 const LabPending = React.lazy(() => import('./lab/pages/LabPending.jsx'));
 const LabProfile = React.lazy(() => import('./lab/pages/LabProfile.jsx'));
@@ -121,6 +123,7 @@ const App = () => {
           <Route path="profile" element={<AdminProfile />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="users" element={<BasicTableOne />} />
+          <Route path="messaging" element={<AdminMessaging />} />
           <Route path="blank" element={<Blank />} />
           <Route path="doctors-crud" element={<DoctorsCrud />} />
           <Route path="add-laboratory" element={<AdminLaboratories />} />
@@ -153,6 +156,7 @@ const App = () => {
           <Route path="analysis-types" element={<LabAnalysisTypes />} />
           <Route path="history" element={<LabHistory />} />
           <Route path="calendar" element={<LabCalendar />} />
+          <Route path="calendar/:date" element={<LabCalendarDate />} />
           <Route path="confirmed" element={<LabConfirmed />} />
           <Route path="pending" element={<LabPending />} />
         </Route>
