@@ -67,6 +67,87 @@ router.get('/doctor/upcoming-followups', authenticateToken, requireDoctor, async
     }
 });
 
+// Get therapies by status for dashboard
+router.get('/doctor/status/:status', authenticateToken, requireDoctor, async (req, res) => {
+    try {
+        const doctorId = await getCurrentDoctorId(req.user.id);
+        if (!doctorId) return res.json([]);
+        
+        const { status } = req.params;
+        const validStatuses = ['draft', 'pending', 'confirmed', 'active', 'on_hold', 'completed', 'cancelled', 'overdue'];
+        
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+        
+        const therapies = await Therapy.getTherapiesByStatus(doctorId, status);
+        res.json(therapies);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get therapy calendar data
+router.get('/doctor/calendar', authenticateToken, requireDoctor, async (req, res) => {
+    try {
+        const doctorId = await getCurrentDoctorId(req.user.id);
+        if (!doctorId) return res.json([]);
+        
+        const { start_date, end_date } = req.query;
+        if (!start_date || !end_date) {
+            return res.status(400).json({ error: 'start_date and end_date are required' });
+        }
+        
+        const calendarData = await Therapy.getTherapyCalendar(doctorId, start_date, end_date);
+        res.json(calendarData);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Update therapy status
+router.patch('/doctor/:id/status', authenticateToken, requireDoctor, async (req, res) => {
+    try {
+        const doctorId = await getCurrentDoctorId(req.user.id);
+        const therapyId = req.params.id;
+        const { status } = req.body;
+        
+        // Verify therapy belongs to this doctor
+        const [existing] = await db.promise().query(
+            'SELECT id FROM therapies WHERE id=? AND doctor_id=?',
+            [therapyId, doctorId]
+        );
+        
+        if (existing.length === 0) {
+            return res.status(404).json({ error: 'Therapy not found or access denied' });
+        }
+        
+        const validStatuses = ['draft', 'pending', 'confirmed', 'active', 'on_hold', 'completed', 'cancelled', 'overdue'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+        
+        await Therapy.updateStatus(therapyId, status);
+        res.json({ message: 'Therapy status updated successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get therapy templates
+router.get('/templates', authenticateToken, requireDoctor, async (req, res) => {
+    try {
+        const templates = await Therapy.getTherapyTemplates();
+        res.json(templates);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Create new therapy (doctor only)
 router.post('/doctor/create', authenticateToken, requireDoctor, async (req, res) => {
     try {
@@ -82,7 +163,13 @@ router.post('/doctor/create', authenticateToken, requireDoctor, async (req, res)
             frequency,
             duration,
             instructions,
-            follow_up_date
+            follow_up_date,
+            therapy_type,
+            start_date,
+            end_date,
+            priority,
+            patient_notes,
+            doctor_notes
         } = req.body;
         
         if (!appointment_id || !patient_id || !therapy_text) {
@@ -99,7 +186,13 @@ router.post('/doctor/create', authenticateToken, requireDoctor, async (req, res)
             frequency: frequency || null,
             duration: duration || null,
             instructions: instructions || null,
-            follow_up_date: follow_up_date || null
+            follow_up_date: follow_up_date || null,
+            therapy_type: therapy_type || null,
+            start_date: start_date || null,
+            end_date: end_date || null,
+            priority: priority || 'medium',
+            patient_notes: patient_notes || null,
+            doctor_notes: doctor_notes || null
         };
         
         const therapyId = await Therapy.create(therapyData);

@@ -60,6 +60,15 @@ const navItems: NavItem[] = [
     subItems: [{ name: "Basic Tables", path: "/dashboard/basic-tables" }],
   },
   {
+    name: "Therapy Management",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "Therapy Dashboard", path: "/dashboard/therapy" },
+      { name: "Create Therapy", path: "/dashboard/therapy/create" },
+      { name: "Therapy Calendar", path: "/dashboard/therapy/calendar" },
+    ],
+  },
+  {
     name: "Pages",
     icon: <PageIcon />,
     subItems: [
