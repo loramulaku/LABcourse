@@ -20,6 +20,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dropzone": "^14.3.8",
     "react-helmet-async": "^2.0.5",
+    "stripe": "^18.5.0",
     "swiper": "^11.2.10",
     "tailwind-merge": "^3.3.1"
   },
