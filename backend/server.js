@@ -15,10 +15,15 @@ const app = express();
 // CORS – lejo origin + credentials + Authorization header
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+    origin: [
+      process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+      'http://localhost:5175',
+      'http://localhost:3000',
+      'http://localhost:5174'
+    ],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // ✅
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // ✅
   })
 );
 
