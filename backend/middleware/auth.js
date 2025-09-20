@@ -31,4 +31,12 @@ function isAdmin(req, res, next) {
   next();
 }
 
-module.exports = { authenticateToken, isAdmin };
+// Middleware për të kontrolluar nëse user është doctor
+function isDoctor(req, res, next) {
+  if (req.user?.role !== "doctor") {
+    return res.status(403).json({ error: "Akses i ndaluar, duhet doctor" });
+  }
+  next();
+}
+
+module.exports = { authenticateToken, isAdmin, isDoctor };

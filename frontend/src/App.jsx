@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 const Home = React.lazy(() => import('./pages/Home'));
 const Doctors = React.lazy(() => import('./pages/Doctors'));
 const Login = React.lazy(() => import('./pages/Login'));
+const DoctorRegistration = React.lazy(() => import('./pages/DoctorRegistration'));
 const About = React.lazy(() => import('./pages/About'));
 const Contact = React.lazy(() => import('./pages/Contact'));
 const MyProfile = React.lazy(() => import('./pages/MyProfile'));
@@ -98,6 +99,7 @@ const App = () => {
       <Routes>
         {/* =================== APP NORMAL =================== */}
         <Route path="/login" element={<Login />} />
+        <Route path="/doctor-registration" element={<DoctorRegistration />} />
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/doctors" element={<ProtectedRoute><Doctors /></ProtectedRoute>} />
         <Route path="/doctors/:speciality" element={<ProtectedRoute><Doctors /></ProtectedRoute>} />

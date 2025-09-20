@@ -9,6 +9,7 @@ const profileRoutes = require('./routes/profile');
 const usersRoutes = require('./routes/users');
 const adminProfileRoutes = require('./routes/adminProfile'); 
 const doctorRoutes = require("./routes/doctorRoutes");
+const doctorApplicationsRoutes = require('./routes/doctorApplications');
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/admin-profiles', adminProfileRoutes); 
 app.use("/api/doctors", doctorRoutes);
+app.use('/api/doctor-applications', doctorApplicationsRoutes);
 
 // bëj folderin uploads publik
 const path = require('path');

@@ -46,7 +46,13 @@ const Login = () => {
         if (window.handleLogin) window.handleLogin();
 
         // ✅ Përmirësim: ridrejto në dashboard ose home sipas role
-        navigate(data.role === 'admin' ? '/dashboard' : '/');
+        if (data.role === 'admin') {
+          navigate('/dashboard');
+        } else if (data.role === 'doctor') {
+          navigate('/doctor-dashboard');
+        } else {
+          navigate('/');
+        }
       }
 
       // Pastrimi i form-it
@@ -123,6 +129,19 @@ const Login = () => {
             {state === 'Sign Up' ? 'Login here' : 'Click here'}
           </span>
         </p>
+        
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <p className="text-center text-sm text-gray-600 mb-2">
+            Are you a medical professional?
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/doctor-registration')}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-base transition-colors duration-200"
+          >
+            Register as Doctor
+          </button>
+        </div>
       </form>
     </div>
   );
