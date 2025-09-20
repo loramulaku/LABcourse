@@ -47,7 +47,6 @@ const Login = () => {
         if (window.handleLogin) window.handleLogin();
 
         // ✅ Përmirësim: ridrejto në dashboard ose home sipas role
-<<<<<<< HEAD
         if (data.role === 'admin') {
           navigate('/dashboard');
         } else if (data.role === 'doctor') {
@@ -55,9 +54,6 @@ const Login = () => {
         } else {
           navigate('/');
         }
-=======
-        navigate(data.role === "admin" ? "/dashboard" : "/");
->>>>>>> 4d15f8270fc50adde48ab7e7dd438eb1b0236f95
       }
 
       // Pastrimi i form-it
