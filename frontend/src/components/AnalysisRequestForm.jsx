@@ -1,32 +1,34 @@
 // src/components/AnalysisRequestForm.jsx
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { API_URL } from '../api';
-import AnalysisCalendar from './AnalysisCalendar';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { API_URL } from "../api";
+import AnalysisCalendar from "./AnalysisCalendar";
 
 const AnalysisRequestForm = () => {
   const { labId } = useParams();
   const navigate = useNavigate();
   const [analysisTypes, setAnalysisTypes] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState("");
   const [formData, setFormData] = useState({
-    analysis_type_id: '',
-    appointment_date: '',
-    notes: ''
+    analysis_type_id: "",
+    appointment_date: "",
+    notes: "",
   });
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
-  const [error, setError] = useState('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAnalysisTypes = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/laboratories/${labId}/analysis-types`);
+        const response = await fetch(
+          `${API_URL}/api/laboratories/${labId}/analysis-types`,
+        );
         if (response.ok) {
           const data = await response.json();
           setAnalysisTypes(data);
         }
       } catch (error) {
-        console.error('Error fetching analysis types:', error);
+        console.error("Error fetching analysis types:", error);
       }
     };
 
@@ -35,58 +37,67 @@ const AnalysisRequestForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
+
     if (!selectedTimeSlot || !selectedDate) {
-      setError('Please select both a date and time slot from the calendar.');
+      setError("Please select both a date and time slot from the calendar.");
       return;
     }
-    
+
     if (!formData.analysis_type_id) {
-      setError('Please select an analysis type.');
+      setError("Please select an analysis type.");
       return;
     }
-    
+
     try {
       // selectedTimeSlot already contains the full datetime (e.g., "2025-09-19T08:00")
       // We just need to add seconds if not present
-      const fullDateTime = selectedTimeSlot.includes(':00') ? selectedTimeSlot : `${selectedTimeSlot}:00`;
-      console.log('Using datetime:', fullDateTime);
-      
+      const fullDateTime = selectedTimeSlot.includes(":00")
+        ? selectedTimeSlot
+        : `${selectedTimeSlot}:00`;
+      console.log("Using datetime:", fullDateTime);
+
       const requestData = {
         analysis_type_id: parseInt(formData.analysis_type_id),
         appointment_date: fullDateTime,
         laboratory_id: parseInt(labId),
-        notes: formData.notes || ''
+        notes: formData.notes || "",
       };
-      
-      console.log('Sending analysis request:', requestData);
-      
-      const response = await fetch(`${API_URL}/api/laboratories/request-analysis`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}` 
+
+      console.log("Sending analysis request:", requestData);
+
+      const response = await fetch(
+        `${API_URL}/api/laboratories/request-analysis`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+          body: JSON.stringify(requestData),
         },
-        body: JSON.stringify(requestData)
-      });
+      );
 
       if (response.ok) {
-        navigate('/my-analyses');
+        navigate("/my-analyses");
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Server error response:', errorData);
-        
-        if (errorData.error === 'TIME_SLOT_BOOKED') {
-          setError('This time slot is no longer available. Please select another time slot.');
+        console.error("Server error response:", errorData);
+
+        if (errorData.error === "TIME_SLOT_BOOKED") {
+          setError(
+            "This time slot is no longer available. Please select another time slot.",
+          );
         } else {
-          setError(errorData.error || errorData.details || 'Failed to submit request');
+          setError(
+            errorData.error || errorData.details || "Failed to submit request",
+          );
         }
       }
     } catch (error) {
-      console.error('Error submitting analysis request:', error);
-      setError('Network error. Please try again.');
+      console.error("Error submitting analysis request:", error);
+      setError("Network error. Please try again.");
     }
   };
 
@@ -94,18 +105,18 @@ const AnalysisRequestForm = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
-    setSelectedTimeSlot(''); // Reset time slot when date changes
+    setSelectedTimeSlot(""); // Reset time slot when date changes
   };
 
   const handleTimeSelect = (timeSlot) => {
     setSelectedTimeSlot(timeSlot);
-    setError(''); // Clear any error messages when a valid time slot is selected
+    setError(""); // Clear any error messages when a valid time slot is selected
   };
 
   return (
@@ -114,18 +125,25 @@ const AnalysisRequestForm = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="bg-blue-600 text-white p-6">
             <h1 className="text-3xl font-bold">Request Laboratory Analysis</h1>
-            <p className="text-blue-100 mt-2">Select your preferred date and time for the analysis</p>
+            <p className="text-blue-100 mt-2">
+              Select your preferred date and time for the analysis
+            </p>
           </div>
-          
+
           <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Analysis Details Form */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Analysis Details</h2>
-                
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                  Analysis Details
+                </h2>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="analysis_type_id" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="analysis_type_id"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Analysis Type *
                     </label>
                     <select
@@ -146,7 +164,10 @@ const AnalysisRequestForm = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="notes"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Notes (Optional)
                     </label>
                     <textarea
@@ -163,7 +184,12 @@ const AnalysisRequestForm = () => {
                   {selectedTimeSlot && (
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-green-800 font-medium">
-                        Selected Time: {new Date(selectedTimeSlot).toLocaleDateString()} at {new Date(selectedTimeSlot).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        Selected Time:{" "}
+                        {new Date(selectedTimeSlot).toLocaleDateString()} at{" "}
+                        {new Date(selectedTimeSlot).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   )}

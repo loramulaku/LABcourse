@@ -44,11 +44,15 @@ export default function AdminProfile() {
 
   async function fetchProfile() {
     try {
-      const data = await apiFetch(`${ADMIN_PROFILE_BASE}/me`, { method: "GET" });
+      const data = await apiFetch(`${ADMIN_PROFILE_BASE}/me`, {
+        method: "GET",
+      });
       setProfile(data);
-      
+
       // Fetch user data from users table
-      const userResponse = await apiFetch(`${BASE_API}/api/users/me`, { method: "GET" });
+      const userResponse = await apiFetch(`${BASE_API}/api/users/me`, {
+        method: "GET",
+      });
       setUserData(userResponse);
     } catch (e) {
       // nëse nuk ekziston ende, backendi mund ta krijojë default-in;
@@ -126,10 +130,7 @@ export default function AdminProfile() {
 
   return (
     <>
-      <PageMeta
-        title="Profile"
-        description="Admin Profile"
-      />
+      <PageMeta title="Profile" description="Admin Profile" />
       <PageBreadcrumb pageTitle="Profile" />
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
@@ -156,7 +157,9 @@ export default function AdminProfile() {
             name={userData.name || ""}
             email={userData.email || ""}
             profile={profile}
-            onSave={(payload, avatarFile) => updatePersonal(payload, avatarFile)}
+            onSave={(payload, avatarFile) =>
+              updatePersonal(payload, avatarFile)
+            }
           />
 
           <UserAddressCard

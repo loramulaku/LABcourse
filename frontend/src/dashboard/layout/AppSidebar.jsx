@@ -39,7 +39,10 @@ const navItems = [
     name: "Calendar",
     subItems: [
       { name: "Analyses Calendar", path: "/dashboard/analyses-calendar" },
-      { name: "Appointments Calendar", path: "/dashboard/appointments-calendar" },
+      {
+        name: "Appointments Calendar",
+        path: "/dashboard/appointments-calendar",
+      },
     ],
   },
   {
@@ -55,7 +58,10 @@ const navItems = [
     icon: <ListIcon />,
     subItems: [
       { name: "Add Laboratory", path: "/dashboard/add-laboratory" },
-      { name: "Edit & Delete Laboratories", path: "/dashboard/laboratories-crud" },
+      {
+        name: "Edit & Delete Laboratories",
+        path: "/dashboard/laboratories-crud",
+      },
       { name: "Analysis Types", path: "/dashboard/analysis-types" },
     ],
   },
@@ -110,7 +116,7 @@ const AppSidebar = () => {
   // Active route check
   const isActive = useCallback(
     (path) => location.pathname === path,
-    [location.pathname]
+    [location.pathname],
   );
 
   // Auto-open submenu if route matches
@@ -147,7 +153,7 @@ const AppSidebar = () => {
     setOpenSubmenu((prev) =>
       prev && prev.type === menuType && prev.index === index
         ? null
-        : { type: menuType, index }
+        : { type: menuType, index },
     );
   };
 
@@ -179,7 +185,8 @@ const AppSidebar = () => {
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType && openSubmenu?.index === index
+                    openSubmenu?.type === menuType &&
+                    openSubmenu?.index === index
                       ? "rotate-180 text-primary"
                       : ""
                   }`}
@@ -196,7 +203,9 @@ const AppSidebar = () => {
               >
                 <span
                   className={`menu-item-icon-size ${
-                    isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"
+                    isActive(nav.path)
+                      ? "menu-item-icon-active"
+                      : "menu-item-icon-inactive"
                   }`}
                 >
                   {nav.icon}
@@ -254,15 +263,34 @@ const AppSidebar = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Logo */}
-      <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
+      <div
+        className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}
+      >
         <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
-              <img className="dark:hidden" src="/images/logo/logo.svg" alt="Logo" width={150} height={40} />
-              <img className="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Logo" width={150} height={40} />
+              <img
+                className="dark:hidden"
+                src="/images/logo/logo.svg"
+                alt="Logo"
+                width={150}
+                height={40}
+              />
+              <img
+                className="hidden dark:block"
+                src="/images/logo/logo-dark.svg"
+                alt="Logo"
+                width={150}
+                height={40}
+              />
             </>
           ) : (
-            <img src="/images/logo/logo-icon.svg" alt="Logo" width={32} height={32} />
+            <img
+              src="/images/logo/logo-icon.svg"
+              alt="Logo"
+              width={32}
+              height={32}
+            />
           )}
         </Link>
       </div>
@@ -273,10 +301,16 @@ const AppSidebar = () => {
           <div>
             <h2
               className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                !isExpanded && !isHovered
+                  ? "lg:justify-center"
+                  : "justify-start"
               }`}
             >
-              {isExpanded || isHovered || isMobileOpen ? "Menu" : <HorizontaLDots className="size-6" />}
+              {isExpanded || isHovered || isMobileOpen ? (
+                "Menu"
+              ) : (
+                <HorizontaLDots className="size-6" />
+              )}
             </h2>
             {renderMenuItems(navItems, "main")}
           </div>
@@ -284,10 +318,16 @@ const AppSidebar = () => {
           <div>
             <h2
               className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                !isExpanded && !isHovered
+                  ? "lg:justify-center"
+                  : "justify-start"
               }`}
             >
-              {isExpanded || isHovered || isMobileOpen ? "Others" : <HorizontaLDots />}
+              {isExpanded || isHovered || isMobileOpen ? (
+                "Others"
+              ) : (
+                <HorizontaLDots />
+              )}
             </h2>
             {renderMenuItems(othersItems, "others")}
           </div>
@@ -308,5 +348,3 @@ const AppSidebar = () => {
 };
 
 export default AppSidebar;
-
-

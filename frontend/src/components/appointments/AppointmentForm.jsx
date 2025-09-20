@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { getDoctors, getAvailableSlots } from '../../services/appointmentService';
-import LoadingSpinner from '../common/LoadingSpinner';
+import React, { useState, useEffect } from "react";
+import {
+  getDoctors,
+  getAvailableSlots,
+} from "../../services/appointmentService";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
   const [formData, setFormData] = useState({
-    doctor_id: '',
-    scheduled_for: '',
-    reason: ''
+    doctor_id: "",
+    scheduled_for: "",
+    reason: "",
   });
   const [doctors, setDoctors] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState("");
   const [errors, setErrors] = useState({});
   const [fetchingSlots, setFetchingSlots] = useState(false);
 
@@ -29,19 +32,19 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
       const doctorsList = await getDoctors();
       setDoctors(doctorsList);
     } catch (error) {
-      console.error('Error fetching doctors:', error);
+      console.error("Error fetching doctors:", error);
     }
   };
 
   const fetchAvailableSlots = async () => {
     if (!selectedDate || !formData.doctor_id) return;
-    
+
     try {
       setFetchingSlots(true);
       const slots = await getAvailableSlots(formData.doctor_id, selectedDate);
       setAvailableSlots(slots.available_slots || []);
     } catch (error) {
-      console.error('Error fetching available slots:', error);
+      console.error("Error fetching available slots:", error);
       setAvailableSlots([]);
     } finally {
       setFetchingSlots(false);
@@ -50,68 +53,71 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     // Clear errors when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.doctor_id) {
-      newErrors.doctor_id = 'Please select a doctor';
+      newErrors.doctor_id = "Please select a doctor";
     }
-    
+
     if (!formData.scheduled_for) {
-      newErrors.scheduled_for = 'Please select a date and time';
+      newErrors.scheduled_for = "Please select a date and time";
     }
-    
+
     if (!formData.reason.trim()) {
-      newErrors.reason = 'Please provide a reason for the visit';
+      newErrors.reason = "Please provide a reason for the visit";
     } else if (formData.reason.trim().length < 5) {
-      newErrors.reason = 'Reason must be at least 5 characters long';
+      newErrors.reason = "Reason must be at least 5 characters long";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     onSubmit(formData);
   };
 
   const getMinDate = () => {
     const today = new Date();
     today.setDate(today.getDate() + 1); // Can't book for today
-    return today.toISOString().split('T')[0];
+    return today.toISOString().split("T")[0];
   };
 
   const getMaxDate = () => {
     const maxDate = new Date();
     maxDate.setMonth(maxDate.getMonth() + 3); // Can book up to 3 months ahead
-    return maxDate.toISOString().split('T')[0];
+    return maxDate.toISOString().split("T")[0];
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Doctor Selection */}
       <div>
-        <label htmlFor="doctor_id" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="doctor_id"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Select Doctor *
         </label>
         <select
@@ -120,13 +126,13 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
           value={formData.doctor_id}
           onChange={handleInputChange}
           className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            errors.doctor_id ? 'border-red-500' : 'border-gray-300'
+            errors.doctor_id ? "border-red-500" : "border-gray-300"
           }`}
         >
           <option value="">Choose a doctor...</option>
-          {doctors.map(doctor => (
+          {doctors.map((doctor) => (
             <option key={doctor._id} value={doctor._id}>
-              Dr. {doctor.name} - {doctor.specialization || 'General Medicine'}
+              Dr. {doctor.name} - {doctor.specialization || "General Medicine"}
             </option>
           ))}
         </select>
@@ -137,7 +143,10 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
 
       {/* Date Selection */}
       <div>
-        <label htmlFor="selectedDate" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="selectedDate"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Select Date *
         </label>
         <input
@@ -154,13 +163,18 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
       {/* Time Slot Selection */}
       {selectedDate && formData.doctor_id && (
         <div>
-          <label htmlFor="scheduled_for" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="scheduled_for"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Select Time Slot *
           </label>
           {fetchingSlots ? (
             <div className="flex items-center space-x-2">
               <LoadingSpinner size="sm" />
-              <span className="text-sm text-gray-500">Loading available slots...</span>
+              <span className="text-sm text-gray-500">
+                Loading available slots...
+              </span>
             </div>
           ) : availableSlots.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -168,14 +182,16 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
                 <button
                   key={slot.time}
                   type="button"
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    scheduled_for: slot.time
-                  }))}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      scheduled_for: slot.time,
+                    }))
+                  }
                   className={`p-3 text-sm border rounded-lg transition-colors ${
                     formData.scheduled_for === slot.time
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                   }`}
                 >
                   {slot.formatted}
@@ -184,7 +200,8 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
             </div>
           ) : (
             <p className="text-sm text-gray-500">
-              No available slots for the selected date. Please choose another date.
+              No available slots for the selected date. Please choose another
+              date.
             </p>
           )}
           {errors.scheduled_for && (
@@ -195,7 +212,10 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
 
       {/* Reason for Visit */}
       <div>
-        <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="reason"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Reason for Visit *
         </label>
         <textarea
@@ -206,14 +226,15 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
           rows={4}
           placeholder="Please describe the reason for your visit..."
           className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            errors.reason ? 'border-red-500' : 'border-gray-300'
+            errors.reason ? "border-red-500" : "border-gray-300"
           }`}
         />
         {errors.reason && (
           <p className="mt-1 text-sm text-red-600">{errors.reason}</p>
         )}
         <p className="mt-1 text-sm text-gray-500">
-          Please provide a detailed description of your symptoms or reason for the appointment.
+          Please provide a detailed description of your symptoms or reason for
+          the appointment.
         </p>
       </div>
 
@@ -228,7 +249,12 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
         </button>
         <button
           type="submit"
-          disabled={loading || !formData.doctor_id || !formData.scheduled_for || !formData.reason.trim()}
+          disabled={
+            loading ||
+            !formData.doctor_id ||
+            !formData.scheduled_for ||
+            !formData.reason.trim()
+          }
           className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
@@ -237,7 +263,7 @@ const AppointmentForm = ({ onSubmit, onCancel, loading }) => {
               <span>Booking...</span>
             </div>
           ) : (
-            'Book Appointment'
+            "Book Appointment"
           )}
         </button>
       </div>

@@ -1,28 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { API_URL, getAccessToken } from '../../api';
-import { toast } from 'react-toastify';
-import PageMeta from '../components/common/PageMeta';
-import PageBreadcrumb from '../components/common/PageBreadCrumb';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { API_URL, getAccessToken } from "../../api";
+import { toast } from "react-toastify";
+import PageMeta from "../components/common/PageMeta";
+import PageBreadcrumb from "../components/common/PageBreadCrumb";
 
 const TherapyCreateForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    appointment_id: '',
-    patient_id: '',
-    therapy_text: '',
-    medications: '',
-    dosage: '',
-    frequency: '',
-    duration: '',
-    instructions: '',
-    follow_up_date: '',
-    therapy_type: '',
-    start_date: '',
-    end_date: '',
-    priority: 'medium',
-    patient_notes: '',
-    doctor_notes: ''
+    appointment_id: "",
+    patient_id: "",
+    therapy_text: "",
+    medications: "",
+    dosage: "",
+    frequency: "",
+    duration: "",
+    instructions: "",
+    follow_up_date: "",
+    therapy_type: "",
+    start_date: "",
+    end_date: "",
+    priority: "medium",
+    patient_notes: "",
+    doctor_notes: "",
   });
 
   const [patients, setPatients] = useState([]);
@@ -41,21 +41,21 @@ const TherapyCreateForm = () => {
       const [patientsRes, appointmentsRes, templatesRes] = await Promise.all([
         fetch(`${API_URL}/api/users`, {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
-          credentials: 'include',
+          credentials: "include",
         }),
         fetch(`${API_URL}/api/appointments/doctor/dashboard`, {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
-          credentials: 'include',
+          credentials: "include",
         }),
         fetch(`${API_URL}/api/therapies/templates`, {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
-          credentials: 'include',
-        })
+          credentials: "include",
+        }),
       ]);
 
       if (patientsRes.ok) {
         const patientsData = await patientsRes.json();
-        setPatients(patientsData.filter(user => user.role === 'user'));
+        setPatients(patientsData.filter((user) => user.role === "user"));
       }
 
       if (appointmentsRes.ok) {
@@ -68,107 +68,120 @@ const TherapyCreateForm = () => {
         setTemplates(templatesData);
       }
     } catch (error) {
-      console.error('Error fetching initial data:', error);
-      toast.error('Failed to load form data');
+      console.error("Error fetching initial data:", error);
+      toast.error("Failed to load form data");
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handlePatientSelect = (patientId) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       patient_id: patientId,
-      appointment_id: '' // Reset appointment when patient changes
+      appointment_id: "", // Reset appointment when patient changes
     }));
   };
 
   const handleAppointmentSelect = (appointmentId) => {
-    const appointment = appointments.find(apt => apt.id == appointmentId);
+    const appointment = appointments.find((apt) => apt.id == appointmentId);
     if (appointment) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         appointment_id: appointmentId,
-        patient_id: appointment.patient_id
+        patient_id: appointment.patient_id,
       }));
     }
   };
 
   const handleTemplateSelect = (template) => {
     setSelectedTemplate(template);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       therapy_type: template.therapy_type,
       medications: template.medications,
       dosage: template.dosage,
       frequency: template.frequency,
       duration: template.duration,
-      instructions: template.instructions
+      instructions: template.instructions,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.appointment_id || !formData.patient_id || !formData.therapy_text) {
-      toast.error('Please fill in all required fields');
+
+    if (
+      !formData.appointment_id ||
+      !formData.patient_id ||
+      !formData.therapy_text
+    ) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/api/therapies/doctor/create`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify(formData),
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (response.ok) {
-        toast.success('Therapy created successfully!');
-        navigate('/dashboard/therapy');
+        toast.success("Therapy created successfully!");
+        navigate("/dashboard/therapy");
       } else {
         const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to create therapy');
+        toast.error(errorData.error || "Failed to create therapy");
       }
     } catch (error) {
-      console.error('Error creating therapy:', error);
-      toast.error('Error creating therapy');
+      console.error("Error creating therapy:", error);
+      toast.error("Error creating therapy");
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredAppointments = appointments.filter(apt => 
-    !formData.patient_id || apt.patient_id == formData.patient_id
+  const filteredAppointments = appointments.filter(
+    (apt) => !formData.patient_id || apt.patient_id == formData.patient_id,
   );
 
   return (
     <>
-      <PageMeta title="Create Therapy" description="Create new therapy for patient" />
+      <PageMeta
+        title="Create Therapy"
+        description="Create new therapy for patient"
+      />
       <PageBreadcrumb pageTitle="Create Therapy" />
 
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Create New Therapy</h1>
-              <p className="text-gray-600">Create a comprehensive therapy plan for your patient</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Create New Therapy
+              </h1>
+              <p className="text-gray-600">
+                Create a comprehensive therapy plan for your patient
+              </p>
             </div>
 
             {/* Therapy Templates */}
             {templates.length > 0 && (
               <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                <h3 className="text-lg font-semibold text-blue-900 mb-3">Quick Templates</h3>
+                <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                  Quick Templates
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {templates.map((template) => (
                     <button
@@ -176,12 +189,16 @@ const TherapyCreateForm = () => {
                       onClick={() => handleTemplateSelect(template)}
                       className={`p-3 text-left border rounded-lg transition-colors ${
                         selectedTemplate?.id === template.id
-                          ? 'border-blue-500 bg-blue-100'
-                          : 'border-gray-200 hover:border-blue-300'
+                          ? "border-blue-500 bg-blue-100"
+                          : "border-gray-200 hover:border-blue-300"
                       }`}
                     >
-                      <h4 className="font-medium text-gray-900">{template.name}</h4>
-                      <p className="text-sm text-gray-600">{template.therapy_type}</p>
+                      <h4 className="font-medium text-gray-900">
+                        {template.name}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {template.therapy_type}
+                      </p>
                     </button>
                   ))}
                 </div>
@@ -192,7 +209,10 @@ const TherapyCreateForm = () => {
               {/* Patient and Appointment Selection */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="patient_id" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="patient_id"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Select Patient *
                   </label>
                   <select
@@ -213,7 +233,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="appointment_id" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="appointment_id"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Related Appointment *
                   </label>
                   <select
@@ -227,7 +250,10 @@ const TherapyCreateForm = () => {
                     <option value="">Choose an appointment...</option>
                     {filteredAppointments.map((appointment) => (
                       <option key={appointment.id} value={appointment.id}>
-                        {new Date(appointment.scheduled_for).toLocaleDateString()} - {appointment.patient_name}
+                        {new Date(
+                          appointment.scheduled_for,
+                        ).toLocaleDateString()}{" "}
+                        - {appointment.patient_name}
                       </option>
                     ))}
                   </select>
@@ -237,7 +263,10 @@ const TherapyCreateForm = () => {
               {/* Therapy Type and Priority */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label htmlFor="therapy_type" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="therapy_type"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Therapy Type
                   </label>
                   <input
@@ -252,7 +281,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="priority"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Priority
                   </label>
                   <select
@@ -269,7 +301,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="duration"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Duration
                   </label>
                   <input
@@ -287,7 +322,10 @@ const TherapyCreateForm = () => {
               {/* Dates */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="start_date"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Start Date
                   </label>
                   <input
@@ -301,7 +339,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="end_date"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     End Date
                   </label>
                   <input
@@ -315,7 +356,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="follow_up_date" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="follow_up_date"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Follow-up Date
                   </label>
                   <input
@@ -331,7 +375,10 @@ const TherapyCreateForm = () => {
 
               {/* Therapy Instructions */}
               <div>
-                <label htmlFor="therapy_text" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="therapy_text"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Therapy Instructions *
                 </label>
                 <textarea
@@ -349,7 +396,10 @@ const TherapyCreateForm = () => {
               {/* Medications */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label htmlFor="medications" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="medications"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Medications
                   </label>
                   <input
@@ -364,7 +414,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="dosage" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="dosage"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Dosage
                   </label>
                   <input
@@ -379,7 +432,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="frequency" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="frequency"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Frequency
                   </label>
                   <input
@@ -396,7 +452,10 @@ const TherapyCreateForm = () => {
 
               {/* Additional Instructions */}
               <div>
-                <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="instructions"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Special Instructions
                 </label>
                 <textarea
@@ -413,7 +472,10 @@ const TherapyCreateForm = () => {
               {/* Notes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="patient_notes" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="patient_notes"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Patient Notes
                   </label>
                   <textarea
@@ -428,7 +490,10 @@ const TherapyCreateForm = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="doctor_notes" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="doctor_notes"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Doctor Notes (Private)
                   </label>
                   <textarea
@@ -447,7 +512,7 @@ const TherapyCreateForm = () => {
               <div className="flex justify-end space-x-4 pt-6 border-t">
                 <button
                   type="button"
-                  onClick={() => navigate('/dashboard/therapy')}
+                  onClick={() => navigate("/dashboard/therapy")}
                   className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
@@ -457,7 +522,7 @@ const TherapyCreateForm = () => {
                   disabled={loading}
                   className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Creating...' : 'Create Therapy'}
+                  {loading ? "Creating..." : "Create Therapy"}
                 </button>
               </div>
             </form>

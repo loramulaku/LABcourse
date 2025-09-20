@@ -10,7 +10,7 @@ function authenticateToken(req, res, next) {
   }
 
   if (!process.env.JWT_SECRET) {
-    console.error('JWT_SECRET not set in environment variables');
+    console.error("JWT_SECRET not set in environment variables");
     return res.status(500).json({ error: "Server configuration error" });
   }
 

@@ -12,7 +12,7 @@ const Doctor = sequelize.define("Doctor", {
   about: { type: DataTypes.TEXT },
   fees: { type: DataTypes.DECIMAL },
   address_line1: { type: DataTypes.STRING },
-  address_line2: { type: DataTypes.STRING }
+  address_line2: { type: DataTypes.STRING },
 });
 
 export default Doctor;

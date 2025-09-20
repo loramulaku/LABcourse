@@ -191,8 +191,8 @@ export default function RecentOrders() {
                       product.status === "Delivered"
                         ? "success"
                         : product.status === "Pending"
-                        ? "warning"
-                        : "error"
+                          ? "warning"
+                          : "error"
                     }
                   >
                     {product.status}

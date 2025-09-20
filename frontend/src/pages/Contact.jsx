@@ -1,4 +1,4 @@
-import React from "react";  
+import React from "react";
 import contactImage from "../assets/contact_image.png"; // replace with your own image
 
 const ContactForm = () => {
@@ -30,53 +30,53 @@ const ContactForm = () => {
           </p>
 
           <form
-  action="https://formspree.io/f/xrbanoje"
-  method="POST"
-  className="space-y-6"
->
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <input
-      type="text"
-      name="firstName"
-      placeholder="Enter your first name..."
-      required
-      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    />
-    <input
-      type="text"
-      name="lastName"
-      placeholder="Enter your last name..."
-      required
-      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    />
-  </div>
+            action="https://formspree.io/f/xrbanoje"
+            method="POST"
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <input
+                type="text"
+                name="firstName"
+                placeholder="Enter your first name..."
+                required
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Enter your last name..."
+                required
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
 
-  <input
-    type="email"
-    name="email"
-    placeholder="Enter your email address..."
-    required
-    className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-  />
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email address..."
+              required
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
 
-  <textarea
-    name="message"
-    placeholder="Enter your main text here..."
-    rows="4"
-    maxLength={300}
-    required
-    className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-  ></textarea>
+            <textarea
+              name="message"
+              placeholder="Enter your main text here..."
+              rows="4"
+              maxLength={300}
+              required
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            ></textarea>
 
-  <div className="pt-4">
-    <button
-      type="submit"
-      className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition"
-    >
-      Submit Form →
-    </button>
-  </div>
-</form>
+            <div className="pt-4">
+              <button
+                type="submit"
+                className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition"
+              >
+                Submit Form →
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

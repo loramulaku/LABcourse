@@ -12,7 +12,8 @@ const router = express.Router();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "..", "uploads", "avatars");
-    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
+    if (!fs.existsSync(uploadPath))
+      fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
@@ -32,7 +33,7 @@ router.get("/me", authenticateToken, (req, res) => {
         console.error(err);
         return res.status(500).json({ error: "Server error" });
       }
-      
+
       if (rows.length === 0) {
         // nëse nuk ekziston, kthe default
         return res.json({
@@ -53,7 +54,7 @@ router.get("/me", authenticateToken, (req, res) => {
         });
       }
       res.json(rows[0]);
-    }
+    },
   );
 });
 
@@ -114,50 +115,55 @@ router.put("/personal", authenticateToken, (req, res) => {
         instagram,
         avatar_path: avatar_path || "/uploads/avatars/default.png",
       });
-    }
+    },
   );
 });
 
 // -------------------- UPDATE avatar --------------------
-router.post("/avatar", authenticateToken, upload.single("avatar"), (req, res) => {
-  if (!req.file) {
-    // If no file uploaded, set to default avatar
-    const defaultAvatarPath = "/uploads/avatars/default.png";
-    
-    db.query(
-      `INSERT INTO admin_profiles (user_id, avatar_path) 
+router.post(
+  "/avatar",
+  authenticateToken,
+  upload.single("avatar"),
+  (req, res) => {
+    if (!req.file) {
+      // If no file uploaded, set to default avatar
+      const defaultAvatarPath = "/uploads/avatars/default.png";
+
+      db.query(
+        `INSERT INTO admin_profiles (user_id, avatar_path) 
        VALUES (?, ?)
        ON DUPLICATE KEY UPDATE avatar_path=VALUES(avatar_path)`,
-      [req.user.id, defaultAvatarPath],
+        [req.user.id, defaultAvatarPath],
+        (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Upload error" });
+          }
+
+          res.json({ avatar_path: defaultAvatarPath });
+        },
+      );
+      return;
+    }
+
+    const avatarPath = `/uploads/avatars/${req.file.filename}`;
+
+    db.query(
+      `INSERT INTO admin_profiles (user_id, avatar_path) 
+     VALUES (?, ?)
+     ON DUPLICATE KEY UPDATE avatar_path=VALUES(avatar_path)`,
+      [req.user.id, avatarPath],
       (err) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ error: "Upload error" });
         }
 
-        res.json({ avatar_path: defaultAvatarPath });
-      }
+        res.json({ avatar_path: avatarPath });
+      },
     );
-    return;
-  }
-
-  const avatarPath = `/uploads/avatars/${req.file.filename}`;
-
-  db.query(
-    `INSERT INTO admin_profiles (user_id, avatar_path) 
-     VALUES (?, ?)
-     ON DUPLICATE KEY UPDATE avatar_path=VALUES(avatar_path)`,
-    [req.user.id, avatarPath],
-    (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Upload error" });
-      }
-
-      res.json({ avatar_path: avatarPath });
-    }
-  );
-});
+  },
+);
 
 // -------------------- UPDATE address --------------------
 router.put("/address", authenticateToken, (req, res) => {
@@ -179,7 +185,7 @@ router.put("/address", authenticateToken, (req, res) => {
       }
 
       res.json({ country, city_state, postal_code, tax_id });
-    }
+    },
   );
 });
 

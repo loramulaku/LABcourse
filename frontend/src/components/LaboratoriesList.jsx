@@ -1,7 +1,7 @@
 // src/components/LaboratoriesList.jsx
-import React, { useEffect, useState } from 'react';
-import { API_URL } from '../api';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { API_URL } from "../api";
+import { useNavigate } from "react-router-dom";
 
 const LaboratoriesList = () => {
   const [laboratories, setLaboratories] = useState([]);
@@ -18,7 +18,7 @@ const LaboratoriesList = () => {
           setLaboratories(data);
         }
       } catch (error) {
-        console.error('Error fetching laboratories:', error);
+        console.error("Error fetching laboratories:", error);
       } finally {
         setLoading(false);
       }
@@ -41,10 +41,14 @@ const LaboratoriesList = () => {
   return (
     <div className="container mx-auto px-4 py-8 bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-blue-800 mb-4">Medical Laboratories</h1>
-        <p className="text-blue-600 text-lg">Choose a laboratory for your medical analysis</p>
+        <h1 className="text-4xl font-bold text-blue-800 mb-4">
+          Medical Laboratories
+        </h1>
+        <p className="text-blue-600 text-lg">
+          Choose a laboratory for your medical analysis
+        </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {laboratories.map((lab) => (
           <div
@@ -61,18 +65,18 @@ const LaboratoriesList = () => {
                   {lab.name}
                 </h2>
               </div>
-              
+
               <div className="space-y-3 mb-4">
                 <div className="flex items-start">
                   <span className="text-gray-400 mr-2">📍</span>
                   <p className="text-gray-600 text-sm">{lab.address}</p>
                 </div>
-                
+
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-2">📞</span>
                   <p className="text-gray-600 text-sm">{lab.phone}</p>
                 </div>
-                
+
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-2">✉️</span>
                   <p className="text-gray-600 text-sm">{lab.contact_email}</p>
@@ -81,14 +85,18 @@ const LaboratoriesList = () => {
 
               {lab.description && (
                 <div className="mb-4">
-                  <p className="text-gray-700 text-sm line-clamp-3">{lab.description}</p>
+                  <p className="text-gray-700 text-sm line-clamp-3">
+                    {lab.description}
+                  </p>
                 </div>
               )}
 
               <div className="bg-gray-50 rounded-lg p-3 mb-4">
                 <div className="flex items-center mb-1">
                   <span className="text-gray-400 mr-2">🕒</span>
-                  <span className="text-sm font-medium text-gray-700">Working Hours</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    Working Hours
+                  </span>
                 </div>
                 <p className="text-sm text-gray-600">{lab.working_hours}</p>
               </div>
@@ -109,8 +117,12 @@ const LaboratoriesList = () => {
       {laboratories.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">🔬</div>
-          <h2 className="text-xl font-semibold text-gray-600 mb-2">No Laboratories Available</h2>
-          <p className="text-gray-500">There are currently no laboratories registered in the system.</p>
+          <h2 className="text-xl font-semibold text-gray-600 mb-2">
+            No Laboratories Available
+          </h2>
+          <p className="text-gray-500">
+            There are currently no laboratories registered in the system.
+          </p>
         </div>
       )}
     </div>

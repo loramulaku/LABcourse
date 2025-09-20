@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
 const Button = ({
   children,
-  size = "md",        // "sm" | "md"
+  size = "md", // "sm" | "md"
   variant = "primary", // "primary" | "outline"
   startIcon,
   endIcon,

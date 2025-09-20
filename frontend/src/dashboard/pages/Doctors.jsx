@@ -30,7 +30,7 @@ export default function Doctors() {
           method: "DELETE",
           credentials: "include",
         });
-        setDoctors(doctors.filter(doctor => doctor.id !== doctorId));
+        setDoctors(doctors.filter((doctor) => doctor.id !== doctorId));
         alert("Doctor deleted successfully");
       } catch (error) {
         console.error("Error deleting doctor:", error);
@@ -44,10 +44,11 @@ export default function Doctors() {
     window.location.href = `/dashboard/doctors-crud?edit=${doctorId}`;
   };
 
-  const filteredDoctors = doctors.filter(doctor =>
-    doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doctor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doctor.speciality?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDoctors = doctors.filter(
+    (doctor) =>
+      doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.speciality?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) {
@@ -61,13 +62,25 @@ export default function Doctors() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Doctors</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Doctors
+        </h2>
         <button
-          onClick={() => window.location.href = '/dashboard/blank'}
+          onClick={() => (window.location.href = "/dashboard/blank")}
           className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
           </svg>
           Add Doctor
         </button>
@@ -111,7 +124,10 @@ export default function Doctors() {
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredDoctors.map((doctor) => (
-                <tr key={doctor.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr
+                  key={doctor.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
@@ -123,13 +139,13 @@ export default function Doctors() {
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">
-                            {doctor.name?.charAt(0)?.toUpperCase() || 'D'}
+                            {doctor.name?.charAt(0)?.toUpperCase() || "D"}
                           </div>
                         )}
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {doctor.name || 'N/A'}
+                          {doctor.name || "N/A"}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                           {doctor.email}
@@ -139,14 +155,14 @@ export default function Doctors() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      {doctor.speciality || 'N/A'}
+                      {doctor.speciality || "N/A"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {doctor.experience || 'N/A'}
+                    {doctor.experience || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {doctor.fees ? `€${doctor.fees}` : 'N/A'}
+                    {doctor.fees ? `€${doctor.fees}` : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
@@ -155,8 +171,18 @@ export default function Doctors() {
                         className="text-primary hover:text-primary/80 dark:text-primary/80 dark:hover:text-primary/60 transition-colors"
                         title="Edit"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                       </button>
                       <button
@@ -164,8 +190,18 @@ export default function Doctors() {
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
                         title="Delete"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -179,7 +215,9 @@ export default function Doctors() {
         {filteredDoctors.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-gray-400">
-              {searchTerm ? "No doctors found matching your search." : "No doctors found."}
+              {searchTerm
+                ? "No doctors found matching your search."
+                : "No doctors found."}
             </div>
           </div>
         )}

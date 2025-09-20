@@ -11,7 +11,9 @@ export default function LabPendingResult() {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await apiFetch(`${API_URL}/api/laboratories/dashboard/pending`);
+        const data = await apiFetch(
+          `${API_URL}/api/laboratories/dashboard/pending`,
+        );
         setPendingResult(data);
       } catch (e) {
         console.error(e);
@@ -27,7 +29,9 @@ export default function LabPendingResult() {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await apiFetch(`${API_URL}/api/laboratories/dashboard/pending`);
+        const data = await apiFetch(
+          `${API_URL}/api/laboratories/dashboard/pending`,
+        );
         setPendingResult(data);
       } catch (e) {
         console.error(e);
@@ -39,28 +43,33 @@ export default function LabPendingResult() {
   const submitResult = async (id, resultData) => {
     try {
       const formData = new FormData();
-      formData.append('result_note', resultData.note);
+      formData.append("result_note", resultData.note);
       if (resultData.pdf) {
-        formData.append('result_pdf', resultData.pdf);
+        formData.append("result_pdf", resultData.pdf);
       }
 
-      await apiFetch(`${API_URL}/api/laboratories/dashboard/upload-result/${id}`, {
-        method: 'POST',
-        body: formData
-      });
-      
+      await apiFetch(
+        `${API_URL}/api/laboratories/dashboard/upload-result/${id}`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
       // Refresh the list to show updated data
-      const data = await apiFetch(`${API_URL}/api/laboratories/dashboard/pending`);
+      const data = await apiFetch(
+        `${API_URL}/api/laboratories/dashboard/pending`,
+      );
       setPendingResult(data);
-      alert('Result submitted successfully! Patient will be notified.');
+      alert("Result submitted successfully! Patient will be notified.");
     } catch (e) {
       console.error(e);
-      alert('Failed to submit result. Please try again.');
+      alert("Failed to submit result. Please try again.");
     }
   };
 
-  const filteredPendingResult = pendingResult.filter(patient =>
-    patient.patient_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPendingResult = pendingResult.filter((patient) =>
+    patient.patient_name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) {
@@ -74,8 +83,12 @@ export default function LabPendingResult() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Pending Results</h1>
-        <p className="text-gray-600">Upload results for patients awaiting their analysis results</p>
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Pending Results
+        </h1>
+        <p className="text-gray-600">
+          Upload results for patients awaiting their analysis results
+        </p>
       </div>
 
       <div className="mb-6">
@@ -95,24 +108,43 @@ export default function LabPendingResult() {
           </div>
         ) : (
           filteredPendingResult.map((p) => (
-            <div key={p.id} className="bg-white rounded-xl border border-green-200 p-6 shadow-sm hover:shadow-md transition-all">
+            <div
+              key={p.id}
+              className="bg-white rounded-xl border border-green-200 p-6 shadow-sm hover:shadow-md transition-all"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-green-800 text-lg">{p.patient_name}</h3>
+                  <h3 className="font-semibold text-green-800 text-lg">
+                    {p.patient_name}
+                  </h3>
                   <p className="text-green-600">{p.analysis_name}</p>
-                  <p className="text-sm text-gray-500">Appointment: {new Date(p.appointment_date).toLocaleString()}</p>
-                  {p.patient_email && <p className="text-sm text-gray-500">Email: {p.patient_email}</p>}
-                  {p.patient_phone && <p className="text-sm text-gray-500">Phone: {p.patient_phone}</p>}
+                  <p className="text-sm text-gray-500">
+                    Appointment: {new Date(p.appointment_date).toLocaleString()}
+                  </p>
+                  {p.patient_email && (
+                    <p className="text-sm text-gray-500">
+                      Email: {p.patient_email}
+                    </p>
+                  )}
+                  {p.patient_phone && (
+                    <p className="text-sm text-gray-500">
+                      Phone: {p.patient_phone}
+                    </p>
+                  )}
                   {p.notes && (
                     <div className="mt-3">
-                      <p className="text-xs text-gray-500 font-medium">Patient Notes:</p>
-                      <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded border">{p.notes}</p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        Patient Notes:
+                      </p>
+                      <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded border">
+                        {p.notes}
+                      </p>
                     </div>
                   )}
                 </div>
                 <div className="ml-6">
-                  <PendingResultForm 
-                    patientId={p.id} 
+                  <PendingResultForm
+                    patientId={p.id}
                     patientName={p.patient_name}
                     onSubmit={(resultData) => submitResult(p.id, resultData)}
                   />
@@ -135,10 +167,10 @@ function PendingResultForm({ patientId, patientName, onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!pdf) {
-      alert('Please select a PDF file to upload');
+      alert("Please select a PDF file to upload");
       return;
     }
-    
+
     setSubmitting(true);
     try {
       await onSubmit({ note, pdf });
@@ -163,7 +195,7 @@ function PendingResultForm({ patientId, patientName, onSubmit }) {
           rows={3}
         />
       </div>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Result PDF (Required)
@@ -176,13 +208,13 @@ function PendingResultForm({ patientId, patientName, onSubmit }) {
           required
         />
       </div>
-      
+
       <button
         type="submit"
         disabled={submitting || !pdf}
         className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
       >
-        {submitting ? 'Submitting...' : 'Submit Result'}
+        {submitting ? "Submitting..." : "Submit Result"}
       </button>
     </form>
   );

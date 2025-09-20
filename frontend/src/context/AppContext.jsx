@@ -17,7 +17,7 @@ export const AppProvider = ({ children }) => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        
+
         // Ensure data is an array
         if (Array.isArray(data)) {
           setDoctors(data);
@@ -37,11 +37,13 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   return (
-    <AppContext.Provider value={{ 
-      doctors, 
-      loading, 
-      currencySymbol: '€' // Default currency symbol
-    }}>
+    <AppContext.Provider
+      value={{
+        doctors,
+        loading,
+        currencySymbol: "€", // Default currency symbol
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

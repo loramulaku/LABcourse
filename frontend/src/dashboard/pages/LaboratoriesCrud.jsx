@@ -33,14 +33,22 @@ export default function LaboratoriesCrud() {
     const q = (searchQuery || "").toLowerCase().trim();
     if (!q) return laboratories;
     return laboratories.filter((lab) =>
-      [lab.name, lab.address, lab.contact_email, lab.phone, lab.login_email].some((v) => 
-        String(v || "").toLowerCase().includes(q)
-      )
+      [
+        lab.name,
+        lab.address,
+        lab.contact_email,
+        lab.phone,
+        lab.login_email,
+      ].some((v) =>
+        String(v || "")
+          .toLowerCase()
+          .includes(q),
+      ),
     );
   }, [laboratories, searchQuery]);
 
   const startEdit = async (id) => {
-    const lab = laboratories.find(l => l.id === id);
+    const lab = laboratories.find((l) => l.id === id);
     if (lab) {
       setEditing(id);
       setForm({ ...lab });
@@ -54,7 +62,7 @@ export default function LaboratoriesCrud() {
 
   const saveEdit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const response = await fetch(`${API_URL}/api/laboratories/${editing}`, {
         method: "PUT",
@@ -81,14 +89,15 @@ export default function LaboratoriesCrud() {
   };
 
   const del = async (id) => {
-    if (!confirm("Delete this laboratory? This action cannot be undone.")) return;
-    
+    if (!confirm("Delete this laboratory? This action cannot be undone."))
+      return;
+
     try {
       const response = await fetch(`${API_URL}/api/laboratories/${id}`, {
         method: "DELETE",
         credentials: "include",
-        headers: { 
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}` 
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
 
@@ -108,7 +117,10 @@ export default function LaboratoriesCrud() {
   if (loading) {
     return (
       <div>
-        <PageMeta title="Edit & Delete Laboratories" description="Manage laboratories" />
+        <PageMeta
+          title="Edit & Delete Laboratories"
+          description="Manage laboratories"
+        />
         <PageBreadcrumb pageTitle="Edit & Delete Laboratories" />
         <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100 p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
           <div className="flex justify-center items-center py-12">
@@ -121,7 +133,10 @@ export default function LaboratoriesCrud() {
 
   return (
     <div>
-      <PageMeta title="Edit & Delete Laboratories" description="Manage laboratories" />
+      <PageMeta
+        title="Edit & Delete Laboratories"
+        description="Manage laboratories"
+      />
       <PageBreadcrumb pageTitle="Edit & Delete Laboratories" />
 
       <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100 p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
@@ -147,14 +162,14 @@ export default function LaboratoriesCrud() {
                     <td className="py-2 pr-4">{lab.phone}</td>
                     <td className="py-2 pr-4">{lab.contact_email}</td>
                     <td className="py-2 pr-4 flex gap-2">
-                      <button 
-                        onClick={() => startEdit(lab.id)} 
+                      <button
+                        onClick={() => startEdit(lab.id)}
                         className="px-3 py-1 rounded bg-cyan-600 text-white hover:bg-cyan-700 transition-colors"
                       >
                         Edit
                       </button>
-                      <button 
-                        onClick={() => del(lab.id)} 
+                      <button
+                        onClick={() => del(lab.id)}
                         className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
                       >
                         Delete
@@ -164,7 +179,7 @@ export default function LaboratoriesCrud() {
                 ))}
               </tbody>
             </table>
-            
+
             {filtered.length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-500">No laboratories found.</p>
@@ -173,83 +188,99 @@ export default function LaboratoriesCrud() {
           </div>
         ) : (
           <form onSubmit={saveEdit} className="grid grid-cols-2 gap-4">
-            <input 
-              name="name" 
-              value={form.name || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white" 
+            <input
+              name="name"
+              value={form.name || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
               placeholder="Laboratory Name"
               required
             />
-            <input 
-              name="login_email" 
-              value={form.login_email || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white" 
+            <input
+              name="login_email"
+              value={form.login_email || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
               placeholder="Login Email"
               type="email"
               required
             />
-            <input 
-              name="password" 
-              value={form.password || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white" 
+            <input
+              name="password"
+              value={form.password || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
               placeholder="New Password (leave blank to keep)"
               type="password"
             />
-            <input 
-              name="contact_email" 
-              value={form.contact_email || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white" 
+            <input
+              name="contact_email"
+              value={form.contact_email || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
               placeholder="Contact Email"
               type="email"
               required
             />
-            <input 
-              name="phone" 
-              value={form.phone || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white" 
+            <input
+              name="phone"
+              value={form.phone || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
               placeholder="Phone"
               required
             />
-            <input 
-              name="address" 
-              value={form.address || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white" 
+            <input
+              name="address"
+              value={form.address || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
               placeholder="Address"
               required
             />
-            <input 
-              name="working_hours" 
-              value={form.working_hours || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white col-span-2" 
+            <input
+              name="working_hours"
+              value={form.working_hours || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white col-span-2"
               placeholder="Working Hours"
               required
             />
-            <textarea 
-              name="description" 
-              value={form.description || ""} 
-              onChange={(e) => setForm({ ...form, [e.target.name]: e.target.value })} 
-              className="p-2 rounded bg-gray-800 text-white col-span-2" 
+            <textarea
+              name="description"
+              value={form.description || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white col-span-2"
               placeholder="Description"
               rows="4"
               required
             />
             <div className="col-span-2 flex gap-2">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 transition-colors"
               >
                 Save Changes
               </button>
-              <button 
-                type="button" 
-                onClick={cancelEdit} 
+              <button
+                type="button"
+                onClick={cancelEdit}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
               >
                 Cancel

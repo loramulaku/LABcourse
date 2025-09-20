@@ -2,7 +2,13 @@ const express = require("express");
 const { authenticateToken, isAdmin } = require("../middleware/auth");
 const multer = require("multer");
 const path = require("path");
-const { createDoctor, getDoctors, getDoctorById, updateDoctor, deleteDoctor } = require("../controllers/doctorController");
+const {
+  createDoctor,
+  getDoctors,
+  getDoctorById,
+  updateDoctor,
+  deleteDoctor,
+} = require("../controllers/doctorController");
 
 const router = express.Router();
 
@@ -21,14 +27,26 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Create doctor (admin only)
-router.post("/", authenticateToken, isAdmin, upload.single("image"), createDoctor);
+router.post(
+  "/",
+  authenticateToken,
+  isAdmin,
+  upload.single("image"),
+  createDoctor,
+);
 
 // Public endpoints
 router.get("/", getDoctors);
 router.get("/:id", getDoctorById);
 
 // Admin update/delete
-router.put("/:id", authenticateToken, isAdmin, upload.single("image"), updateDoctor);
+router.put(
+  "/:id",
+  authenticateToken,
+  isAdmin,
+  upload.single("image"),
+  updateDoctor,
+);
 router.delete("/:id", authenticateToken, isAdmin, deleteDoctor);
 
 module.exports = router;

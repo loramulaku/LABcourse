@@ -35,7 +35,8 @@ export default function UserAddressCard({ profile, onSave }) {
     tax_id: profile.tax_id || "",
   });
 
-  const onChange = (e) => setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+  const onChange = (e) =>
+    setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
 
   const submit = async (e) => {
     e?.preventDefault();
@@ -71,10 +72,30 @@ export default function UserAddressCard({ profile, onSave }) {
       <Modal open={open} onClose={() => setOpen(false)} title="Edit Address">
         <form onSubmit={submit} className="space-y-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Country" name="country" value={form.country} onChange={onChange} />
-            <Input label="City/State" name="city_state" value={form.city_state} onChange={onChange} />
-            <Input label="Postal Code" name="postal_code" value={form.postal_code} onChange={onChange} />
-            <Input label="TAX ID" name="tax_id" value={form.tax_id} onChange={onChange} />
+            <Input
+              label="Country"
+              name="country"
+              value={form.country}
+              onChange={onChange}
+            />
+            <Input
+              label="City/State"
+              name="city_state"
+              value={form.city_state}
+              onChange={onChange}
+            />
+            <Input
+              label="Postal Code"
+              name="postal_code"
+              value={form.postal_code}
+              onChange={onChange}
+            />
+            <Input
+              label="TAX ID"
+              name="tax_id"
+              value={form.tax_id}
+              onChange={onChange}
+            />
           </div>
 
           <div className="flex justify-end">
@@ -95,7 +116,9 @@ export default function UserAddressCard({ profile, onSave }) {
 function Info({ label, value }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-white/50">{label}</div>
+      <div className="text-xs uppercase tracking-wide text-white/50">
+        {label}
+      </div>
       <div className="mt-1 text-sm text-white/90">{value}</div>
     </div>
   );

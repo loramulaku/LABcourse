@@ -1,5 +1,5 @@
-const mysql = require('mysql2');
-require('dotenv').config();
+const mysql = require("mysql2");
+require("dotenv").config();
 
 // Use a pooled connection so models can call getConnection() for transactions
 const pool = mysql.createPool({
@@ -15,9 +15,9 @@ const pool = mysql.createPool({
 
 pool.getConnection((err, conn) => {
   if (err) {
-    console.error('❌ MySQL connection pool error:', err.message);
+    console.error("❌ MySQL connection pool error:", err.message);
   } else {
-    console.log('✅ MySQL pool ready');
+    console.log("✅ MySQL pool ready");
     conn.release();
   }
 });
