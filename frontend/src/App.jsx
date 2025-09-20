@@ -103,6 +103,8 @@ const AdminMessaging = React.lazy(
   () => import("./dashboard/pages/AdminMessaging.jsx"),
 );
 const DoctorRefused = React.lazy(() => import("./pages/DoctorRefused.jsx"));
+const DoctorApplications = React.lazy(() => import("./dashboard/pages/DoctorApplications.jsx"));
+const DoctorApplicationDetail = React.lazy(() => import("./dashboard/pages/DoctorApplicationDetail.jsx"));
 const DoctorTherapy = React.lazy(() => import("./pages/DoctorTherapy.jsx"));
 const DoctorTherapyDashboard = React.lazy(
   () => import("./pages/DoctorTherapyDashboard.jsx"),
@@ -311,6 +313,8 @@ const App = () => {
               <Route path="analysis-types" element={<AnalysisTypes />} />
               <Route path="form-elements" element={<FormElements />} />
               <Route path="basic-tables" element={<BasicTables />} />
+              <Route path="doctor-applications" element={<DoctorApplications />} />
+              <Route path="doctor-applications/:applicationId" element={<DoctorApplicationDetail />} />
               <Route path="therapy" element={<TherapyDashboard />} />
               <Route path="therapy/create" element={<TherapyCreateForm />} />
               <Route path="therapy/calendar" element={<TherapyCalendar />} />

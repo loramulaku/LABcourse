@@ -57,7 +57,10 @@ const navItems: NavItem[] = [
   {
     name: "Tables",
     icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/dashboard/basic-tables" }],
+    subItems: [
+      { name: "Basic Tables", path: "/dashboard/basic-tables" },
+      { name: "Doctor Applications", path: "/dashboard/doctor-applications" }
+    ],
   },
   {
     name: "Therapy Management",
