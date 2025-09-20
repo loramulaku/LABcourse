@@ -16,7 +16,7 @@ const SidebarWidget: React.FC<SidebarWidgetProps> = ({ to, icon, label }) => {
         `flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors 
          ${
            isActive
-             ? "bg-brand-500 text-white"
+             ? "bg-primary text-primary-foreground"
              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
          }`
       }

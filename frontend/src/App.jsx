@@ -48,6 +48,14 @@ const BasicTableOne = React.lazy(() => import('./dashboard/components/tables/Bas
 const AppLayout = React.lazy(() => import('./dashboard/layout/AppLayout'));
 const DoctorsCrud = React.lazy(() => import('./dashboard/pages/DoctorsCrud.jsx'));
 const AdminLaboratories = React.lazy(() => import('./dashboard/pages/AdminLaboratories.jsx'));
+const AnalysesCalendar = React.lazy(() => import('./dashboard/pages/AnalysesCalendar.jsx'));
+const AppointmentsCalendar = React.lazy(() => import('./dashboard/pages/AppointmentsCalendar.jsx'));
+const AdminUsers = React.lazy(() => import('./dashboard/pages/AdminUsers.jsx'));
+const Users = React.lazy(() => import('./dashboard/pages/Users.jsx'));
+const DashboardDoctors = React.lazy(() => import('./dashboard/pages/Doctors.jsx'));
+const Laboratories = React.lazy(() => import('./dashboard/pages/Laboratories.jsx'));
+const PatientAnalyses = React.lazy(() => import('./dashboard/pages/PatientAnalyses.jsx'));
+const PatientAppointments = React.lazy(() => import('./dashboard/pages/PatientAppointments.jsx'));
 const LaboratoriesCrud = React.lazy(() => import('./dashboard/pages/LaboratoriesCrud.jsx'));
 const AnalysisTypes = React.lazy(() => import('./dashboard/pages/AnalysisTypes.jsx'));
 const AdminMessaging = React.lazy(() => import('./dashboard/pages/AdminMessaging.jsx'));
@@ -125,7 +133,14 @@ const App = () => {
           
           <Route path="profile" element={<AdminProfile />} />
           <Route path="calendar" element={<Calendar />} />
-          <Route path="users" element={<BasicTableOne />} />
+          <Route path="analyses-calendar" element={<AnalysesCalendar />} />
+          <Route path="appointments-calendar" element={<AppointmentsCalendar />} />
+          <Route path="admin-users" element={<AdminUsers />} />
+          <Route path="users" element={<Users />} />
+          <Route path="doctors" element={<DashboardDoctors />} />
+          <Route path="laboratories" element={<Laboratories />} />
+          <Route path="patient-analyses" element={<PatientAnalyses />} />
+          <Route path="patient-appointments" element={<PatientAppointments />} />
           <Route path="messaging" element={<AdminMessaging />} />
           <Route path="blank" element={<Blank />} />
           <Route path="doctors-crud" element={<DoctorsCrud />} />

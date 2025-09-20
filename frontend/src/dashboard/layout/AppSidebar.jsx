@@ -20,41 +20,49 @@ import SidebarWidget from "./SidebarWidget";
 // ---------------- NAV ITEMS ----------------
 const navItems = [
   {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/dashboard" }],
-  },
-  {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/dashboard/calendar",
-  },
-  {
     icon: <UserCircleIcon />,
     name: "User Profile",
     path: "/dashboard/profile",
   },
   {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/dashboard/form-elements" }],
-  },
-  {
-    name: "Tables",
+    name: "User Management",
     icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/dashboard/basic-tables" }],
+    subItems: [
+      { name: "Admin", path: "/dashboard/admin-users" },
+      { name: "Users", path: "/dashboard/users" },
+      { name: "Doctors", path: "/dashboard/doctors" },
+      { name: "Laboratories", path: "/dashboard/laboratories" },
+    ],
   },
   {
-    name: "Pages",
-    icon: <PageIcon />,
+    icon: <CalenderIcon />,
+    name: "Calendar",
+    subItems: [
+      { name: "Analyses Calendar", path: "/dashboard/analyses-calendar" },
+      { name: "Appointments Calendar", path: "/dashboard/appointments-calendar" },
+    ],
+  },
+  {
+    name: "Doctor Management",
+    icon: <ListIcon />,
     subItems: [
       { name: "Add Doctor", path: "/dashboard/blank" },
       { name: "Edit & Delete Doctors", path: "/dashboard/doctors-crud" },
+    ],
+  },
+  {
+    name: "Laboratory Management",
+    icon: <ListIcon />,
+    subItems: [
       { name: "Add Laboratory", path: "/dashboard/add-laboratory" },
       { name: "Edit & Delete Laboratories", path: "/dashboard/laboratories-crud" },
-          { name: "Analysis Types", path: "/dashboard/analysis-types" },
-      { name: "404 Error", path: "/dashboard/error-404" },
+      { name: "Analysis Types", path: "/dashboard/analysis-types" },
     ],
+  },
+  {
+    icon: <GridIcon />,
+    name: "Dashboard",
+    subItems: [{ name: "Ecommerce", path: "/dashboard" }],
   },
 ];
 
@@ -77,6 +85,15 @@ const othersItems = [
       { name: "Buttons", path: "/dashboard/buttons" },
       { name: "Images", path: "/dashboard/images" },
       { name: "Videos", path: "/dashboard/videos" },
+    ],
+  },
+  {
+    name: "Patient History",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "Patient Analyses", path: "/dashboard/patient-analyses" },
+      { name: "Patient Appointments", path: "/dashboard/patient-appointments" },
+      { name: "404 Error", path: "/dashboard/error-404" },
     ],
   },
 ];
@@ -163,7 +180,7 @@ const AppSidebar = () => {
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                     openSubmenu?.type === menuType && openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
+                      ? "rotate-180 text-primary"
                       : ""
                   }`}
                 />
