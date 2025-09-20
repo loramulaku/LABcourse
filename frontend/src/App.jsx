@@ -9,27 +9,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 // Lazy load pages for better performance
-<<<<<<< HEAD
-const Home = React.lazy(() => import('./pages/Home'));
-const Doctors = React.lazy(() => import('./pages/Doctors'));
-const Login = React.lazy(() => import('./pages/Login'));
-const DoctorRegistration = React.lazy(() => import('./pages/DoctorRegistration'));
-const About = React.lazy(() => import('./pages/About'));
-const Contact = React.lazy(() => import('./pages/Contact'));
-const MyProfile = React.lazy(() => import('./pages/MyProfile'));
-const MyAppointments = React.lazy(() => import('./pages/MyAppointments'));
-const Appointment = React.lazy(() => import('./pages/Appointment'));
-const PaymentSuccess = React.lazy(() => import('./pages/PaymentSuccess'));
-const PaymentCancelled = React.lazy(() => import('./pages/PaymentCancelled'));
-const Pacientet = React.lazy(() => import('./components/Pacientet'));
-const UserSimple = React.lazy(() => import('./components/UserSimple'));
-const AnalysisRequestForm = React.lazy(() => import('./components/AnalysisRequestForm'));
-const MyAnalyses = React.lazy(() => import('./components/MyAnalyses'));
-const LaboratoriesList = React.lazy(() => import('./components/LaboratoriesList'));
-=======
 const Home = React.lazy(() => import("./pages/Home"));
 const Doctors = React.lazy(() => import("./pages/Doctors"));
 const Login = React.lazy(() => import("./pages/Login"));
+const DoctorRegistration = React.lazy(() => import("./pages/DoctorRegistration"));
 const About = React.lazy(() => import("./pages/About"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const MyProfile = React.lazy(() => import("./pages/MyProfile"));
@@ -46,7 +29,6 @@ const MyAnalyses = React.lazy(() => import("./components/MyAnalyses"));
 const LaboratoriesList = React.lazy(
   () => import("./components/LaboratoriesList"),
 );
->>>>>>> 4d15f8270fc50adde48ab7e7dd438eb1b0236f95
 // ====== Dashboard imports (lazy loaded) ======
 
 import { ScrollToTop } from "./dashboard/components/common/ScrollToTop";
@@ -342,75 +324,6 @@ const App = () => {
               <Route path="bar-chart" element={<BarChart />} />
             </Route>
 
-<<<<<<< HEAD
-      <Routes>
-        {/* =================== APP NORMAL =================== */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/doctor-registration" element={<DoctorRegistration />} />
-        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/doctors" element={<ProtectedRoute><Doctors /></ProtectedRoute>} />
-        <Route path="/doctors/:speciality" element={<ProtectedRoute><Doctors /></ProtectedRoute>} />
-        <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
-        <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
-        <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
-        <Route path="/my-appointments" element={<ProtectedRoute><MyAppointments /></ProtectedRoute>} />
-        <Route path="/appointment/:docId" element={<ProtectedRoute><Appointment /></ProtectedRoute>} />
-        <Route path="/doctor/refused" element={<ProtectedRoute requireRole="doctor"><DoctorRefused /></ProtectedRoute>} />
-        <Route path="/doctor/therapy/:appointmentId" element={<ProtectedRoute requireRole="doctor"><DoctorTherapy /></ProtectedRoute>} />
-        <Route path="/doctor/therapy-dashboard" element={<ProtectedRoute requireRole="doctor"><DoctorTherapyDashboard /></ProtectedRoute>} />
-        <Route path="/my-therapies" element={<ProtectedRoute><MyTherapies /></ProtectedRoute>} />
-        <Route path="/pacientet" element={<ProtectedRoute><Pacientet /></ProtectedRoute>} />
-        <Route path="/usersimple" element={<ProtectedRoute><UserSimple /></ProtectedRoute>} />
-        <Route path="/laboratories" element={<LaboratoriesList />} />
-        <Route path="/laboratory/:labId/request" element={<AnalysisRequestForm />} />
-        <Route path="/my-analyses" element={<MyAnalyses />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-        {/* =================== DASHBOARD (ADMIN) =================== */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute requireRole="admin">
-              <SidebarProvider>
-                <Suspense fallback={<LoadingSpinner />}>
-                  <AppLayout /> {/* Sidebar + Outlet */}
-                </Suspense>
-              </SidebarProvider>
-            </ProtectedRoute>
-          }
-        >
-          
-          <Route path="profile" element={<AdminProfile />} />
-          <Route path="calendar" element={<Calendar />} />
-          <Route path="analyses-calendar" element={<AnalysesCalendar />} />
-          <Route path="appointments-calendar" element={<AppointmentsCalendar />} />
-          <Route path="admin-users" element={<AdminUsers />} />
-          <Route path="users" element={<Users />} />
-          <Route path="doctors" element={<DashboardDoctors />} />
-          <Route path="laboratories" element={<Laboratories />} />
-          <Route path="patient-analyses" element={<PatientAnalyses />} />
-          <Route path="patient-appointments" element={<PatientAppointments />} />
-          <Route path="messaging" element={<AdminMessaging />} />
-          <Route path="blank" element={<Blank />} />
-          <Route path="doctors-crud" element={<DoctorsCrud />} />
-          <Route path="add-laboratory" element={<AdminLaboratories />} />
-          <Route path="laboratories-crud" element={<LaboratoriesCrud />} />
-          <Route path="analysis-types" element={<AnalysisTypes />} />
-          <Route path="form-elements" element={<FormElements />} />
-          <Route path="basic-tables" element={<BasicTables />} />
-          <Route path="therapy" element={<TherapyDashboard />} />
-          <Route path="therapy/create" element={<TherapyCreateForm />} />
-          <Route path="therapy/calendar" element={<TherapyCalendar />} />
-          <Route path="alerts" element={<Alerts />} />
-          <Route path="avatars" element={<Avatars />} />
-          <Route path="badge" element={<Badges />} />
-          <Route path="buttons" element={<Buttons />} />
-          <Route path="images" element={<Images />} />
-          <Route path="videos" element={<Videos />} />
-          <Route path="line-chart" element={<LineChart />} />
-          <Route path="bar-chart" element={<BarChart />} />
-        </Route>
-=======
             {/* =================== LAB DASHBOARD (LAB ROLE) =================== */}
             <Route
               path="/lab"
@@ -430,7 +343,6 @@ const App = () => {
               <Route path="confirmed" element={<LabConfirmed />} />
               <Route path="pending" element={<LabPendingResult />} />
             </Route>
->>>>>>> 4d15f8270fc50adde48ab7e7dd438eb1b0236f95
 
             {/* Not Found */}
             <Route path="*" element={<NotFound />} />
