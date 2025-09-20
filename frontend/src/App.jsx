@@ -134,6 +134,18 @@ const LabAnalysisTypes = React.lazy(
   () => import("./lab/pages/LabAnalysisTypes.jsx"),
 );
 
+// Doctor Dashboard Components
+const DoctorLayout = React.lazy(() => import("./doctor/layout/DoctorLayout.jsx"));
+const DoctorDashboard = React.lazy(() => import("./doctor/pages/DoctorDashboard.jsx"));
+const DoctorAppointments = React.lazy(() => import("./doctor/pages/DoctorAppointments.jsx"));
+const DoctorCalendar = React.lazy(() => import("./doctor/pages/DoctorCalendar.jsx"));
+const DoctorPatients = React.lazy(() => import("./doctor/pages/DoctorPatients.jsx"));
+const DoctorPatientProfile = React.lazy(() => import("./doctor/pages/DoctorPatientProfile.jsx"));
+const DoctorPrescription = React.lazy(() => import("./doctor/pages/DoctorPrescription.jsx"));
+const DoctorDocumentUpload = React.lazy(() => import("./doctor/pages/DoctorDocumentUpload.jsx"));
+const DoctorDocumentFiles = React.lazy(() => import("./doctor/pages/DoctorDocumentFiles.jsx"));
+const DoctorAppointmentStats = React.lazy(() => import("./doctor/pages/DoctorAppointmentStats.jsx"));
+
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center min-h-[200px]">
@@ -328,6 +340,34 @@ const App = () => {
               <Route path="bar-chart" element={<BarChart />} />
             </Route>
 
+            {/* =================== DOCTOR DASHBOARD (DOCTOR ROLE) =================== */}
+            <Route
+              path="/doctor"
+              element={
+                <ProtectedRoute requireRole="doctor">
+                  <SidebarProvider>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <DoctorLayout />
+                    </Suspense>
+                  </SidebarProvider>
+                </ProtectedRoute>
+              }
+            >
+              <Route path="dashboard" element={<DoctorDashboard />} />
+              <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="calendar" element={<DoctorCalendar />} />
+              <Route path="appointment-stats" element={<DoctorAppointmentStats />} />
+              <Route path="patients" element={<DoctorPatients />} />
+              <Route path="patient-profile/:patientId" element={<DoctorPatientProfile />} />
+              <Route path="prescription/:action" element={<DoctorPrescription />} />
+              <Route path="prescription/create" element={<DoctorPrescription />} />
+              <Route path="prescription/history" element={<DoctorPrescription />} />
+              <Route path="documents/upload" element={<DoctorDocumentUpload />} />
+              <Route path="documents/files" element={<DoctorDocumentFiles />} />
+              <Route path="therapy/create" element={<DoctorTherapyDashboard />} />
+              <Route path="therapy" element={<DoctorTherapyDashboard />} />
+            </Route>
+
             {/* =================== LAB DASHBOARD (LAB ROLE) =================== */}
             <Route
               path="/lab"
@@ -354,7 +394,9 @@ const App = () => {
         </Suspense>
 
         {/* Footer vetëm kur nuk je në dashboard */}
-        {!location.pathname.startsWith("/dashboard") && <Footer />}
+        {!location.pathname.startsWith("/dashboard") && 
+         !location.pathname.startsWith("/doctor") && 
+         !location.pathname.startsWith("/lab") && <Footer />}
       </div>
     </ErrorBoundary>
   );
