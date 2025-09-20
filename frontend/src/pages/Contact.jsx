@@ -1,25 +1,86 @@
-import React from 'react'
-import contactImage from '../assets/contact_image.png';
+import React from "react";  
+import contactImage from "../assets/contact_image.png"; // replace with your own image
 
-const Contact = () => {
+const ContactForm = () => {
   return (
-    <div>
-      <div className='text-center text-2x1 pt-10 text-gray-500'>
-        <p>CONTACT <span className='text-gray-700 font-semibold'>US</span></p>
-      </div>
-      <div className='my-10 flex flex-col justify-center md:flex-row gap-10 mb-28 text-sm'>
-      <img className='w-full md:max-w-[360px]' src={contactImage} alt="" />
-        <div className='flex flex-col justify-center items-start gap-6'>
-          <p className='font-semibold text-lg text-gray-600'>Our Service</p>
-          <p className='text-gray-500'>54709 Willms Station <br /> Suite 350, Washington, USA</p>
-          <p className='text-gray-500'>Tel: (415) 555-0132 <br /> Email: greatstackdev@gmail.com</p>
-          <p className='font-semibold text-lg text-gray-600'>Careers at PRESCRIPTO</p>
-          <p className='text-gray-500'>Learn more about our teams and job openings.</p>
-          <button className='border border-black px-8 py-4 text-sm hover:bg-black hover:text-white transition-all duration-500'>Explore Jobs</button>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="flex flex-col md:flex-row bg-white shadow-xl rounded-2xl max-w-5xl w-full">
+        {/* Left Image Section */}
+        <div className="md:w-1/2">
+          <img
+            src={contactImage}
+            alt="Contact"
+            className="h-full w-full object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
+          />
+        </div>
+
+        {/* Right Form Section */}
+        <div className="md:w-1/2 p-10 flex flex-col justify-center">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            Let’s Get In Touch.
+          </h2>
+          <p className="text-gray-500 mb-8">
+            Or just reach out manually to{" "}
+            <a
+              href="mailto:ritaukiqi1@gmail.com"
+              className="text-indigo-600 hover:underline"
+            >
+              ritaukiqi1@gmail.com
+            </a>
+          </p>
+
+          <form
+  action="https://formspree.io/f/xrbanoje"
+  method="POST"
+  className="space-y-6"
+>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <input
+      type="text"
+      name="firstName"
+      placeholder="Enter your first name..."
+      required
+      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    />
+    <input
+      type="text"
+      name="lastName"
+      placeholder="Enter your last name..."
+      required
+      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    />
+  </div>
+
+  <input
+    type="email"
+    name="email"
+    placeholder="Enter your email address..."
+    required
+    className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+  />
+
+  <textarea
+    name="message"
+    placeholder="Enter your main text here..."
+    rows="4"
+    maxLength={300}
+    required
+    className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+  ></textarea>
+
+  <div className="pt-4">
+    <button
+      type="submit"
+      className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition"
+    >
+      Submit Form →
+    </button>
+  </div>
+</form>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Contact
+export default ContactForm;
