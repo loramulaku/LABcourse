@@ -1,32 +1,33 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { API_URL, getAccessToken } from '../api';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from "react";
+import { API_URL, getAccessToken } from "../api";
+import { useNavigate } from "react-router-dom";
 
 const DoctorRefused = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError('');
+        setError("");
         const res = await fetch(`${API_URL}/api/appointments/doctor/refused`, {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
-          credentials: 'include',
+          credentials: "include",
         });
         if (!res.ok) {
-          if (res.status === 403) throw new Error('Only doctors can access this page');
-          throw new Error('Failed to load data');
+          if (res.status === 403)
+            throw new Error("Only doctors can access this page");
+          throw new Error("Failed to load data");
         }
         const data = await res.json();
         setItems(Array.isArray(data) ? data : []);
       } catch (e) {
-        setError(e.message || 'Failed to load');
+        setError(e.message || "Failed to load");
       } finally {
         setLoading(false);
       }
@@ -37,10 +38,17 @@ const DoctorRefused = () => {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
-    return items.filter((it) =>
-      String(it.patient_name || '').toLowerCase().includes(q) ||
-      String(it.patient_email || '').toLowerCase().includes(q) ||
-      String(it.patient_phone || '').toLowerCase().includes(q)
+    return items.filter(
+      (it) =>
+        String(it.patient_name || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(it.patient_email || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(it.patient_phone || "")
+          .toLowerCase()
+          .includes(q),
     );
   }, [items, query]);
 
@@ -69,8 +77,12 @@ const DoctorRefused = () => {
 
   return (
     <div className="my-10">
-      <h1 className="text-3xl font-medium mb-2">Refused & Cancelled Appointments</h1>
-      <p className="text-gray-600 mb-6">Only visible to doctors. Follow up or prescribe therapy.</p>
+      <h1 className="text-3xl font-medium mb-2">
+        Refused & Cancelled Appointments
+      </h1>
+      <p className="text-gray-600 mb-6">
+        Only visible to doctors. Follow up or prescribe therapy.
+      </p>
 
       {/* Search */}
       <div className="mb-6">
@@ -89,29 +101,61 @@ const DoctorRefused = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Patient</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date & Time</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Reason</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Refusals</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Patient
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Date & Time
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Reason
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Refusals
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filtered.map((it) => (
-                <tr key={it.appointment_id} className={selected?.appointment_id === it.appointment_id ? 'bg-blue-50' : ''}>
+                <tr
+                  key={it.appointment_id}
+                  className={
+                    selected?.appointment_id === it.appointment_id
+                      ? "bg-blue-50"
+                      : ""
+                  }
+                >
                   <td className="px-4 py-3">
-                    <button className="text-blue-600 hover:underline" onClick={() => handleSelect(it)}>
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => handleSelect(it)}
+                    >
                       {it.patient_name}
                     </button>
-                    <div className="text-xs text-gray-500">{it.patient_email} · {it.patient_phone}</div>
+                    <div className="text-xs text-gray-500">
+                      {it.patient_email} · {it.patient_phone}
+                    </div>
                   </td>
-                  <td className="px-4 py-3">{new Date(it.scheduled_for).toLocaleString()}</td>
-                  <td className="px-4 py-3 truncate max-w-[220px]" title={it.reason}>{it.reason}</td>
+                  <td className="px-4 py-3">
+                    {new Date(it.scheduled_for).toLocaleString()}
+                  </td>
+                  <td
+                    className="px-4 py-3 truncate max-w-[220px]"
+                    title={it.reason}
+                  >
+                    {it.reason}
+                  </td>
                   <td className="px-4 py-3">{it.refusal_count}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td className="px-4 py-6 text-center text-gray-500" colSpan={4}>No refused or cancelled appointments.</td>
+                  <td
+                    className="px-4 py-6 text-center text-gray-500"
+                    colSpan={4}
+                  >
+                    No refused or cancelled appointments.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -138,11 +182,15 @@ const DoctorRefused = () => {
                 </div>
                 <div>
                   <div className="text-gray-500">Phone</div>
-                  <div className="font-medium">{selected.patient_phone || '-'}</div>
+                  <div className="font-medium">
+                    {selected.patient_phone || "-"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-gray-500">Appointment</div>
-                  <div className="font-medium">{new Date(selected.scheduled_for).toLocaleString()}</div>
+                  <div className="font-medium">
+                    {new Date(selected.scheduled_for).toLocaleString()}
+                  </div>
                 </div>
                 <div>
                   <div className="text-gray-500">Status</div>
@@ -168,23 +216,26 @@ const DoctorRefused = () => {
                 >
                   Prescribe Therapy/Medications
                 </button>
-                <button 
-                  onClick={() => navigate('/doctor/therapy-dashboard')}
+                <button
+                  onClick={() => navigate("/doctor/therapy-dashboard")}
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                 >
                   Therapy Dashboard
                 </button>
-                <button 
-                  type="button" 
-                  className="px-4 py-2 border rounded" 
-                  onClick={() => navigate('/my-appointments')}
+                <button
+                  type="button"
+                  className="px-4 py-2 border rounded"
+                  onClick={() => navigate("/my-appointments")}
                 >
                   Go to My Appointments
                 </button>
               </div>
             </>
           ) : (
-            <div className="text-gray-600">Select a patient on the left to view details and prescribe therapy.</div>
+            <div className="text-gray-600">
+              Select a patient on the left to view details and prescribe
+              therapy.
+            </div>
           )}
         </div>
       </div>
@@ -193,5 +244,3 @@ const DoctorRefused = () => {
 };
 
 export default DoctorRefused;
-
-

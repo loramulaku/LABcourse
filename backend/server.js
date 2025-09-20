@@ -1,13 +1,13 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
 // Importo rruget
-const authRoutes = require('./routes/auth');
-const profileRoutes = require('./routes/profile');
-const usersRoutes = require('./routes/users');
-const adminProfileRoutes = require('./routes/adminProfile'); 
+const authRoutes = require("./routes/auth");
+const profileRoutes = require("./routes/profile");
+const usersRoutes = require("./routes/users");
+const adminProfileRoutes = require("./routes/adminProfile");
 const doctorRoutes = require("./routes/doctorRoutes");
 
 const app = express();
@@ -16,14 +16,14 @@ const app = express();
 app.use(
   cors({
     origin: [
-      process.env.CLIENT_ORIGIN || 'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:5174'
+      process.env.CLIENT_ORIGIN || "http://localhost:5173",
+      "http://localhost:3000",
+      "http://localhost:5174",
     ],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // ✅
-  })
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"], // ✅
+  }),
 );
 
 // body parser
@@ -33,43 +33,43 @@ app.use(express.urlencoded({ extended: true }));
 // cookie parser
 app.use(cookieParser());
 
-const laboratoryRoutes = require('./routes/laboratoryRoutes');
-app.use('/api/laboratories', laboratoryRoutes);
+const laboratoryRoutes = require("./routes/laboratoryRoutes");
+app.use("/api/laboratories", laboratoryRoutes);
 
 // Therapy routes
-const therapyRoutes = require('./routes/therapyRoutes');
-app.use('/api/therapies', therapyRoutes);
+const therapyRoutes = require("./routes/therapyRoutes");
+app.use("/api/therapies", therapyRoutes);
 
 // Appointments routes (doctor bookings + Stripe)
-const appointmentsRoutes = require('./routes/appointments');
-app.use('/api/appointments', appointmentsRoutes);
+const appointmentsRoutes = require("./routes/appointments");
+app.use("/api/appointments", appointmentsRoutes);
 
 // Notification routes
-const { router: notificationRoutes } = require('./routes/notificationRoutes');
-app.use('/api/notifications', notificationRoutes);
+const { router: notificationRoutes } = require("./routes/notificationRoutes");
+app.use("/api/notifications", notificationRoutes);
 
 // Patient routes
-const patientRoutes = require('./routes/patientRoutes');
-app.use('/api/patient-analyses', patientRoutes);
+const patientRoutes = require("./routes/patientRoutes");
+app.use("/api/patient-analyses", patientRoutes);
 
 // Rrugët kryesore
-app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/admin-profiles', adminProfileRoutes); 
+app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/admin-profiles", adminProfileRoutes);
 app.use("/api/doctors", doctorRoutes);
 
 // bëj folderin uploads publik
-const path = require('path');
-const fs = require('fs');
-const uploadsDir = path.join(process.cwd(), 'uploads');
+const path = require("path");
+const fs = require("fs");
+const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir));
+app.use("/uploads", express.static(uploadsDir));
 
 // Ensure SQL tables for doctor appointments exist
-const db = require('./db');
+const db = require("./db");
 const ensureTables = async () => {
   try {
     // Check if appointments table exists
@@ -78,7 +78,7 @@ const ensureTables = async () => {
       FROM information_schema.TABLES 
       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'appointments'
     `);
-    
+
     if (tables.length === 0) {
       // Create appointments table with proper structure
       await db.promise().query(`
@@ -102,54 +102,68 @@ const ensureTables = async () => {
           CONSTRAINT fk_appointments_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
-      console.log('✅ Created appointments table');
+      console.log("✅ Created appointments table");
     } else {
-      console.log('✅ Appointments table already exists');
-      
+      console.log("✅ Appointments table already exists");
+
       // Table exists, check if it has the required columns
       const [columns] = await db.promise().query(`
         SELECT COLUMN_NAME 
         FROM information_schema.COLUMNS 
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'appointments'
       `);
-      
-      const columnNames = columns.map(col => col.COLUMN_NAME);
-      const requiredColumns = ['id', 'user_id', 'doctor_id', 'scheduled_for', 'reason', 'status', 'payment_status', 'amount'];
-      
-      const missingColumns = requiredColumns.filter(col => !columnNames.includes(col));
-      
+
+      const columnNames = columns.map((col) => col.COLUMN_NAME);
+      const requiredColumns = [
+        "id",
+        "user_id",
+        "doctor_id",
+        "scheduled_for",
+        "reason",
+        "status",
+        "payment_status",
+        "amount",
+      ];
+
+      const missingColumns = requiredColumns.filter(
+        (col) => !columnNames.includes(col),
+      );
+
       if (missingColumns.length > 0) {
-        console.log('⚠️  Appointments table exists but missing columns:', missingColumns);
+        console.log(
+          "⚠️  Appointments table exists but missing columns:",
+          missingColumns,
+        );
         // Add missing columns if needed
         for (const col of missingColumns) {
           try {
-            let alterQuery = '';
+            let alterQuery = "";
             switch (col) {
-              case 'status':
+              case "status":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN status ENUM('PENDING','CONFIRMED','DECLINED','CANCELLED') DEFAULT 'PENDING'`;
                 break;
-              case 'payment_status':
+              case "payment_status":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN payment_status ENUM('unpaid','paid','refunded') DEFAULT 'unpaid'`;
                 break;
-              case 'amount':
+              case "amount":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN amount DECIMAL(10,2) DEFAULT 20.00`;
                 break;
-              case 'currency':
+              case "currency":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN currency VARCHAR(3) DEFAULT 'EUR'`;
                 break;
-              case 'stripe_session_id':
+              case "stripe_session_id":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN stripe_session_id VARCHAR(255)`;
                 break;
-              case 'phone':
+              case "phone":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN phone VARCHAR(20)`;
                 break;
-              case 'notes':
+              case "notes":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN notes TEXT`;
                 break;
-              case 'created_at':
+              case "created_at":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
                 break;
-              case 'updated_at':
+              case "updated_at":
                 alterQuery = `ALTER TABLE appointments ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`;
                 break;
             }
@@ -162,7 +176,7 @@ const ensureTables = async () => {
           }
         }
       } else {
-        console.log('✅ All required columns present in appointments table');
+        console.log("✅ All required columns present in appointments table");
       }
     }
 
@@ -200,12 +214,12 @@ const ensureTables = async () => {
           CONSTRAINT fk_therapies_patient FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
-      console.log('✅ Created therapies table');
+      console.log("✅ Created therapies table");
     } else {
-      console.log('✅ Therapies table already exists');
+      console.log("✅ Therapies table already exists");
     }
   } catch (e) {
-    console.error('❌ Failed to ensure appointments table', e);
+    console.error("❌ Failed to ensure appointments table", e);
   }
 };
 

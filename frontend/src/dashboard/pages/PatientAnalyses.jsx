@@ -26,25 +26,30 @@ export default function PatientAnalyses() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case "completed":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
-  const filteredAnalyses = analyses.filter(analysis => {
-    const matchesSearch = 
+  const filteredAnalyses = analyses.filter((analysis) => {
+    const matchesSearch =
       analysis.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.analysis_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.laboratory_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === "all" || analysis.status === filterStatus;
-    
+      analysis.analysis_type
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      analysis.laboratory_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      filterStatus === "all" || analysis.status === filterStatus;
+
     return matchesSearch && matchesStatus;
   });
 
@@ -59,7 +64,9 @@ export default function PatientAnalyses() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patient Analyses History</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Patient Analyses History
+        </h2>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -113,41 +120,51 @@ export default function PatientAnalyses() {
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredAnalyses.map((analysis) => (
-                <tr key={analysis.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr
+                  key={analysis.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                          {analysis.patient_name?.charAt(0)?.toUpperCase() || 'P'}
+                          {analysis.patient_name?.charAt(0)?.toUpperCase() ||
+                            "P"}
                         </div>
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {analysis.patient_name || 'N/A'}
+                          {analysis.patient_name || "N/A"}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 dark:text-white">
-                      {analysis.analysis_type || 'N/A'}
+                      {analysis.analysis_type || "N/A"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 dark:text-white">
-                      {analysis.laboratory_name || 'N/A'}
+                      {analysis.laboratory_name || "N/A"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {analysis.scheduled_date ? new Date(analysis.scheduled_date).toLocaleDateString() : 'N/A'}
+                    {analysis.scheduled_date
+                      ? new Date(analysis.scheduled_date).toLocaleDateString()
+                      : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(analysis.status)}`}>
-                      {analysis.status || 'N/A'}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(analysis.status)}`}
+                    >
+                      {analysis.status || "N/A"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {analysis.completion_date ? new Date(analysis.completion_date).toLocaleDateString() : '-'}
+                    {analysis.completion_date
+                      ? new Date(analysis.completion_date).toLocaleDateString()
+                      : "-"}
                   </td>
                 </tr>
               ))}
@@ -158,10 +175,9 @@ export default function PatientAnalyses() {
         {filteredAnalyses.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-gray-400">
-              {searchTerm || filterStatus !== "all" 
-                ? "No analyses found matching your criteria." 
-                : "No patient analyses found."
-              }
+              {searchTerm || filterStatus !== "all"
+                ? "No analyses found matching your criteria."
+                : "No patient analyses found."}
             </div>
           </div>
         )}

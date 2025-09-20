@@ -7,7 +7,11 @@ export function getUserFromToken() {
   try {
     const payload = JSON.parse(atob(t.split(".")[1]));
     // prishet nëse payload s’i ka këto fusha – rregullo sipas backend-it tënd
-    return { name: payload.name || "", email: payload.email || "", id: payload.id };
+    return {
+      name: payload.name || "",
+      email: payload.email || "",
+      id: payload.id,
+    };
   } catch {
     return null;
   }

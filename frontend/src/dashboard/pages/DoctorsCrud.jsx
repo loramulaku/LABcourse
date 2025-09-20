@@ -25,7 +25,11 @@ export default function DoctorsCrud() {
     const q = (searchQuery || "").toLowerCase().trim();
     if (!q) return doctors;
     return doctors.filter((d) =>
-      [d.name, d.speciality, d.email].some((v) => String(v || "").toLowerCase().includes(q))
+      [d.name, d.speciality, d.email].some((v) =>
+        String(v || "")
+          .toLowerCase()
+          .includes(q),
+      ),
     );
   }, [doctors, searchQuery]);
 
@@ -52,13 +56,15 @@ export default function DoctorsCrud() {
       method: "PUT",
       body: fd,
       credentials: "include",
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
     });
     if (r.ok) {
       await load();
       cancelEdit();
     } else {
-      const j = await r.json().catch(()=>({}));
+      const j = await r.json().catch(() => ({}));
       alert(j.error || "Update failed");
     }
   };
@@ -68,9 +74,12 @@ export default function DoctorsCrud() {
     const r = await fetch(`${API_URL}/api/doctors/${id}`, {
       method: "DELETE",
       credentials: "include",
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
     });
-    if (r.ok) load(); else alert("Delete failed");
+    if (r.ok) load();
+    else alert("Delete failed");
   };
 
   return (
@@ -94,13 +103,31 @@ export default function DoctorsCrud() {
                 {filtered.map((d) => (
                   <tr key={d.id} className="border-t border-gray-200">
                     <td className="py-2 pr-4">
-                      <img src={d.image?.startsWith('http') ? d.image : `${API_URL}${d.image||''}`} alt="" className="w-14 h-14 object-cover rounded" />
+                      <img
+                        src={
+                          d.image?.startsWith("http")
+                            ? d.image
+                            : `${API_URL}${d.image || ""}`
+                        }
+                        alt=""
+                        className="w-14 h-14 object-cover rounded"
+                      />
                     </td>
                     <td className="py-2 pr-4">{d.name}</td>
                     <td className="py-2 pr-4">{d.speciality}</td>
                     <td className="py-2 pr-4 flex gap-2">
-                      <button onClick={() => startEdit(d.id)} className="px-3 py-1 rounded bg-green-600 text-white">Edit</button>
-                      <button onClick={() => del(d.id)} className="px-3 py-1 rounded bg-red-600 text-white">Delete</button>
+                      <button
+                        onClick={() => startEdit(d.id)}
+                        className="px-3 py-1 rounded bg-green-600 text-white"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => del(d.id)}
+                        className="px-3 py-1 rounded bg-red-600 text-white"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -109,9 +136,32 @@ export default function DoctorsCrud() {
           </div>
         ) : (
           <form onSubmit={saveEdit} className="grid grid-cols-2 gap-4">
-            <input name="name" value={form.name||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white" placeholder="Name" />
-            <input name="email" value={form.email||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white" placeholder="Email" />
-            <select name="speciality" value={form.speciality||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white">
+            <input
+              name="name"
+              value={form.name || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+              placeholder="Name"
+            />
+            <input
+              name="email"
+              value={form.email || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+              placeholder="Email"
+            />
+            <select
+              name="speciality"
+              value={form.speciality || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+            >
               <option value="">Select Speciality</option>
               <option value="General physician">General physician</option>
               <option value="Gynecologist">Gynecologist</option>
@@ -120,16 +170,82 @@ export default function DoctorsCrud() {
               <option value="Neurologist">Neurologist</option>
               <option value="Gastroenterologist">Gastroenterologist</option>
             </select>
-            <input name="degree" value={form.degree||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white" placeholder="Degree" />
-            <input name="experience" value={form.experience||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white" placeholder="Experience" />
-            <input name="fees" type="number" step="0.01" value={form.fees||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white" placeholder="Fees" />
-            <input name="address_line1" value={form.address_line1||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white" placeholder="Address line 1" />
-            <input name="address_line2" value={form.address_line2||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white" placeholder="Address line 2" />
-            <textarea name="about" value={form.about||""} onChange={(e)=>setForm({...form,[e.target.name]:e.target.value})} className="p-2 rounded bg-gray-800 text-white col-span-2" placeholder="About" />
-            <input type="file" accept="image/*" onChange={(e)=>setImage(e.target.files?.[0]||null)} className="col-span-2" />
+            <input
+              name="degree"
+              value={form.degree || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+              placeholder="Degree"
+            />
+            <input
+              name="experience"
+              value={form.experience || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+              placeholder="Experience"
+            />
+            <input
+              name="fees"
+              type="number"
+              step="0.01"
+              value={form.fees || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+              placeholder="Fees"
+            />
+            <input
+              name="address_line1"
+              value={form.address_line1 || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+              placeholder="Address line 1"
+            />
+            <input
+              name="address_line2"
+              value={form.address_line2 || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white"
+              placeholder="Address line 2"
+            />
+            <textarea
+              name="about"
+              value={form.about || ""}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="p-2 rounded bg-gray-800 text-white col-span-2"
+              placeholder="About"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files?.[0] || null)}
+              className="col-span-2"
+            />
             <div className="col-span-2 flex gap-2">
-              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
-              <button type="button" onClick={cancelEdit} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-4 py-2 rounded"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
             </div>
           </form>
         )}
@@ -137,5 +253,3 @@ export default function DoctorsCrud() {
     </div>
   );
 }
-
-

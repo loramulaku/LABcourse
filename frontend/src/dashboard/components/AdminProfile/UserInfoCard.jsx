@@ -58,7 +58,9 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
       <div className="mb-5 flex items-center justify-between">
-        <h4 className="text-base font-semibold text-white/90">Personal Information</h4>
+        <h4 className="text-base font-semibold text-white/90">
+          Personal Information
+        </h4>
         <button
           onClick={() => setOpen(true)}
           className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
@@ -69,31 +71,74 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Info label="First Name" value={profile.first_name || "-"} />
-        <Info label="Last Name"  value={profile.last_name || "-"} />
+        <Info label="Last Name" value={profile.last_name || "-"} />
         <Info label="Email address" value={email || "-"} />
         <Info label="Phone" value={profile.phone || "-"} />
         <Info label="Bio" value={profile.bio || "-"} full />
       </div>
 
       {/* Modal për editim si në foto 2 */}
-      <Modal open={open} onClose={() => setOpen(false)} title="Edit Personal Information">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Edit Personal Information"
+      >
         <form onSubmit={submit} className="space-y-5">
           {/* Socials */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Facebook" name="facebook" value={form.facebook} onChange={onChange} placeholder="https://www.facebook.com/..." />
-            <Input label="X.com" name="x" value={form.x} onChange={onChange} placeholder="https://x.com/..." />
-            <Input label="Linkedin" name="linkedin" value={form.linkedin} onChange={onChange} placeholder="https://linkedin.com/..." />
-            <Input label="Instagram" name="instagram" value={form.instagram} onChange={onChange} placeholder="https://instagram.com/..." />
+            <Input
+              label="Facebook"
+              name="facebook"
+              value={form.facebook}
+              onChange={onChange}
+              placeholder="https://www.facebook.com/..."
+            />
+            <Input
+              label="X.com"
+              name="x"
+              value={form.x}
+              onChange={onChange}
+              placeholder="https://x.com/..."
+            />
+            <Input
+              label="Linkedin"
+              name="linkedin"
+              value={form.linkedin}
+              onChange={onChange}
+              placeholder="https://linkedin.com/..."
+            />
+            <Input
+              label="Instagram"
+              name="instagram"
+              value={form.instagram}
+              onChange={onChange}
+              placeholder="https://instagram.com/..."
+            />
           </div>
 
           <div className="h-px w-full bg-white/10" />
 
           {/* Personal */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="First Name" name="first_name" value={form.first_name} onChange={onChange} />
-            <Input label="Last Name"  name="last_name"  value={form.last_name}  onChange={onChange} />
+            <Input
+              label="First Name"
+              name="first_name"
+              value={form.first_name}
+              onChange={onChange}
+            />
+            <Input
+              label="Last Name"
+              name="last_name"
+              value={form.last_name}
+              onChange={onChange}
+            />
             <Input label="Email Address (nga token)" value={email} readOnly />
-            <Input label="Phone" name="phone" value={form.phone} onChange={onChange} />
+            <Input
+              label="Phone"
+              name="phone"
+              value={form.phone}
+              onChange={onChange}
+            />
           </div>
 
           <div>
@@ -108,20 +153,21 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
             />
           </div>
 
-                     {/* Avatar */}
-           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-             <div>
-               <Label>Avatar</Label>
-               <input
-                 type="file"
-                 accept="image/*"
-                 onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                 className="mt-2 block w-full cursor-pointer rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-sm hover:file:bg-white/20"
-               />
-               <p className="mt-1 text-xs text-white/50">
-                 Nëse nuk zgjidhni foto, do të përdoret fotoja default: <code>/uploads/avatars/default.png</code>
-               </p>
-             </div>
+          {/* Avatar */}
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div>
+              <Label>Avatar</Label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                className="mt-2 block w-full cursor-pointer rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-sm hover:file:bg-white/20"
+              />
+              <p className="mt-1 text-xs text-white/50">
+                Nëse nuk zgjidhni foto, do të përdoret fotoja default:{" "}
+                <code>/uploads/avatars/default.png</code>
+              </p>
+            </div>
             <button
               type="submit"
               disabled={saving}
@@ -139,7 +185,9 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
 function Info({ label, value, full }) {
   return (
     <div className={`${full ? "sm:col-span-2" : ""}`}>
-      <div className="text-xs uppercase tracking-wide text-white/50">{label}</div>
+      <div className="text-xs uppercase tracking-wide text-white/50">
+        {label}
+      </div>
       <div className="mt-1 text-sm text-white/90">{value}</div>
     </div>
   );

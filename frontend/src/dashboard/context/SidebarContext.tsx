@@ -75,8 +75,8 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
         isHovered,
         activeItem,
         openSubmenu,
-        searchQuery,       // 🔍
-        setSearchQuery,    // 🔍
+        searchQuery, // 🔍
+        setSearchQuery, // 🔍
         toggleSidebar,
         toggleMobileSidebar,
         setIsHovered,

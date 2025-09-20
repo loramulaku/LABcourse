@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import apiFetch, { API_URL } from '../api'; // 🔹 wrapper me auto-refresh të token-it
+import apiFetch, { API_URL } from "../api"; // 🔹 wrapper me auto-refresh të token-it
 
 const MyProfile = () => {
   const [userData, setUserData] = useState({
@@ -18,68 +18,67 @@ const MyProfile = () => {
 
   // ✅ Load profile from backend me apiFetch (auto-refresh token)
   useEffect(() => {
-  const loadProfile = async () => {
-    try {
-      console.log("Loading profile from:", `${API_URL}/api/profile`);
-      const data = await apiFetch(`${API_URL}/api/profile`);
-      console.log("Profile data received:", data);
+    const loadProfile = async () => {
+      try {
+        console.log("Loading profile from:", `${API_URL}/api/profile`);
+        const data = await apiFetch(`${API_URL}/api/profile`);
+        console.log("Profile data received:", data);
 
-      setUserData({
-        ...data,
-        address: {
-          line1: data.address?.line1 || data.address_line1 || "",
-          line2: data.address?.line2 || data.address_line2 || "",
-        },
-      });
-      setLoading(false);
-    } catch (err) {
-      console.error("Gabim gjatë marrjes së profilit:", err);
-      setLoading(false);
-    }
-  };
-  loadProfile();
-}, []);
-
+        setUserData({
+          ...data,
+          address: {
+            line1: data.address?.line1 || data.address_line1 || "",
+            line2: data.address?.line2 || data.address_line2 || "",
+          },
+        });
+        setLoading(false);
+      } catch (err) {
+        console.error("Gabim gjatë marrjes së profilit:", err);
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
   // ✅ Save profile me apiFetch (header Authorization automatik)
   const handleSave = async () => {
-  try {
-    const formData = new FormData();
-    formData.append("phone", userData.phone);
-    formData.append("address_line1", userData.address.line1);
-    formData.append("address_line2", userData.address.line2);
-    formData.append("gender", userData.gender);
-    formData.append("dob", userData.dob);
-    if (file) formData.append("profile_image", file);
+    try {
+      const formData = new FormData();
+      formData.append("phone", userData.phone);
+      formData.append("address_line1", userData.address.line1);
+      formData.append("address_line2", userData.address.line2);
+      formData.append("gender", userData.gender);
+      formData.append("dob", userData.dob);
+      if (file) formData.append("profile_image", file);
 
-    const data = await apiFetch(`${API_URL}/api/profile`, {
-      method: "PUT",
-      body: formData,
-    });
+      const data = await apiFetch(`${API_URL}/api/profile`, {
+        method: "PUT",
+        body: formData,
+      });
 
-    setUserData((prev) => ({ ...prev, ...data }));
-    setIsEdit(false);
-  } catch (err) {
-    console.error(err);
-  }
-};
+      setUserData((prev) => ({ ...prev, ...data }));
+      setIsEdit(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // ✅ Remove photo me apiFetch
-const handleRemovePhoto = async () => {
-  try {
-    const formData = new FormData();
-    formData.append("removePhoto", "true");
+  const handleRemovePhoto = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("removePhoto", "true");
 
-    const data = await apiFetch(`${API_URL}/api/profile`, {
-      method: "PUT",
-      body: formData,
-    });
+      const data = await apiFetch(`${API_URL}/api/profile`, {
+        method: "PUT",
+        body: formData,
+      });
 
-    setUserData((prev) => ({ ...prev, ...data }));
-  } catch (err) {
-    console.error(err);
-  }
-};
+      setUserData((prev) => ({ ...prev, ...data }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   if (loading) return <p>Loading profile...</p>;
 

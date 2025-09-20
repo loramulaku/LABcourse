@@ -9,7 +9,6 @@ import {
 import Badge from "../../ui/badge/Badge";
 import apiFetch, { getAccessToken } from "../../../../api";
 
-
 import { useOutletContext } from "react-router-dom";
 
 // Lloji i User
@@ -56,8 +55,8 @@ export default function BasicTableUsers() {
     [user.name, user.email, user.role, user.phone, user.gender]
       .filter(Boolean)
       .some((field) =>
-        String(field).toLowerCase().includes(searchQuery.toLowerCase())
-      )
+        String(field).toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
   );
 
   if (loading) return <p className="p-4">Duke u ngarkuar...</p>;
@@ -70,15 +69,33 @@ export default function BasicTableUsers() {
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                <TableCell isHeader className="px-5 py-3 text-start">Foto</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">Name</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">Email</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">Role</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">Phone</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">Address</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">Gender</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">DOB</TableCell>
-                <TableCell isHeader className="px-5 py-3 text-start">Created At</TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Foto
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Name
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Email
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Role
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Phone
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Address
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Gender
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  DOB
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 text-start">
+                  Created At
+                </TableCell>
               </TableRow>
             </TableHeader>
 
@@ -101,18 +118,22 @@ export default function BasicTableUsers() {
                         user.role === "admin"
                           ? "success"
                           : user.role === "doctor"
-                          ? "warning"
-                          : "error"
+                            ? "warning"
+                            : "error"
                       }
                     >
                       {user.role}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-4 py-3">{user.phone || "-"}</TableCell>
+                  <TableCell className="px-4 py-3">
+                    {user.phone || "-"}
+                  </TableCell>
                   <TableCell className="px-4 py-3">
                     {user.address_line1 || ""} {user.address_line2 || ""}
                   </TableCell>
-                  <TableCell className="px-4 py-3">{user.gender || "-"}</TableCell>
+                  <TableCell className="px-4 py-3">
+                    {user.gender || "-"}
+                  </TableCell>
                   <TableCell className="px-4 py-3">
                     {user.dob ? new Date(user.dob).toLocaleDateString() : "-"}
                   </TableCell>

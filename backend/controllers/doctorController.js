@@ -106,7 +106,8 @@ const getDoctorById = (req, res) => {
   `;
   db.query(sql, [req.params.id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (!results || results.length === 0) return res.status(404).json({ error: "Not found" });
+    if (!results || results.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.json(results[0]);
   });
 };
@@ -130,7 +131,8 @@ const updateDoctor = (req, res) => {
   const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
   // Update users (name,email) and doctors
-  const updateUserSql = "UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE id = (SELECT user_id FROM doctors WHERE id = ?)";
+  const updateUserSql =
+    "UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE id = (SELECT user_id FROM doctors WHERE id = ?)";
   db.query(updateUserSql, [name || null, email || null, id], (e1) => {
     if (e1) return res.status(500).json({ error: e1.message });
 
@@ -173,7 +175,8 @@ const deleteDoctor = (req, res) => {
   const selectUserSql = "SELECT user_id FROM doctors WHERE id = ?";
   db.query(selectUserSql, [id], (e1, rows) => {
     if (e1) return res.status(500).json({ error: e1.message });
-    if (!rows || rows.length === 0) return res.status(404).json({ error: "Not found" });
+    if (!rows || rows.length === 0)
+      return res.status(404).json({ error: "Not found" });
     const userId = rows[0].user_id;
     db.query("DELETE FROM users WHERE id = ?", [userId], (e2) => {
       if (e2) return res.status(500).json({ error: e2.message });
@@ -182,4 +185,10 @@ const deleteDoctor = (req, res) => {
   });
 };
 
-module.exports = { createDoctor, getDoctors, getDoctorById, updateDoctor, deleteDoctor };
+module.exports = {
+  createDoctor,
+  getDoctors,
+  getDoctorById,
+  updateDoctor,
+  deleteDoctor,
+};

@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { API_URL, getAccessToken } from '../../api';
-import { toast } from 'react-toastify';
-import PageMeta from '../components/common/PageMeta';
-import PageBreadcrumb from '../components/common/PageBreadCrumb';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { API_URL, getAccessToken } from "../../api";
+import { toast } from "react-toastify";
+import PageMeta from "../components/common/PageMeta";
+import PageBreadcrumb from "../components/common/PageBreadCrumb";
 
 const TherapyCalendar = () => {
   const navigate = useNavigate();
   const [calendarData, setCalendarData] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState('month');
+  const [view, setView] = useState("month");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,17 +19,17 @@ const TherapyCalendar = () => {
   const fetchCalendarData = async () => {
     try {
       setLoading(true);
-      
+
       // Calculate date range based on current view
       const startDate = getDateRange().start;
       const endDate = getDateRange().end;
-      
+
       const response = await fetch(
         `${API_URL}/api/therapies/doctor/calendar?start_date=${startDate}&end_date=${endDate}`,
         {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
-          credentials: 'include',
-        }
+          credentials: "include",
+        },
       );
 
       if (response.ok) {
@@ -37,8 +37,8 @@ const TherapyCalendar = () => {
         setCalendarData(data);
       }
     } catch (error) {
-      console.error('Error fetching calendar data:', error);
-      toast.error('Failed to load calendar data');
+      console.error("Error fetching calendar data:", error);
+      toast.error("Failed to load calendar data");
     } finally {
       setLoading(false);
     }
@@ -47,33 +47,33 @@ const TherapyCalendar = () => {
   const getDateRange = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
+
     switch (view) {
-      case 'week':
+      case "week":
         const startOfWeek = new Date(currentDate);
         startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
         return {
-          start: startOfWeek.toISOString().split('T')[0],
-          end: endOfWeek.toISOString().split('T')[0]
+          start: startOfWeek.toISOString().split("T")[0],
+          end: endOfWeek.toISOString().split("T")[0],
         };
-      case 'month':
+      case "month":
       default:
         const startOfMonth = new Date(year, month, 1);
         const endOfMonth = new Date(year, month + 1, 0);
         return {
-          start: startOfMonth.toISOString().split('T')[0],
-          end: endOfMonth.toISOString().split('T')[0]
+          start: startOfMonth.toISOString().split("T")[0],
+          end: endOfMonth.toISOString().split("T")[0],
         };
     }
   };
 
   const getCalendarDays = () => {
-    if (view === 'week') {
+    if (view === "week") {
       const startOfWeek = new Date(currentDate);
       startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
-      
+
       const days = [];
       for (let i = 0; i < 7; i++) {
         const day = new Date(startOfWeek);
@@ -89,10 +89,10 @@ const TherapyCalendar = () => {
       const lastDay = new Date(year, month + 1, 0);
       const startDate = new Date(firstDay);
       startDate.setDate(startDate.getDate() - firstDay.getDay());
-      
+
       const days = [];
       const currentDay = new Date(startDate);
-      
+
       // Generate 42 days (6 weeks)
       for (let i = 0; i < 42; i++) {
         days.push(new Date(currentDay));
@@ -103,66 +103,67 @@ const TherapyCalendar = () => {
   };
 
   const getTherapiesForDate = (date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return calendarData.filter(therapy => 
-      therapy.start_date === dateStr || 
-      therapy.follow_up_date?.split('T')[0] === dateStr
+    const dateStr = date.toISOString().split("T")[0];
+    return calendarData.filter(
+      (therapy) =>
+        therapy.start_date === dateStr ||
+        therapy.follow_up_date?.split("T")[0] === dateStr,
     );
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'draft':
-        return 'bg-gray-400';
-      case 'pending':
-        return 'bg-yellow-400';
-      case 'confirmed':
-        return 'bg-blue-400';
-      case 'active':
-        return 'bg-green-400';
-      case 'on_hold':
-        return 'bg-orange-400';
-      case 'completed':
-        return 'bg-green-600';
-      case 'cancelled':
-        return 'bg-red-400';
-      case 'overdue':
-        return 'bg-red-600';
+      case "draft":
+        return "bg-gray-400";
+      case "pending":
+        return "bg-yellow-400";
+      case "confirmed":
+        return "bg-blue-400";
+      case "active":
+        return "bg-green-400";
+      case "on_hold":
+        return "bg-orange-400";
+      case "completed":
+        return "bg-green-600";
+      case "cancelled":
+        return "bg-red-400";
+      case "overdue":
+        return "bg-red-600";
       default:
-        return 'bg-gray-400';
+        return "bg-gray-400";
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high':
-        return 'border-l-red-500';
-      case 'medium':
-        return 'border-l-yellow-500';
-      case 'low':
-        return 'border-l-green-500';
+      case "high":
+        return "border-l-red-500";
+      case "medium":
+        return "border-l-yellow-500";
+      case "low":
+        return "border-l-green-500";
       default:
-        return 'border-l-gray-500';
+        return "border-l-gray-500";
     }
   };
 
   const navigateDate = (direction) => {
     const newDate = new Date(currentDate);
-    
-    if (view === 'week') {
-      newDate.setDate(newDate.getDate() + (direction * 7));
+
+    if (view === "week") {
+      newDate.setDate(newDate.getDate() + direction * 7);
     } else {
       newDate.setMonth(newDate.getMonth() + direction);
     }
-    
+
     setCurrentDate(newDate);
   };
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -202,31 +203,45 @@ const TherapyCalendar = () => {
                 </h1>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => setView('month')}
+                    onClick={() => setView("month")}
                     className={`px-3 py-1 rounded text-sm ${
-                      view === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                      view === "month"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-700"
                     }`}
                   >
                     Month
                   </button>
                   <button
-                    onClick={() => setView('week')}
+                    onClick={() => setView("week")}
                     className={`px-3 py-1 rounded text-sm ${
-                      view === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                      view === "week"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-700"
                     }`}
                   >
                     Week
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => navigateDate(-1)}
                   className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <button
@@ -239,8 +254,18 @@ const TherapyCalendar = () => {
                   onClick={() => navigateDate(1)}
                   className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </div>
@@ -277,40 +302,53 @@ const TherapyCalendar = () => {
 
           {/* Calendar Grid */}
           <div className="p-6">
-            {view === 'month' ? (
+            {view === "month" ? (
               <div className="grid grid-cols-7 gap-px bg-gray-200">
                 {/* Day headers */}
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="bg-gray-50 p-2 text-center text-sm font-medium text-gray-700">
-                    {day}
-                  </div>
-                ))}
-                
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                  (day) => (
+                    <div
+                      key={day}
+                      className="bg-gray-50 p-2 text-center text-sm font-medium text-gray-700"
+                    >
+                      {day}
+                    </div>
+                  ),
+                )}
+
                 {/* Calendar days */}
                 {getCalendarDays().map((day, index) => {
                   const therapies = getTherapiesForDate(day);
                   const isCurrentMonthDay = isCurrentMonth(day);
                   const isTodayDay = isToday(day);
-                  
+
                   return (
                     <div
                       key={index}
                       className={`bg-white min-h-[120px] p-2 border border-gray-100 ${
-                        !isCurrentMonthDay ? 'bg-gray-50 text-gray-400' : ''
-                      } ${isTodayDay ? 'bg-blue-50' : ''}`}
+                        !isCurrentMonthDay ? "bg-gray-50 text-gray-400" : ""
+                      } ${isTodayDay ? "bg-blue-50" : ""}`}
                     >
-                      <div className={`text-sm font-medium mb-1 ${
-                        isTodayDay ? 'text-blue-600' : isCurrentMonthDay ? 'text-gray-900' : 'text-gray-400'
-                      }`}>
+                      <div
+                        className={`text-sm font-medium mb-1 ${
+                          isTodayDay
+                            ? "text-blue-600"
+                            : isCurrentMonthDay
+                              ? "text-gray-900"
+                              : "text-gray-400"
+                        }`}
+                      >
                         {day.getDate()}
                       </div>
-                      
+
                       <div className="space-y-1">
                         {therapies.slice(0, 3).map((therapy, therapyIndex) => (
                           <div
                             key={therapyIndex}
                             className={`text-xs p-1 rounded cursor-pointer hover:opacity-80 border-l-2 ${getStatusColor(therapy.status)} ${getPriorityColor(therapy.priority)}`}
-                            onClick={() => navigate(`/dashboard/therapy/view/${therapy.id}`)}
+                            onClick={() =>
+                              navigate(`/dashboard/therapy/view/${therapy.id}`)
+                            }
                           >
                             <div className="text-white font-medium truncate">
                               {therapy.patient_name}
@@ -335,28 +373,33 @@ const TherapyCalendar = () => {
               <div className="grid grid-cols-7 gap-px bg-gray-200">
                 {/* Day headers */}
                 {getCalendarDays().map((day) => (
-                  <div key={day.toISOString()} className="bg-gray-50 p-2 text-center">
+                  <div
+                    key={day.toISOString()}
+                    className="bg-gray-50 p-2 text-center"
+                  >
                     <div className="text-sm font-medium text-gray-700">
-                      {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                      {day.toLocaleDateString("en-US", { weekday: "short" })}
                     </div>
-                    <div className={`text-lg font-bold ${
-                      isToday(day) ? 'text-blue-600' : 'text-gray-900'
-                    }`}>
+                    <div
+                      className={`text-lg font-bold ${
+                        isToday(day) ? "text-blue-600" : "text-gray-900"
+                      }`}
+                    >
                       {day.getDate()}
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Week days content */}
                 {getCalendarDays().map((day) => {
                   const therapies = getTherapiesForDate(day);
                   const isTodayDay = isToday(day);
-                  
+
                   return (
                     <div
                       key={day.toISOString()}
                       className={`bg-white min-h-[200px] p-2 border border-gray-100 ${
-                        isTodayDay ? 'bg-blue-50' : ''
+                        isTodayDay ? "bg-blue-50" : ""
                       }`}
                     >
                       <div className="space-y-1">
@@ -364,7 +407,9 @@ const TherapyCalendar = () => {
                           <div
                             key={therapyIndex}
                             className={`text-xs p-2 rounded cursor-pointer hover:opacity-80 border-l-2 ${getStatusColor(therapy.status)} ${getPriorityColor(therapy.priority)}`}
-                            onClick={() => navigate(`/dashboard/therapy/view/${therapy.id}`)}
+                            onClick={() =>
+                              navigate(`/dashboard/therapy/view/${therapy.id}`)
+                            }
                           >
                             <div className="text-white font-medium truncate">
                               {therapy.patient_name}
@@ -392,7 +437,7 @@ const TherapyCalendar = () => {
                 Click on therapy entries to view details
               </div>
               <button
-                onClick={() => navigate('/dashboard/therapy/create')}
+                onClick={() => navigate("/dashboard/therapy/create")}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Create New Therapy

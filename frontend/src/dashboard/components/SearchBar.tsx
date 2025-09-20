@@ -5,7 +5,6 @@ import { Search, Menu } from "lucide-react";
 const SearchBar: React.FC = () => {
   const { searchQuery, setSearchQuery, toggleSidebar } = useSidebar();
 
-
   return (
     <div className="flex items-center gap-3 w-full max-w-md">
       {/* Butoni për toggle sidebar */}
@@ -32,11 +31,6 @@ const SearchBar: React.FC = () => {
                      dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
         />
       </div>
-
-     
-     
-       
-  
     </div>
   );
 };

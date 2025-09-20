@@ -7,7 +7,7 @@ async function testTokens() {
     const loginRes = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "test@example.com", password: "123456" })
+      body: JSON.stringify({ email: "test@example.com", password: "123456" }),
     });
 
     const loginData = await loginRes.json();
@@ -21,7 +21,7 @@ async function testTokens() {
 
     // 2️⃣ Protected route
     const protectedRes = await fetch(`${API_URL}/api/auth/dashboard`, {
-      headers: { Authorization: `Bearer ${accessToken}` }
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
     const protectedData = await protectedRes.json();
     console.log("Protected Data:", protectedData);
@@ -35,15 +35,14 @@ async function testTokens() {
 
     const refreshRes = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Cookie": `refreshToken=${refreshToken}` // simulo cookie
-      }
+        Cookie: `refreshToken=${refreshToken}`, // simulo cookie
+      },
     });
 
     const refreshData = await refreshRes.json();
     console.log("New Access Token from Refresh:", refreshData.accessToken);
-
   } catch (error) {
     console.error("Error:", error.message);
   }

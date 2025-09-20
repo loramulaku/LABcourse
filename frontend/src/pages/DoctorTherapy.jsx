@@ -1,54 +1,57 @@
-import React, { useEffect, useState } from 'react';
-import { API_URL, getAccessToken } from '../api';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { API_URL, getAccessToken } from "../api";
+import { useParams, useNavigate } from "react-router-dom";
 
 const DoctorTherapy = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
   const [appointment, setAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [therapyText, setTherapyText] = useState('');
-  const [medications, setMedications] = useState('');
-  const [dosage, setDosage] = useState('');
-  const [frequency, setFrequency] = useState('');
-  const [duration, setDuration] = useState('');
-  const [instructions, setInstructions] = useState('');
-  const [followUpDate, setFollowUpDate] = useState('');
+  const [error, setError] = useState("");
+  const [therapyText, setTherapyText] = useState("");
+  const [medications, setMedications] = useState("");
+  const [dosage, setDosage] = useState("");
+  const [frequency, setFrequency] = useState("");
+  const [duration, setDuration] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [followUpDate, setFollowUpDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
         setLoading(true);
-        setError('');
-        
+        setError("");
+
         // Fetch appointment details
         const res = await fetch(`${API_URL}/api/appointments/doctor/refused`, {
           headers: { Authorization: `Bearer ${getAccessToken()}` },
-          credentials: 'include',
+          credentials: "include",
         });
-        
+
         if (!res.ok) {
-          if (res.status === 403) throw new Error('Only doctors can access this page');
-          throw new Error('Failed to load appointment data');
+          if (res.status === 403)
+            throw new Error("Only doctors can access this page");
+          throw new Error("Failed to load appointment data");
         }
-        
+
         const data = await res.json();
-        const appointmentData = data.find(apt => apt.appointment_id == appointmentId);
-        
+        const appointmentData = data.find(
+          (apt) => apt.appointment_id == appointmentId,
+        );
+
         if (!appointmentData) {
-          throw new Error('Appointment not found');
+          throw new Error("Appointment not found");
         }
-        
+
         setAppointment(appointmentData);
       } catch (e) {
-        setError(e.message || 'Failed to load appointment');
+        setError(e.message || "Failed to load appointment");
       } finally {
         setLoading(false);
       }
     };
-    
+
     if (appointmentId) {
       fetchAppointment();
     }
@@ -57,13 +60,13 @@ const DoctorTherapy = () => {
   const submitTherapy = async (e) => {
     e.preventDefault();
     if (!therapyText.trim()) return;
-    
+
     try {
       setSubmitting(true);
       const res = await fetch(`${API_URL}/api/therapies/doctor/create`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify({
@@ -75,17 +78,19 @@ const DoctorTherapy = () => {
           frequency: frequency.trim() || null,
           duration: duration.trim() || null,
           instructions: instructions.trim() || null,
-          follow_up_date: followUpDate || null
+          follow_up_date: followUpDate || null,
         }),
-        credentials: 'include',
+        credentials: "include",
       });
-      
-      if (!res.ok) throw new Error('Failed to save therapy');
-      
-      alert('Therapy/Medications saved successfully! Patient can now see this prescription.');
-      navigate('/doctor/refused');
+
+      if (!res.ok) throw new Error("Failed to save therapy");
+
+      alert(
+        "Therapy/Medications saved successfully! Patient can now see this prescription.",
+      );
+      navigate("/doctor/refused");
     } catch (e) {
-      alert(e.message || 'Error saving therapy');
+      alert(e.message || "Error saving therapy");
     } finally {
       setSubmitting(false);
     }
@@ -107,8 +112,8 @@ const DoctorTherapy = () => {
       <div className="my-10">
         <p className="text-red-600 text-center">{error}</p>
         <div className="text-center mt-4">
-          <button 
-            onClick={() => navigate('/doctor/refused')}
+          <button
+            onClick={() => navigate("/doctor/refused")}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Back to Refused Appointments
@@ -119,20 +124,26 @@ const DoctorTherapy = () => {
   }
 
   if (!appointment) {
-    return <p className="text-red-600 text-center mt-8">Appointment not found</p>;
+    return (
+      <p className="text-red-600 text-center mt-8">Appointment not found</p>
+    );
   }
 
   return (
     <div className="my-10">
       <div className="mb-6">
-        <button 
-          onClick={() => navigate('/doctor/refused')}
+        <button
+          onClick={() => navigate("/doctor/refused")}
           className="text-blue-600 hover:underline mb-4"
         >
           ← Back to Refused Appointments
         </button>
-        <h1 className="text-3xl font-medium mb-2">Prescribe Therapy & Medications</h1>
-        <p className="text-gray-600">Write detailed therapy and medication instructions for this patient.</p>
+        <h1 className="text-3xl font-medium mb-2">
+          Prescribe Therapy & Medications
+        </h1>
+        <p className="text-gray-600">
+          Write detailed therapy and medication instructions for this patient.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -154,11 +165,15 @@ const DoctorTherapy = () => {
             </div>
             <div>
               <div className="text-gray-500">Phone</div>
-              <div className="font-medium">{appointment.patient_phone || 'Not provided'}</div>
+              <div className="font-medium">
+                {appointment.patient_phone || "Not provided"}
+              </div>
             </div>
             <div>
               <div className="text-gray-500">Appointment Date</div>
-              <div className="font-medium">{new Date(appointment.scheduled_for).toLocaleString()}</div>
+              <div className="font-medium">
+                {new Date(appointment.scheduled_for).toLocaleString()}
+              </div>
             </div>
             <div>
               <div className="text-gray-500">Status</div>
@@ -179,10 +194,15 @@ const DoctorTherapy = () => {
 
         {/* Therapy Form */}
         <div className="border border-gray-200 rounded-lg p-5">
-          <h2 className="text-xl font-semibold mb-4">Therapy & Medication Prescription</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Therapy & Medication Prescription
+          </h2>
           <form onSubmit={submitTherapy} className="space-y-4">
             <div>
-              <label htmlFor="therapy" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="therapy"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Therapy Instructions *
               </label>
               <textarea
@@ -197,7 +217,10 @@ const DoctorTherapy = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="medications" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="medications"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Medications
                 </label>
                 <input
@@ -211,7 +234,10 @@ const DoctorTherapy = () => {
               </div>
 
               <div>
-                <label htmlFor="dosage" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="dosage"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Dosage
                 </label>
                 <input
@@ -225,7 +251,10 @@ const DoctorTherapy = () => {
               </div>
 
               <div>
-                <label htmlFor="frequency" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="frequency"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Frequency
                 </label>
                 <input
@@ -239,7 +268,10 @@ const DoctorTherapy = () => {
               </div>
 
               <div>
-                <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="duration"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Duration
                 </label>
                 <input
@@ -254,7 +286,10 @@ const DoctorTherapy = () => {
             </div>
 
             <div>
-              <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="instructions"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Special Instructions
               </label>
               <textarea
@@ -267,7 +302,10 @@ const DoctorTherapy = () => {
             </div>
 
             <div>
-              <label htmlFor="followUpDate" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="followUpDate"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Follow-up Date (Optional)
               </label>
               <input
@@ -278,22 +316,22 @@ const DoctorTherapy = () => {
                 onChange={(e) => setFollowUpDate(e.target.value)}
               />
             </div>
-            
+
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
                 disabled={submitting || !therapyText.trim()}
                 className={`px-6 py-2 rounded text-white ${
-                  submitting || !therapyText.trim() 
-                    ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-blue-600 hover:bg-blue-700'
+                  submitting || !therapyText.trim()
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
-                {submitting ? 'Saving...' : 'Save Therapy & Medications'}
+                {submitting ? "Saving..." : "Save Therapy & Medications"}
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/doctor/refused')}
+                onClick={() => navigate("/doctor/refused")}
                 className="px-4 py-2 border rounded hover:bg-gray-50"
               >
                 Cancel

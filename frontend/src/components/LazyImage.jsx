@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
-const LazyImage = ({ 
-  src, 
-  alt, 
-  className = '', 
-  fallbackSrc = '/vite.svg',
+const LazyImage = ({
+  src,
+  alt,
+  className = "",
+  fallbackSrc = "/vite.svg",
   placeholder = null,
   onLoad = () => {},
   onError = () => {},
-  ...props 
+  ...props
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -25,8 +25,8 @@ const LazyImage = ({
       },
       {
         threshold: 0.1,
-        rootMargin: '50px'
-      }
+        rootMargin: "50px",
+      },
     );
 
     if (imgRef.current) {
@@ -58,7 +58,7 @@ const LazyImage = ({
           {placeholder}
         </div>
       )}
-      
+
       {!isLoaded && !placeholder && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse" />
       )}
@@ -68,7 +68,7 @@ const LazyImage = ({
           src={imageSrc}
           alt={alt}
           className={`transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
+            isLoaded ? "opacity-100" : "opacity-0"
           } ${className}`}
           onLoad={handleLoad}
           onError={handleError}

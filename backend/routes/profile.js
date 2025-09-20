@@ -30,15 +30,16 @@ router.get("/", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const [[profile]] = await db.promise().query(
-      "SELECT phone, address_line1, address_line2, gender, dob, profile_image FROM user_profiles WHERE user_id=?",
-      [userId]
-    );
+    const [[profile]] = await db
+      .promise()
+      .query(
+        "SELECT phone, address_line1, address_line2, gender, dob, profile_image FROM user_profiles WHERE user_id=?",
+        [userId],
+      );
 
-    const [[user]] = await db.promise().query(
-      "SELECT id, name, email FROM users WHERE id=? LIMIT 1",
-      [userId]
-    );
+    const [[user]] = await db
+      .promise()
+      .query("SELECT id, name, email FROM users WHERE id=? LIMIT 1", [userId]);
 
     res.json({
       id: userId,
@@ -48,7 +49,9 @@ router.get("/", authenticateToken, async (req, res) => {
       address_line1: profile?.address_line1 || "",
       address_line2: profile?.address_line2 || "",
       gender: profile?.gender || "",
-      dob: profile?.dob ? new Date(profile.dob).toISOString().split('T')[0] : "",
+      dob: profile?.dob
+        ? new Date(profile.dob).toISOString().split("T")[0]
+        : "",
       profile_image: profile?.profile_image || "uploads/avatars/default.png",
     });
   } catch (err) {
@@ -58,94 +61,128 @@ router.get("/", authenticateToken, async (req, res) => {
 });
 
 // PUT update profile i user-it
-router.put("/", authenticateToken, upload.single("profile_image"), async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { phone, address_line1, address_line2, gender, dob, removePhoto } = req.body;
-    
-    // Handle photo removal separately
-    let profileImage = null;
-    if (removePhoto === "true") {
-      profileImage = "uploads/avatars/default.png";
-    } else if (req.file) {
-      profileImage = `uploads/avatars/${req.file.filename}`;
-    }
+router.put(
+  "/",
+  authenticateToken,
+  upload.single("profile_image"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { phone, address_line1, address_line2, gender, dob, removePhoto } =
+        req.body;
 
-    // nëse gender është bosh → NULL
-    const genderValue = gender && gender.trim() !== "" ? gender : null;
-
-    // nëse dob është bosh → NULL
-    const dobValue = dob && dob.trim() !== "" ? dob : null;
-
-    // kontrollo nëse ekziston profili
-    const [existing] = await db.promise().query(
-      "SELECT id FROM user_profiles WHERE user_id=?",
-      [userId]
-    );
-
-    if (existing.length > 0) {
+      // Handle photo removal separately
+      let profileImage = null;
       if (removePhoto === "true") {
-        // Only remove photo, keep all other fields unchanged
-        await db.promise().query(
-          `UPDATE user_profiles 
+        profileImage = "uploads/avatars/default.png";
+      } else if (req.file) {
+        profileImage = `uploads/avatars/${req.file.filename}`;
+      }
+
+      // nëse gender është bosh → NULL
+      const genderValue = gender && gender.trim() !== "" ? gender : null;
+
+      // nëse dob është bosh → NULL
+      const dobValue = dob && dob.trim() !== "" ? dob : null;
+
+      // kontrollo nëse ekziston profili
+      const [existing] = await db
+        .promise()
+        .query("SELECT id FROM user_profiles WHERE user_id=?", [userId]);
+
+      if (existing.length > 0) {
+        if (removePhoto === "true") {
+          // Only remove photo, keep all other fields unchanged
+          await db.promise().query(
+            `UPDATE user_profiles 
            SET profile_image=?
            WHERE user_id=?`,
-          ["uploads/avatars/default.png", userId]
-        );
-      } else if (profileImage !== null) {
-        // Update everything including new photo
-        await db.promise().query(
-          `UPDATE user_profiles 
+            ["uploads/avatars/default.png", userId],
+          );
+        } else if (profileImage !== null) {
+          // Update everything including new photo
+          await db.promise().query(
+            `UPDATE user_profiles 
            SET phone=?, address_line1=?, address_line2=?, gender=?, dob=?, profile_image=?
            WHERE user_id=?`,
-          [phone, address_line1, address_line2, genderValue, dobValue, profileImage, userId]
-        );
-      } else {
-        // Only update other fields, keep existing photo
-        await db.promise().query(
-          `UPDATE user_profiles 
+            [
+              phone,
+              address_line1,
+              address_line2,
+              genderValue,
+              dobValue,
+              profileImage,
+              userId,
+            ],
+          );
+        } else {
+          // Only update other fields, keep existing photo
+          await db.promise().query(
+            `UPDATE user_profiles 
            SET phone=?, address_line1=?, address_line2=?, gender=?, dob=?
            WHERE user_id=?`,
-          [phone, address_line1, address_line2, genderValue, dobValue, userId]
-        );
-      }
-    } else {
-      // insert profile
-      await db.promise().query(
-        `INSERT INTO user_profiles 
+            [
+              phone,
+              address_line1,
+              address_line2,
+              genderValue,
+              dobValue,
+              userId,
+            ],
+          );
+        }
+      } else {
+        // insert profile
+        await db.promise().query(
+          `INSERT INTO user_profiles 
          (user_id, phone, address_line1, address_line2, gender, dob, profile_image) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userId, phone, address_line1, address_line2, genderValue, dobValue, profileImage || "uploads/avatars/default.png"]
-      );
+          [
+            userId,
+            phone,
+            address_line1,
+            address_line2,
+            genderValue,
+            dobValue,
+            profileImage || "uploads/avatars/default.png",
+          ],
+        );
+      }
+
+      // Merr profile-in e përditësuar
+      const [[updatedProfile]] = await db
+        .promise()
+        .query(
+          "SELECT phone, address_line1, address_line2, gender, dob, profile_image FROM user_profiles WHERE user_id=?",
+          [userId],
+        );
+
+      // Merr user-in për emër/email
+      const [[user]] = await db
+        .promise()
+        .query("SELECT id, name, email FROM users WHERE id=? LIMIT 1", [
+          userId,
+        ]);
+
+      res.json({
+        id: userId,
+        name: user?.name || "",
+        email: user?.email || "",
+        phone: updatedProfile?.phone || "",
+        address_line1: updatedProfile?.address_line1 || "",
+        address_line2: updatedProfile?.address_line2 || "",
+        gender: updatedProfile?.gender || "",
+        dob: updatedProfile?.dob
+          ? new Date(updatedProfile.dob).toISOString().split("T")[0]
+          : "",
+        profile_image:
+          updatedProfile?.profile_image || "uploads/avatars/default.png",
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Gabim gjatë përditësimit të profilit" });
     }
-
-    // Merr profile-in e përditësuar
-    const [[updatedProfile]] = await db.promise().query(
-      "SELECT phone, address_line1, address_line2, gender, dob, profile_image FROM user_profiles WHERE user_id=?",
-      [userId]
-    );
-
-    // Merr user-in për emër/email
-    const [[user]] = await db.promise().query(
-      "SELECT id, name, email FROM users WHERE id=? LIMIT 1",
-      [userId]
-    );
-
-    res.json({
-      id: userId,
-      name: user?.name || "",
-      email: user?.email || "",
-      phone: updatedProfile?.phone || "",
-      address_line1: updatedProfile?.address_line1 || "",
-      address_line2: updatedProfile?.address_line2 || "",
-      gender: updatedProfile?.gender || "",
-      dob: updatedProfile?.dob ? new Date(updatedProfile.dob).toISOString().split('T')[0] : "",
-      profile_image: updatedProfile?.profile_image || "uploads/avatars/default.png",
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Gabim gjatë përditësimit të profilit" });
-  }
-});
+  },
+);
 
 module.exports = router;

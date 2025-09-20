@@ -19,11 +19,11 @@ export default function AppointmentsCalendar() {
       const data = await apiFetch(`${API_URL}/api/appointments`, {
         credentials: "include",
       });
-      
+
       // Transform appointments data into calendar events
       const calendarEvents = data.map((appointment) => ({
         id: appointment.id,
-        title: `${appointment.doctor_name || 'Doctor'} - ${appointment.reason}`,
+        title: `${appointment.doctor_name || "Doctor"} - ${appointment.reason}`,
         start: new Date(appointment.scheduled_for),
         end: new Date(appointment.scheduled_for),
         resource: {
@@ -32,10 +32,10 @@ export default function AppointmentsCalendar() {
           doctor: appointment.doctor_name,
           patient: appointment.user_name,
           reason: appointment.reason,
-          amount: appointment.amount
-        }
+          amount: appointment.amount,
+        },
       }));
-      
+
       setEvents(calendarEvents);
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -45,37 +45,37 @@ export default function AppointmentsCalendar() {
   };
 
   const eventStyleGetter = (event) => {
-    let backgroundColor = '#3174ad';
-    
+    let backgroundColor = "#3174ad";
+
     switch (event.resource?.status) {
-      case 'CONFIRMED':
-        backgroundColor = '#28a745';
+      case "CONFIRMED":
+        backgroundColor = "#28a745";
         break;
-      case 'PENDING':
-        backgroundColor = '#ffc107';
+      case "PENDING":
+        backgroundColor = "#ffc107";
         break;
-      case 'DECLINED':
-      case 'CANCELLED':
-        backgroundColor = '#dc3545';
+      case "DECLINED":
+      case "CANCELLED":
+        backgroundColor = "#dc3545";
         break;
       default:
-        backgroundColor = '#3174ad';
+        backgroundColor = "#3174ad";
     }
 
     // Add payment status indicator
-    if (event.resource?.payment_status === 'paid') {
-      backgroundColor = '#17a2b8'; // Teal for paid appointments
+    if (event.resource?.payment_status === "paid") {
+      backgroundColor = "#17a2b8"; // Teal for paid appointments
     }
 
     return {
       style: {
         backgroundColor,
-        borderRadius: '5px',
+        borderRadius: "5px",
         opacity: 0.8,
-        color: 'white',
-        border: '0px',
-        display: 'block'
-      }
+        color: "white",
+        border: "0px",
+        display: "block",
+      },
     };
   };
 
@@ -90,7 +90,9 @@ export default function AppointmentsCalendar() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Appointments Calendar</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Appointments Calendar
+        </h2>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">
             <div className="w-3 h-3 bg-green-500 rounded"></div>
@@ -119,7 +121,7 @@ export default function AppointmentsCalendar() {
           endAccessor="end"
           style={{ height: 600 }}
           eventPropGetter={eventStyleGetter}
-          views={['month', 'week', 'day', 'agenda']}
+          views={["month", "week", "day", "agenda"]}
           defaultView="month"
           popup
           showMultiDayTimes
