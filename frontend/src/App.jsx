@@ -145,6 +145,7 @@ const DoctorPrescription = React.lazy(() => import("./doctor/pages/DoctorPrescri
 const DoctorDocumentUpload = React.lazy(() => import("./doctor/pages/DoctorDocumentUpload.jsx"));
 const DoctorDocumentFiles = React.lazy(() => import("./doctor/pages/DoctorDocumentFiles.jsx"));
 const DoctorAppointmentStats = React.lazy(() => import("./doctor/pages/DoctorAppointmentStats.jsx"));
+const DoctorProfile = React.lazy(() => import("./doctor/pages/DoctorProfile.jsx"));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -353,7 +354,9 @@ const App = () => {
                 </ProtectedRoute>
               }
             >
+              <Route index element={<DoctorDashboard />} />
               <Route path="dashboard" element={<DoctorDashboard />} />
+              <Route path="profile" element={<DoctorProfile />} />
               <Route path="appointments" element={<DoctorAppointments />} />
               <Route path="calendar" element={<DoctorCalendar />} />
               <Route path="appointment-stats" element={<DoctorAppointmentStats />} />

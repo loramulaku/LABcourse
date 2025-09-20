@@ -119,6 +119,10 @@ const Navbar = () => {
   const navigateToProfile = () => {
     if (role === "admin") {
       navigate("/dashboard/profile");
+    } else if (role === "doctor") {
+      navigate("/doctor/profile");
+    } else if (role === "lab") {
+      navigate("/lab/profile");
     } else {
       navigate("/my-profile");
     }

@@ -50,7 +50,9 @@ const Login = () => {
         if (data.role === 'admin') {
           navigate('/dashboard');
         } else if (data.role === 'doctor') {
-          navigate('/doctor-dashboard');
+          navigate('/doctor');
+        } else if (data.role === 'lab') {
+          navigate('/lab');
         } else {
           navigate('/');
         }
