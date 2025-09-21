@@ -76,6 +76,15 @@ const Login = () => {
     }
   };
 
+  // Handle forgot password view
+  if (showForgotPassword) {
+    return (
+      <ForgotPassword 
+        onBackToLogin={() => setShowForgotPassword(false)} 
+      />
+    );
+  }
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center">
       <form
@@ -164,14 +173,5 @@ const Login = () => {
     </div>
   );
 };
-
-// Handle forgot password view
-if (showForgotPassword) {
-  return (
-    <ForgotPassword 
-      onBackToLogin={() => setShowForgotPassword(false)} 
-    />
-  );
-}
 
 export default Login;
