@@ -65,6 +65,21 @@ router.post("/login", (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: "Password gabim" });
 
+    // Check account status for doctors
+    if (user.role === 'doctor' && user.account_status === 'pending') {
+      return res.status(403).json({ 
+        error: "Your doctor account is pending approval. Please wait for admin verification.",
+        status: "pending"
+      });
+    }
+
+    if (user.role === 'doctor' && user.account_status === 'rejected') {
+      return res.status(403).json({ 
+        error: "Your doctor account has been rejected. Please contact admin.",
+        status: "rejected"
+      });
+    }
+
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 

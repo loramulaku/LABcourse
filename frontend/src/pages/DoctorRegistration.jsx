@@ -52,32 +52,14 @@ const DoctorRegistration = () => {
     }
 
     try {
-      // Step 1: Create user account
-      const userResponse = await fetch('http://localhost:5000/api/auth/signup', {
+      // Submit doctor registration (creates user account and application in one call)
+      const response = await fetch('http://localhost:5000/api/doctor-applications/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: 'doctor'
-        }),
-        credentials: 'include'
-      });
-
-      const userData = await userResponse.json();
-
-      if (!userResponse.ok) {
-        setMessage(userData.error || 'Failed to create account');
-        setLoading(false);
-        return;
-      }
-
-      // Step 2: Create doctor application
-      const applicationResponse = await fetch('http://localhost:5000/api/doctors/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
           licenseNumber: formData.licenseNumber,
           medicalField: formData.medicalField,
           specialization: formData.specialization,
@@ -90,10 +72,10 @@ const DoctorRegistration = () => {
         credentials: 'include'
       });
 
-      const applicationData = await applicationResponse.json();
+      const data = await response.json();
 
-      if (!applicationResponse.ok) {
-        setMessage(applicationData.error || 'Failed to submit application');
+      if (!response.ok) {
+        setMessage(data.error || 'Failed to submit registration');
         setLoading(false);
         return;
       }

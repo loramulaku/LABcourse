@@ -39,6 +39,12 @@ const Login = () => {
           body: JSON.stringify({ email, password }),
         });
 
+        // Handle pending/rejected doctor accounts
+        if (data.status === 'pending' || data.status === 'rejected') {
+          setMessage(data.error);
+          return;
+        }
+
         // ✅ Përmirësim: ruaj access token dhe role në localStorage
         if (data.accessToken)
           localStorage.setItem("accessToken", data.accessToken);

@@ -5,6 +5,64 @@ const { authenticateToken, isAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Register new doctor (no authentication required)
+router.post('/register', async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      licenseNumber,
+      medicalField,
+      specialization,
+      experienceYears,
+      education,
+      previousClinic,
+      phone,
+      bio
+    } = req.body;
+
+    // Check if user already exists
+    const [existingUser] = await db.promise().query(
+      'SELECT id FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (existingUser.length > 0) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Hash password
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user account with doctor role
+    const [userResult] = await db.promise().query(
+      'INSERT INTO users (name, email, password, role, account_status) VALUES (?, ?, ?, ?, ?)',
+      [name, email, hashedPassword, 'doctor', 'pending']
+    );
+
+    const userId = userResult.insertId;
+
+    // Create doctor application
+    const [applicationResult] = await db.promise().query(
+      `INSERT INTO doctor_applications 
+       (user_id, license_number, medical_field, specialization, experience_years, education, previous_clinic, phone, bio)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, licenseNumber, medicalField, specialization, experienceYears, education, previousClinic, phone, bio]
+    );
+
+    res.json({ 
+      message: 'Doctor registration submitted successfully. Please wait for admin approval.',
+      applicationId: applicationResult.insertId 
+    });
+
+  } catch (error) {
+    console.error('Error in doctor registration:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Apply for doctor verification (for new doctors)
 router.post('/apply', authenticateToken, async (req, res) => {
   try {

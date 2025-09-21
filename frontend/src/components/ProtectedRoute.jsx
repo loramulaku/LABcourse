@@ -60,6 +60,12 @@ const ProtectedRoute = ({ children, requireRole }) => {
   if (!authed) return <Navigate to="/login" replace />;
   if (requireRole && role !== requireRole) return <Navigate to="/" replace />;
 
+  // Additional check for doctor role - ensure they have access token (approved)
+  if (requireRole === 'doctor') {
+    const token = getAccessToken();
+    if (!token) return <Navigate to="/login" replace />;
+  }
+
   return children;
 };
 
