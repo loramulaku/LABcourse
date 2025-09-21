@@ -192,6 +192,31 @@ router.patch(
       }
 
       await Therapy.updateStatus(therapyId, status);
+      
+      // Create notification for patient about status change
+      try {
+        // Get patient_id from therapy
+        const [therapyData] = await db.promise().query(
+          'SELECT patient_id FROM therapies WHERE id = ?',
+          [therapyId]
+        );
+        
+        if (therapyData.length > 0) {
+          await db.promise().query(
+            'INSERT INTO notifications (recipient_id, title, message, notification_type, optional_link, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+            [
+              therapyData[0].patient_id,
+              'Therapy Status Updated',
+              `Your therapy status has been updated to: ${status}`,
+              'therapy_status_update',
+              '/patient/therapies'
+            ]
+          );
+        }
+      } catch (notificationError) {
+        console.error('Failed to create status notification:', notificationError);
+      }
+      
       res.json({ message: "Therapy status updated successfully" });
     } catch (error) {
       console.error(error);
@@ -268,6 +293,24 @@ router.post(
       };
 
       const therapyId = await Therapy.create(therapyData);
+      
+      // Create notification for patient
+      try {
+        await db.promise().query(
+          'INSERT INTO notifications (recipient_id, title, message, notification_type, optional_link, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+          [
+            patient_id,
+            'New Therapy Assigned',
+            `You have been assigned a new therapy: ${therapy_text}`,
+            'therapy_assigned',
+            '/patient/therapies'
+          ]
+        );
+      } catch (notificationError) {
+        console.error('Failed to create notification:', notificationError);
+        // Don't fail the therapy creation if notification fails
+      }
+      
       res
         .status(201)
         .json({ id: therapyId, message: "Therapy created successfully" });
@@ -325,6 +368,31 @@ router.put(
       };
 
       await Therapy.update(therapyId, updateData);
+      
+      // Create notification for patient about therapy update
+      try {
+        // Get patient_id from therapy
+        const [therapyData] = await db.promise().query(
+          'SELECT patient_id FROM therapies WHERE id = ?',
+          [therapyId]
+        );
+        
+        if (therapyData.length > 0) {
+          await db.promise().query(
+            'INSERT INTO notifications (recipient_id, title, message, notification_type, optional_link, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+            [
+              therapyData[0].patient_id,
+              'Therapy Updated',
+              'Your therapy has been updated with new information',
+              'therapy_updated',
+              '/patient/therapies'
+            ]
+          );
+        }
+      } catch (notificationError) {
+        console.error('Failed to create update notification:', notificationError);
+      }
+      
       res.json({ message: "Therapy updated successfully" });
     } catch (error) {
       console.error(error);

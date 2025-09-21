@@ -1,106 +1,78 @@
--- Database Schema for Doctor Verification System
--- Copy and paste these commands into MySQL Workbench
+-- Database schema updates for simplified doctor authentication system
+-- This script updates the existing database to support admin-managed doctor accounts
 
--- 1. Add verification fields to users table
+-- 1. Update users table to ensure account_status column exists with proper values
+-- (This assumes the column already exists, if not, create it)
 ALTER TABLE users 
-ADD COLUMN account_status ENUM('active', 'pending', 'rejected', 'suspended') DEFAULT 'active',
-ADD COLUMN verification_notes TEXT,
-ADD COLUMN verified_at TIMESTAMP NULL,
-ADD COLUMN verified_by INT NULL;
+MODIFY COLUMN account_status ENUM('active', 'inactive', 'pending', 'rejected') 
+DEFAULT 'active';
 
--- 2. Create doctor applications table
-CREATE TABLE doctor_applications (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  license_number VARCHAR(50) NOT NULL,
-  medical_field VARCHAR(100) NOT NULL,
-  specialization VARCHAR(100),
-  experience_years INT,
-  education VARCHAR(500),
-  previous_clinic VARCHAR(200),
-  license_upload_path VARCHAR(255),
-  cv_upload_path VARCHAR(255),
-  additional_documents TEXT,
-  status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-  rejection_reason TEXT,
-  reviewed_by INT NULL,
-  reviewed_at TIMESTAMP NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
-  UNIQUE KEY unique_user_application (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- 3. Create doctor profiles table (for approved doctors)
-CREATE TABLE doctor_profiles (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  first_name VARCHAR(100),
-  last_name VARCHAR(100),
-  phone VARCHAR(20),
-  specialization VARCHAR(100),
-  bio TEXT,
-  avatar_path VARCHAR(255) DEFAULT '/uploads/avatars/default.png',
-  facebook VARCHAR(255),
-  x VARCHAR(255),
-  linkedin VARCHAR(255),
-  instagram VARCHAR(255),
-  country VARCHAR(100),
-  city_state VARCHAR(100),
-  postal_code VARCHAR(20),
-  license_number VARCHAR(50),
-  experience_years INT,
-  consultation_fee DECIMAL(10,2),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  UNIQUE KEY unique_doctor_user (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- 4. Create uploads directory structure (run this in your backend)
--- This will be handled by your Node.js server, but you can create the folders manually:
--- backend/uploads/doctor-documents/
--- backend/uploads/doctor-documents/licenses/
--- backend/uploads/doctor-documents/cvs/
-
--- 5. Test data - Create a pending doctor application
-INSERT INTO users (name, email, password, role, account_status) 
-VALUES ('Dr. Jane Doe', 'jane.doctor@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'doctor', 'pending');
-
--- Get the user ID (replace 1 with the actual ID returned)
-SET @doctor_user_id = LAST_INSERT_ID();
-
-INSERT INTO doctor_applications (
-  user_id, 
-  license_number, 
-  medical_field, 
-  specialization, 
-  experience_years, 
-  education, 
-  previous_clinic
-) VALUES (
-  @doctor_user_id,
-  'MED123456',
-  'Cardiology',
-  'Interventional Cardiology',
-  8,
-  'MD from Harvard Medical School, Residency at Johns Hopkins',
-  'Mayo Clinic'
+-- 2. Ensure doctor_profiles table exists with required columns
+CREATE TABLE IF NOT EXISTS doctor_profiles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    specialization VARCHAR(255),
+    experience_years VARCHAR(50),
+    phone VARCHAR(20),
+    bio TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_doctor_profile (user_id)
 );
 
--- 6. Verify the data
-SELECT 
-  u.id,
-  u.name,
-  u.email,
-  u.role,
-  u.account_status,
-  da.license_number,
-  da.medical_field,
-  da.specialization,
-  da.experience_years,
-  da.status as application_status
-FROM users u
-LEFT JOIN doctor_applications da ON u.id = da.user_id
-WHERE u.role = 'doctor';
+-- 3. Update existing doctor accounts to have 'active' status
+UPDATE users 
+SET account_status = 'active' 
+WHERE role = 'doctor' AND (account_status IS NULL OR account_status = 'pending');
+
+-- 4. Optional: Clean up old doctor applications if they exist
+-- (Uncomment the following lines if you want to remove the old application system)
+-- DROP TABLE IF EXISTS doctor_applications;
+
+-- 5. Create index for better performance
+CREATE INDEX idx_users_role_status ON users(role, account_status);
+CREATE INDEX idx_doctor_profiles_user_id ON doctor_profiles(user_id);
+
+-- 6. Add any missing columns to users table if they don't exist
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS account_status ENUM('active', 'inactive', 'pending', 'rejected') 
+DEFAULT 'active' AFTER role;
+
+-- 7. Update doctor_profiles table with all required fields
+ALTER TABLE doctor_profiles 
+ADD COLUMN IF NOT EXISTS department VARCHAR(255) AFTER specialization,
+ADD COLUMN IF NOT EXISTS license_number VARCHAR(255) AFTER department,
+ADD COLUMN IF NOT EXISTS degree VARCHAR(255) AFTER experience_years,
+ADD COLUMN IF NOT EXISTS fees DECIMAL(10,2) AFTER bio;
+
+-- 8. Create audit_logs table for tracking activities
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(100) NOT NULL,
+    details TEXT,
+    ip_address VARCHAR(45),
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_audit_user_action (user_id, action),
+    INDEX idx_audit_created_at (created_at)
+);
+
+-- 9. Create password_reset_tokens table (optional, for enhanced security)
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_reset_token (token),
+    INDEX idx_reset_user (user_id)
+);
+
+-- Note: This script is safe to run multiple times
+-- It will only create tables/columns that don't exist and update existing ones

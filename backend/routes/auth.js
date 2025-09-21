@@ -32,17 +32,22 @@ function setRefreshCookie(res, token) {
   });
 }
 
-// SIGN UP
+// SIGN UP (Only for regular users, doctors are added by admin)
 router.post("/signup", async (req, res) => {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password)
     return res.status(400).json({ error: "Të gjitha fushat duhen" });
 
+  // Only allow user role signup, doctors are added by admin
+  if (role && role !== 'user') {
+    return res.status(400).json({ error: "Doctor accounts can only be created by admin" });
+  }
+
   try {
     const hashed = await bcrypt.hash(password, 10);
     const query =
       "INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)";
-    db.query(query, [name, email, hashed, role || "user"], (err) => {
+    db.query(query, [name, email, hashed, "user"], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ message: "User u krijua, tash kyçu" });
     });
@@ -63,20 +68,21 @@ router.post("/login", (req, res) => {
 
     const user = results[0];
     const match = await bcrypt.compare(password, user.password);
+    
+    // Log login attempt
+    await db.promise().query(
+      'INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+      [user.id, match ? 'login_success' : 'login_failed', 
+       `Login attempt from ${req.ip || 'unknown'}`, req.ip || 'unknown']
+    );
+    
     if (!match) return res.status(400).json({ error: "Password gabim" });
 
     // Check account status for doctors
-    if (user.role === 'doctor' && user.account_status === 'pending') {
+    if (user.role === 'doctor' && user.account_status === 'inactive') {
       return res.status(403).json({ 
-        error: "Your doctor account is pending approval. Please wait for admin verification.",
-        status: "pending"
-      });
-    }
-
-    if (user.role === 'doctor' && user.account_status === 'rejected') {
-      return res.status(403).json({ 
-        error: "Your doctor account has been rejected. Please contact admin.",
-        status: "rejected"
+        error: "Your doctor account is inactive. Please contact admin.",
+        status: "inactive"
       });
     }
 
@@ -256,6 +262,96 @@ router.get("/navbar-info", authenticateToken, async (req, res) => {
   } catch (err) {
     console.error("❌ Error in navbar-info:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// FORGOT PASSWORD
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    const query = "SELECT id, name, email FROM users WHERE email = ?";
+    db.query(query, [email], async (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
+      if (results.length === 0) {
+        // Don't reveal if email exists or not for security
+        return res.json({ message: "If the email exists, a reset link has been sent." });
+      }
+
+      const user = results[0];
+      
+      // Generate reset token
+      const resetToken = jwt.sign(
+        { id: user.id, email: user.email, action: 'password_reset' },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      // Log password reset request
+      await db.promise().query(
+        'INSERT INTO audit_logs (user_id, action, details) VALUES (?, ?, ?)',
+        [user.id, 'password_reset_requested', `Password reset requested for ${email}`]
+      );
+
+      // TODO: Send email with reset link
+      console.log(`Password reset token for ${email}: ${resetToken}`);
+      console.log(`Reset URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`);
+
+      res.json({ 
+        message: "If the email exists, a reset link has been sent.",
+        // Remove this in production - only for development
+        resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
+      });
+    });
+  } catch (error) {
+    console.error('Error in forgot password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// RESET PASSWORD
+router.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+  
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: "Token and new password are required" });
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    if (decoded.action !== 'password_reset') {
+      return res.status(400).json({ error: "Invalid reset token" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await db.promise().query(
+      'UPDATE users SET password = ? WHERE id = ?',
+      [hashedPassword, decoded.id]
+    );
+
+    // Log password reset
+    await db.promise().query(
+      'INSERT INTO audit_logs (user_id, action, details) VALUES (?, ?, ?)',
+      [decoded.id, 'password_reset_completed', `Password reset completed for user ${decoded.id}`]
+    );
+
+    res.json({ message: "Password reset successfully" });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+    console.error('Error resetting password:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

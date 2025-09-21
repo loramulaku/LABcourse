@@ -6,6 +6,8 @@ import PageMeta from "../components/common/PageMeta";
 import UserMetaCard from "../components/AdminProfile/UserMetaCard";
 import UserInfoCard from "../components/AdminProfile/UserInfoCard";
 import UserAddressCard from "../components/AdminProfile/UserAddressCard";
+import AddDoctorCard from "../components/AdminProfile/AddDoctorCard";
+import DoctorsTable from "../components/AdminProfile/DoctorsTable";
 
 import apiFetch, { getAccessToken } from "../../api";
 
@@ -27,6 +29,7 @@ export default function AdminProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({ name: "", email: "" });
+  const [refreshDoctors, setRefreshDoctors] = useState(0);
 
   const tokenData = useMemo(() => decodeJwtPayload(), []);
   const userId = tokenData?.id || tokenData?.sub || null;
@@ -166,6 +169,10 @@ export default function AdminProfile() {
             profile={profile}
             onSave={(payload) => updateAddress(payload)}
           />
+
+          <AddDoctorCard onDoctorAdded={() => setRefreshDoctors(prev => prev + 1)} />
+
+          <DoctorsTable key={refreshDoctors} />
         </div>
       </div>
     </>

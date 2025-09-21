@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiFetch from "../api"; // ✅ Përmirësim: përdorim wrapper me auto-refresh dhe menaxhim token
+import ForgotPassword from "../components/ForgotPassword";
 
 const Login = () => {
   const [state, setState] = useState("Log in"); // ose 'Sign Up'
@@ -8,6 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   const onSubmitHandler = async (event) => {
@@ -39,8 +41,8 @@ const Login = () => {
           body: JSON.stringify({ email, password }),
         });
 
-        // Handle pending/rejected doctor accounts
-        if (data.status === 'pending' || data.status === 'rejected') {
+        // Handle inactive doctor accounts
+        if (data.status === 'inactive') {
           setMessage(data.error);
           return;
         }
@@ -140,22 +142,36 @@ const Login = () => {
             {state === "Sign Up" ? "Login here" : "Click here"}
           </span>
         </p>
+
+        {state === "Log in" && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Forgot Password?
+            </button>
+          </div>
+        )}
         
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-center text-sm text-gray-600 mb-2">
-            Are you a medical professional?
+          <p className="text-center text-sm text-gray-600">
+            Medical professionals: Contact admin for account setup
           </p>
-          <button
-            type="button"
-            onClick={() => navigate('/doctor-registration')}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-base transition-colors duration-200"
-          >
-            Register as Doctor
-          </button>
         </div>
       </form>
     </div>
   );
 };
+
+// Handle forgot password view
+if (showForgotPassword) {
+  return (
+    <ForgotPassword 
+      onBackToLogin={() => setShowForgotPassword(false)} 
+    />
+  );
+}
 
 export default Login;
