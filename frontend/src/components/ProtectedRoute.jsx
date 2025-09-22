@@ -14,9 +14,21 @@ const ProtectedRoute = ({ children, requireRole }) => {
       const token = getAccessToken();
       const localRole = localStorage.getItem("role");
 
+      // If we have a valid access token, use it
       if (token) {
         setRole(localRole);
         setAuthed(true);
+        setLoading(false);
+        return;
+      }
+
+      // Only try to refresh if we don't have an access token
+      // Check if we have any stored session data first
+      const hasStoredSession = localStorage.getItem("role") || document.cookie.includes("refreshToken");
+      
+      if (!hasStoredSession) {
+        // No session data at all, redirect to login
+        setAuthed(false);
         setLoading(false);
         return;
       }
@@ -27,7 +39,12 @@ const ProtectedRoute = ({ children, requireRole }) => {
           credentials: "include",
         });
 
-        if (!res.ok) throw new Error("No refresh");
+        if (!res.ok) {
+          // Clear any stale session data
+          localStorage.removeItem("role");
+          setAccessToken(null);
+          throw new Error("Refresh failed");
+        }
 
         const data = await res.json();
 
@@ -47,6 +64,9 @@ const ProtectedRoute = ({ children, requireRole }) => {
         }
       } catch (err) {
         console.error("❌ Refresh error:", err);
+        // Clear any stale session data on error
+        localStorage.removeItem("role");
+        setAccessToken(null);
         setAuthed(false);
       } finally {
         setLoading(false);

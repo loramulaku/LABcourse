@@ -260,7 +260,7 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`flex flex-col px-5 bg-white dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out border-r border-gray-200
+      className={`flex flex-col px-5 bg-sidebar text-sidebar-foreground h-screen transition-all duration-300 ease-in-out border-r border-sidebar-border
     ${isExpanded || isMobileOpen ? "w-[240px]" : isHovered ? "w-[240px]" : "w-[90px]"}
 
       ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
@@ -305,7 +305,7 @@ const AppSidebar: React.FC = () => {
         <nav className="mb-6 flex flex-col gap-4">
           <div>
             <h2
-              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+              className={`mb-4 text-xs uppercase flex leading-[20px] text-muted-foreground ${
                 !isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "justify-start"
@@ -322,7 +322,7 @@ const AppSidebar: React.FC = () => {
 
           <div>
             <h2
-              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+              className={`mb-4 text-xs uppercase flex leading-[20px] text-muted-foreground ${
                 !isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "justify-start"

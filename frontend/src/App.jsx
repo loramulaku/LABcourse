@@ -159,7 +159,7 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <div className="mx-4 sm:mx-[10%]">
+      <div className="container-main">
         {/* Navbar gjithmonë on top */}
         <Navbar />
         <ToastContainer position="top-center" autoClose={3000} />

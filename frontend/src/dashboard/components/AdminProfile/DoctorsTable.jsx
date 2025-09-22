@@ -12,10 +12,20 @@ export default function DoctorsTable() {
       const data = await apiFetch("/api/admin-profiles/doctors", {
         method: "GET",
       });
-      setDoctors(data);
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setDoctors(data);
+      } else if (data && Array.isArray(data.doctors)) {
+        setDoctors(data.doctors);
+      } else {
+        console.error("Unexpected data format:", data);
+        setDoctors([]);
+        setMessage("No doctors data available");
+      }
     } catch (error) {
       setMessage("Failed to fetch doctors");
       console.error("Error fetching doctors:", error);
+      setDoctors([]);
     } finally {
       setLoading(false);
     }
@@ -76,7 +86,11 @@ export default function DoctorsTable() {
         </div>
       )}
 
-      {doctors.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          Loading doctors...
+        </div>
+      ) : !Array.isArray(doctors) || doctors.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           No doctors found. Add your first doctor using the form above.
         </div>
@@ -112,7 +126,7 @@ export default function DoctorsTable() {
               </tr>
             </thead>
             <tbody>
-              {doctors.map((doctor) => (
+              {Array.isArray(doctors) && doctors.map((doctor) => (
                 <tr key={doctor.id} className="border-b border-gray-100 dark:border-gray-800">
                   <td className="py-3 px-4">
                     <img

@@ -92,6 +92,8 @@ export default function AddDoctorCard({ onDoctorAdded }) {
         body: formDataToSend,
       });
 
+      console.log("Doctor addition response:", response);
+
       setMessage("Doctor added successfully! Welcome email sent to doctor.");
       setFormData({
         name: "",
@@ -107,6 +109,12 @@ export default function AddDoctorCard({ onDoctorAdded }) {
         fees: ""
       });
       setProfilePhoto(null);
+      
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.value = '';
+      }
       
       if (onDoctorAdded) {
         onDoctorAdded();

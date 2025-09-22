@@ -63,7 +63,7 @@ export default function DoctorApplications() {
     }
   };
 
-  const handleApprove = async (applicationId: number) => {
+  const handleApprove = async (applicationId) => {
     try {
       setActionLoading(applicationId);
       await apiFetch(`http://localhost:5000/api/doctor-applications/approve/${applicationId}`, {

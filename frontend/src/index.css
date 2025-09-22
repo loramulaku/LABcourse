@@ -1,6 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
-@import "tailwindcss";
-@import "tw-animate-css";
+@import "./fallback.css";
+
+/* Tailwind CSS Base */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -117,7 +121,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
@@ -160,7 +164,7 @@
   }
 
   .menu-dropdown-item-active {
-    @apply bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground;
+    @apply bg-primary text-primary-foreground bg-opacity-10 dark:bg-opacity-20;
   }
 
   .menu-dropdown-item-inactive {
@@ -169,5 +173,61 @@
 
   .menu-dropdown-category {
     @apply px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 mt-2 first:mt-0;
+  }
+  
+  /* Homepage Layout Fixes Only */
+  .container-main {
+    @apply mx-4 sm:mx-[10%] min-h-screen;
+  }
+  
+  .header-container {
+    @apply flex flex-col md:flex-row flex-wrap bg-blue-600 rounded-lg px-6 md:px-10 lg:px-20 relative overflow-hidden min-h-[300px] mb-8 z-10;
+  }
+  
+  .header-content {
+    @apply md:w-1/2 flex flex-col items-start justify-center gap-4 py-10 m-auto md:py-[10vw];
+  }
+  
+  .header-image {
+    @apply md:w-1/2 relative flex items-end justify-end;
+  }
+  
+  .header-image img {
+    @apply w-full max-w-md object-contain;
+  }
+  
+  .banner-container {
+    @apply flex bg-[#5F85DB] rounded-lg px-6 sm:px-10 md:px-14 lg:px-12 my-20 md:mx-10 relative overflow-hidden min-h-[200px] z-10;
+  }
+  
+  .banner-content {
+    @apply flex-1 py-8 sm:py-10 md:py-16 lg:py-24 lg:pl-5;
+  }
+  
+  .banner-image {
+    @apply hidden md:block md:w-1/2 lg:w-[370px] relative flex items-end justify-end;
+  }
+  
+  .banner-image img {
+    @apply w-full max-w-md object-contain;
+  }
+}
+
+/* Utilities Layer - Custom utilities for layout fixes */
+@layer utilities {
+  .layout-fix {
+    position: relative;
+    z-index: 10;
+    overflow: hidden;
+  }
+  
+  .no-overlap {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }

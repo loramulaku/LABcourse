@@ -10,7 +10,7 @@ const AppLayout: React.FC = () => {
   const { isMobileOpen, toggleMobileSidebar, searchQuery } = useSidebar();
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-200">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
       <AppSidebar />
 
@@ -20,7 +20,7 @@ const AppLayout: React.FC = () => {
       {/* Main content */}
       <div className="flex flex-col flex-1">
         {/* Search bar global */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="p-4 border-b border-border">
           <SearchBar />
         </div>
 
