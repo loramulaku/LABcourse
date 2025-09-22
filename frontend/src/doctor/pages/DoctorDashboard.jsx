@@ -88,27 +88,27 @@ const DoctorDashboard = () => {
       <PageMeta title="Doctor Dashboard" description="Doctor dashboard overview" />
       <PageBreadcrumb pageTitle="Dashboard" />
 
-      <div className="p-6">
+      <div className="p-6" style={{backgroundColor: '#1e293b', color: 'white'}}>
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-white mb-2">
                 Welcome back, Doctor
               </h1>
-              <p className="text-gray-600">
+              <p className="text-slate-300">
                 Here's what's happening with your practice today
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => navigate("/doctor/appointments")}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 View Appointments
               </button>
               <button
                 onClick={() => navigate("/doctor/therapies")}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Manage Therapies
               </button>
@@ -116,12 +116,12 @@ const DoctorDashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="p-3 bg-blue-100 rounded-xl">
                   <svg
-                    className="w-6 h-6 text-blue-600"
+                    className="w-7 h-7 text-blue-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -134,18 +134,18 @@ const DoctorDashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Appointments</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalAppointments}</p>
+                <div className="ml-4 flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Appointments</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalAppointments}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
+                <div className="p-3 bg-green-100 rounded-xl">
                   <svg
-                    className="w-6 h-6 text-green-600"
+                    className="w-7 h-7 text-green-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -158,18 +158,18 @@ const DoctorDashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.todayAppointments}</p>
+                <div className="ml-4 flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Today's Appointments</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.todayAppointments}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg">
+                <div className="p-3 bg-yellow-100 rounded-xl">
                   <svg
-                    className="w-6 h-6 text-yellow-600"
+                    className="w-7 h-7 text-yellow-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -182,18 +182,18 @@ const DoctorDashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.pendingAppointments}</p>
+                <div className="ml-4 flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Pending</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.pendingAppointments}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center">
-                <div className="p-2 bg-purple-100 rounded-lg">
+                <div className="p-3 bg-purple-100 rounded-xl">
                   <svg
-                    className="w-6 h-6 text-purple-600"
+                    className="w-7 h-7 text-purple-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -206,18 +206,18 @@ const DoctorDashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Therapies</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeTherapies}</p>
+                <div className="ml-4 flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Active Therapies</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.activeTherapies}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center">
-                <div className="p-2 bg-indigo-100 rounded-lg">
+                <div className="p-3 bg-indigo-100 rounded-xl">
                   <svg
-                    className="w-6 h-6 text-indigo-600"
+                    className="w-7 h-7 text-indigo-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -230,9 +230,9 @@ const DoctorDashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Patients</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalPatients}</p>
+                <div className="ml-4 flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Patients</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalPatients}</p>
                 </div>
               </div>
             </div>
