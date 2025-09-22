@@ -79,7 +79,7 @@ export default function DoctorApplications() {
     }
   };
 
-  const handleReject = async (applicationId: number) => {
+  const handleReject = async (applicationId) => {
     if (!rejectionReason.trim()) {
       toast.error("Please provide a reason for rejection");
       return;
