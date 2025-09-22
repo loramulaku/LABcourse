@@ -16,23 +16,12 @@ import {
 import { useSidebar } from "../../dashboard/context/SidebarContext";
 import SidebarWidget from "../../dashboard/layout/SidebarWidget";
 
-// Types
-type SubItem = {
-  name: string;
-  path: string;
-  pro?: boolean;
-  new?: boolean;
-};
-
-type NavItem = {
-  name: string;
-  icon: React.ReactNode;
-  path?: string;
-  subItems?: SubItem[];
-};
+// Navigation item structure
+// SubItem: { name: string, path: string, pro?: boolean, new?: boolean }
+// NavItem: { name: string, icon: React.ReactNode, path?: string, subItems?: SubItem[] }
 
 // Doctor-specific navigation items
-const navItems: NavItem[] = [
+const navItems = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
@@ -82,7 +71,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-const othersItems: NavItem[] = [
+const othersItems = [
   {
     icon: <UserCircleIcon />,
     name: "Profile",
