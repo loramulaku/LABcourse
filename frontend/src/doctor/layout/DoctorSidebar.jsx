@@ -109,7 +109,7 @@ const DoctorSidebar = () => {
       items.forEach((nav, index) => {
         nav.subItems?.forEach((subItem) => {
           if (isActive(subItem.path)) {
-            setOpenSubmenu({ type: menuType as "main" | "others", index });
+            setOpenSubmenu({ type: menuType, index });
             submenuMatched = true;
           }
         });
