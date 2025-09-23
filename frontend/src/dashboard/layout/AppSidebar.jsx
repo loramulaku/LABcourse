@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BoxCubeIcon,
   CalenderIcon,
-  ChevronDownIcon,
   CloseIcon,
   GridIcon,
   HorizontaLDots,
@@ -64,11 +63,6 @@ const navItems = [
       },
       { name: "Analysis Types", path: "/dashboard/analysis-types" },
     ],
-  },
-  {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/dashboard" }],
   },
 ];
 
@@ -164,7 +158,7 @@ const AppSidebar = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group cursor-pointer ${
+              className={`menu-item group cursor-pointer transition-all duration-200 hover:scale-105 ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
@@ -182,22 +176,12 @@ const AppSidebar = () => {
               {(isExpanded || isHovered || isMobileOpen) && (
                 <span className="menu-item-text">{nav.name}</span>
               )}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDownIcon
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
-                      ? "rotate-180 text-primary"
-                      : ""
-                  }`}
-                />
-              )}
             </button>
           ) : (
             nav.path && (
               <Link
                 to={nav.path}
-                className={`menu-item group ${
+                className={`menu-item group transition-all duration-200 hover:scale-105 ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                 }`}
               >
@@ -255,42 +239,34 @@ const AppSidebar = () => {
 
   return (
     <aside
-      className={`flex flex-col px-5 bg-white dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out border-r border-gray-200
-    ${isExpanded || isMobileOpen ? "w-[240px]" : isHovered ? "w-[240px]" : "w-[90px]"}
+      className={`flex flex-col px-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-800 dark:text-white h-screen transition-all duration-300 ease-in-out border-r border-white/20 dark:border-gray-700/50 fixed lg:relative z-50 shadow-xl
+    ${isExpanded || isMobileOpen ? "w-[280px]" : isHovered ? "w-[280px]" : "w-[100px]"}
 
       ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo */}
+      {/* Dashboard Button */}
       <div
         className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}
       >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+        <Link
+          to="/dashboard"
+          className={`menu-item group transition-all duration-200 hover:scale-105 ${
+            location.pathname === "/dashboard" ? "menu-item-active" : "menu-item-inactive"
+          } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+        >
+          <span
+            className={`menu-item-icon-size ${
+              location.pathname === "/dashboard"
+                ? "menu-item-icon-active"
+                : "menu-item-icon-inactive"
+            }`}
+          >
+            <GridIcon />
+          </span>
+          {(isExpanded || isHovered || isMobileOpen) && (
+            <span className="menu-item-text">Welcome to Dashboard</span>
           )}
         </Link>
       </div>
@@ -300,7 +276,7 @@ const AppSidebar = () => {
         <nav className="mb-6 flex flex-col gap-4">
           <div>
             <h2
-              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-300 ${
                 !isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "justify-start"
@@ -317,7 +293,7 @@ const AppSidebar = () => {
 
           <div>
             <h2
-              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-300 ${
                 !isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "justify-start"

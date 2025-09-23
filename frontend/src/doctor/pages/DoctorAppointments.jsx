@@ -186,7 +186,7 @@ const DoctorAppointments = () => {
           {/* Status Tabs */}
           <div className="bg-white rounded-lg shadow-md">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto">
+              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto no-scrollbar">
                 {[
                   { key: "all", label: "All Appointments" },
                   { key: "pending", label: "Pending" },
@@ -210,7 +210,7 @@ const DoctorAppointments = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto no-scrollbar">
               {filteredAppointments.length === 0 ? (
                 <div className="p-8 text-center">
                   <svg

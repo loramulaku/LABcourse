@@ -76,7 +76,7 @@ export default function NotificationDropdown() {
             </svg>
           </button>
         </div>
-        <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
+        <ul className="flex flex-col h-auto overflow-y-auto no-scrollbar">
           {/* Example notification items */}
           <li>
             <DropdownItem

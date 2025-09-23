@@ -127,15 +127,15 @@ export default function AddDoctorCard({ onDoctorAdded }) {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <h3 className="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
+      <h3 className="mb-6 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
         Add New Doctor
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Full Name *
             </label>
             <input
@@ -144,13 +144,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               value={formData.name}
               onChange={handleInputChange}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Enter doctor's full name"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Email Address *
             </label>
             <input
@@ -159,13 +159,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               value={formData.email}
               onChange={handleInputChange}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Enter email address"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Password *
             </label>
             <input
@@ -174,13 +174,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               value={formData.password}
               onChange={handleInputChange}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Enter password (min 8 chars, uppercase, lowercase, number)"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Phone Number *
             </label>
             <input
@@ -189,13 +189,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               value={formData.phone}
               onChange={handleInputChange}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Enter phone number"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Specialization *
             </label>
             <input
@@ -204,13 +204,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               value={formData.speciality}
               onChange={handleInputChange}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="e.g., Cardiology, Neurology"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Department *
             </label>
             <input
@@ -219,13 +219,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               value={formData.department}
               onChange={handleInputChange}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="e.g., Internal Medicine, Surgery"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               License Number *
             </label>
             <input
@@ -234,13 +234,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               value={formData.licenseNumber}
               onChange={handleInputChange}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Enter medical license number"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Degree
             </label>
             <input
@@ -248,13 +248,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               name="degree"
               value={formData.degree}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="e.g., MD, MBBS"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Experience (Years)
             </label>
             <input
@@ -262,13 +262,13 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               name="experience"
               value={formData.experience}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Years of experience"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-white/90">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Consultation Fees
             </label>
             <input
@@ -276,7 +276,7 @@ export default function AddDoctorCard({ onDoctorAdded }) {
               name="fees"
               value={formData.fees}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Fees in euros"
             />
           </div>
@@ -326,7 +326,7 @@ export default function AddDoctorCard({ onDoctorAdded }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-blue-600 px-4 py-3 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50"
         >
           {loading ? "Adding Doctor..." : "Add Doctor"}
         </button>

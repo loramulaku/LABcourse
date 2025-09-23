@@ -132,16 +132,20 @@ export default function AdminProfile() {
   }
 
   return (
-    <>
+    <div className="w-full max-w-full mx-0 space-y-8">
       <PageMeta title="Profile" description="Admin Profile" />
-      <PageBreadcrumb pageTitle="Profile" />
+      
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Admin Profile
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your admin profile and team</p>
+        </div>
+      </div>
 
-      <div className="rounded-2xl border border-border bg-card p-5 lg:p-6">
-        <h3 className="mb-5 text-lg font-semibold text-card-foreground lg:mb-7">
-          Profile
-        </h3>
-
-        <div className="space-y-6">
+      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
+        <div className="space-y-8">
           <UserMetaCard
             name={userData.name || ""}
             email={userData.email || ""}
@@ -175,6 +179,6 @@ export default function AdminProfile() {
           <DoctorsTable key={refreshDoctors} />
         </div>
       </div>
-    </>
+    </div>
   );
 }

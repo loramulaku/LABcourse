@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import apiFetch, { API_URL } from "../../api";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const { searchQuery } = useOutletContext();
 
   useEffect(() => {
     fetchUsers();
@@ -48,8 +49,8 @@ export default function AdminUsers() {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+      user.name?.toLowerCase().includes((searchQuery || "").toLowerCase()) ||
+      user.email?.toLowerCase().includes((searchQuery || "").toLowerCase()),
   );
 
   if (loading) {
@@ -61,14 +62,17 @@ export default function AdminUsers() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-foreground">
-          Admin Users
-        </h2>
+    <div className="w-full max-w-full mx-0 space-y-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Admin Users
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your admin team</p>
+        </div>
         <button
           onClick={() => (window.location.href = "/dashboard/create-admin")}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <svg
             className="w-5 h-5"
@@ -87,52 +91,39 @@ export default function AdminUsers() {
         </button>
       </div>
 
-      <div className="bg-card rounded-lg shadow-sm border border-border">
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search admin users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
-              />
-            </div>
-          </div>
-        </div>
+      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar">
           <table className="w-full">
-            <thead className="bg-muted">
+            <thead className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700/50 dark:to-gray-600/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   User
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Created
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-border">
+            <tbody className="bg-white/50 dark:bg-gray-800/50 divide-y divide-white/20 dark:divide-gray-700/50">
               {filteredUsers.map((user) => (
                 <tr
                   key={user.id}
-                  className="hover:bg-muted/50"
+                  className="hover:bg-white/70 dark:hover:bg-gray-700/50 transition-all duration-300"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
+                        <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg">
                           {user.name?.charAt(0)?.toUpperCase() || "A"}
                         </div>
                       </div>
@@ -149,7 +140,7 @@ export default function AdminUsers() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-destructive">
+                    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-red-100 to-pink-100 text-red-700 dark:from-red-900/20 dark:to-pink-900/20 dark:text-red-300 shadow-sm">
                       {user.role || "admin"}
                     </span>
                   </td>
@@ -159,14 +150,14 @@ export default function AdminUsers() {
                       : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={() => handleUpdate(user.id)}
-                        className="text-primary hover:text-primary/80 transition-colors"
+                        className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-300 hover:scale-110"
                         title="Edit"
                       >
                         <svg
-                          className="w-4 h-4"
+                          className="w-5 h-5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -181,11 +172,11 @@ export default function AdminUsers() {
                       </button>
                       <button
                         onClick={() => handleDelete(user.id)}
-                        className="text-destructive hover:text-destructive/80 transition-colors"
+                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-300 hover:scale-110"
                         title="Delete"
                       >
                         <svg
-                          className="w-4 h-4"
+                          className="w-5 h-5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -209,7 +200,7 @@ export default function AdminUsers() {
         {filteredUsers.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-gray-400">
-              {searchTerm
+              {searchQuery
                 ? "No admin users found matching your search."
                 : "No admin users found."}
             </div>

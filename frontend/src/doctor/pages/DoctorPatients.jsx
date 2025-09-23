@@ -117,7 +117,7 @@ const DoctorPatients = () => {
               <h2 className="text-xl font-semibold text-gray-900">Patient List ({filteredPatients.length})</h2>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto no-scrollbar">
               {filteredPatients.length === 0 ? (
                 <div className="p-8 text-center">
                   <svg

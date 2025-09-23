@@ -35,11 +35,6 @@ type NavItem = {
 // ---------------- NAV ITEMS ----------------
 const navItems: NavItem[] = [
   {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/dashboard" }],
-  },
-  {
     icon: <CalenderIcon />,
     name: "Calendar",
     path: "/dashboard/calendar",
@@ -261,41 +256,33 @@ const AppSidebar: React.FC = () => {
   return (
     <aside
       className={`flex flex-col px-5 bg-sidebar text-sidebar-foreground h-screen transition-all duration-300 ease-in-out border-r border-sidebar-border
-    ${isExpanded || isMobileOpen ? "w-[240px]" : isHovered ? "w-[240px]" : "w-[90px]"}
+    ${isExpanded || isMobileOpen ? "w-[280px]" : isHovered ? "w-[280px]" : "w-[100px]"}
 
       ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo */}
+      {/* Dashboard Button */}
       <div
         className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}
       >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+        <Link
+          to="/dashboard"
+          className={`menu-item group transition-all duration-200 hover:scale-105 ${
+            location.pathname === "/dashboard" ? "menu-item-active" : "menu-item-inactive"
+          } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+        >
+          <span
+            className={`menu-item-icon-size ${
+              location.pathname === "/dashboard"
+                ? "menu-item-icon-active"
+                : "menu-item-icon-inactive"
+            }`}
+          >
+            <GridIcon />
+          </span>
+          {(isExpanded || isHovered || isMobileOpen) && (
+            <span className="menu-item-text">Welcome to Dashboard</span>
           )}
         </Link>
       </div>

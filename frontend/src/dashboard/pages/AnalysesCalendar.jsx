@@ -80,32 +80,81 @@ export default function AnalysesCalendar() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Analyses Calendar
-        </h2>
+    <div className="w-full max-w-full mx-0 space-y-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Analyses Calendar
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">View and manage analysis schedules</p>
+        </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-lg px-3 py-2 border border-white/20 dark:border-gray-700/50">
             <div className="w-3 h-3 bg-green-500 rounded"></div>
             <span>Completed</span>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-lg px-3 py-2 border border-white/20 dark:border-gray-700/50">
             <div className="w-3 h-3 bg-yellow-500 rounded"></div>
             <span>Pending</span>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-lg px-3 py-2 border border-white/20 dark:border-gray-700/50">
             <div className="w-3 h-3 bg-red-500 rounded"></div>
             <span>Cancelled</span>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-lg px-3 py-2 border border-white/20 dark:border-gray-700/50">
             <div className="w-3 h-3 bg-blue-500 rounded"></div>
             <span>Scheduled</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
+        <style jsx>{`
+          .rbc-calendar {
+            background: transparent !important;
+          }
+          .rbc-month-view {
+            background: transparent !important;
+          }
+          .rbc-date-cell {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          }
+          .rbc-off-range-bg {
+            background: rgba(255, 255, 255, 0.1) !important;
+          }
+          .rbc-today {
+            background: rgba(59, 130, 246, 0.1) !important;
+          }
+          .rbc-header {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+          }
+          .rbc-toolbar {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin-bottom: 1rem !important;
+          }
+          .rbc-toolbar button {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border-radius: 0.5rem !important;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.25rem !important;
+          }
+          .rbc-toolbar button:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+          }
+          .rbc-toolbar button.rbc-active {
+            background: rgba(59, 130, 246, 0.3) !important;
+            border-color: rgba(59, 130, 246, 0.5) !important;
+          }
+          .rbc-toolbar-label {
+            color: white !important;
+            font-weight: 600 !important;
+          }
+        `}</style>
         <Calendar
           localizer={localizer}
           events={events}

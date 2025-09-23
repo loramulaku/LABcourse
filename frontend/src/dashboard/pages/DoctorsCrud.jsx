@@ -12,9 +12,22 @@ export default function DoctorsCrud() {
   const [image, setImage] = useState(null);
 
   const load = async () => {
-    const r = await fetch(`${API_URL}/api/doctors`);
-    const data = await r.json();
-    setDoctors(data);
+    try {
+      const r = await fetch(`${API_URL}/api/doctors`);
+      if (!r.ok) {
+        throw new Error(`HTTP error! status: ${r.status}`);
+      }
+      const data = await r.json();
+      if (Array.isArray(data)) {
+        setDoctors(data);
+      } else {
+        console.warn("Doctors data is not an array:", data);
+        setDoctors([]);
+      }
+    } catch (error) {
+      console.error("Error loading doctors:", error);
+      setDoctors([]);
+    }
   };
 
   useEffect(() => {
@@ -22,6 +35,7 @@ export default function DoctorsCrud() {
   }, []);
 
   const filtered = useMemo(() => {
+    if (!Array.isArray(doctors)) return [];
     const q = (searchQuery || "").toLowerCase().trim();
     if (!q) return doctors;
     return doctors.filter((d) =>

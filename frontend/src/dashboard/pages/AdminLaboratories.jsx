@@ -52,13 +52,22 @@ export default function AdminLaboratories() {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-xl shadow-md text-white">
-      <h2 className="text-xl font-semibold mb-4">Add Laboratory</h2>
+    <div className="w-full max-w-full mx-0 space-y-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Add Laboratory
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Create a new laboratory facility</p>
+        </div>
+      </div>
+      
+      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
       <form onSubmit={submit} className="grid grid-cols-2 gap-4">
         <input
           name="name"
           placeholder="Laboratory Name"
-          className="p-2 rounded bg-gray-800"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           value={form.name}
           onChange={onChange}
           required
@@ -67,7 +76,7 @@ export default function AdminLaboratories() {
           name="login_email"
           placeholder="Login Email (for authentication)"
           type="email"
-          className="p-2 rounded bg-gray-800"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           value={form.login_email}
           onChange={onChange}
           required
@@ -76,7 +85,7 @@ export default function AdminLaboratories() {
           name="password"
           placeholder="Password"
           type="password"
-          className="p-2 rounded bg-gray-800"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           value={form.password}
           onChange={onChange}
           required
@@ -85,7 +94,7 @@ export default function AdminLaboratories() {
           name="contact_email"
           placeholder="Private Contact Email (public)"
           type="email"
-          className="p-2 rounded bg-gray-800"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           value={form.contact_email}
           onChange={onChange}
           required
@@ -93,7 +102,7 @@ export default function AdminLaboratories() {
         <input
           name="phone"
           placeholder="Phone Number"
-          className="p-2 rounded bg-gray-800"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           value={form.phone}
           onChange={onChange}
           required
@@ -101,7 +110,7 @@ export default function AdminLaboratories() {
         <input
           name="address"
           placeholder="Address"
-          className="p-2 rounded bg-gray-800"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           value={form.address}
           onChange={onChange}
           required
@@ -109,7 +118,7 @@ export default function AdminLaboratories() {
         <input
           name="working_hours"
           placeholder="Working Hours (e.g., Mon-Fri: 8:00-18:00)"
-          className="p-2 rounded bg-gray-800 col-span-2"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white col-span-2"
           value={form.working_hours}
           onChange={onChange}
           required
@@ -117,7 +126,7 @@ export default function AdminLaboratories() {
         <textarea
           name="description"
           placeholder="Description"
-          className="p-2 rounded bg-gray-800 col-span-2"
+          className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white col-span-2"
           rows="4"
           value={form.description}
           onChange={onChange}
@@ -125,11 +134,12 @@ export default function AdminLaboratories() {
         />
         <button
           type="submit"
-          className="col-span-2 bg-indigo-500 py-2 rounded hover:bg-indigo-600 transition-colors"
+          className="col-span-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           Add Laboratory
         </button>
       </form>
+      </div>
     </div>
   );
 }

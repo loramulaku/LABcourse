@@ -54,7 +54,7 @@ export default function DoctorsTable() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
         <div className="flex items-center justify-center h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
@@ -63,14 +63,14 @@ export default function DoctorsTable() {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div className="flex justify-between items-center mb-5">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Manage Doctors ({doctors.length})
         </h3>
         <button
           onClick={fetchDoctors}
-          className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           Refresh
         </button>
@@ -95,63 +95,63 @@ export default function DoctorsTable() {
           No doctors found. Add your first doctor using the form above.
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+              <tr className="border-b border-white/20 dark:border-gray-700/50 bg-gradient-to-r from-blue-500/10 to-purple-600/10">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   Photo
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   Name
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   Email
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   Department
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   License
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   Phone
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   Status
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-white/90">
+                <th className="text-left py-4 px-4 font-semibold text-foreground">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody>
               {Array.isArray(doctors) && doctors.map((doctor) => (
-                <tr key={doctor.id} className="border-b border-gray-100 dark:border-gray-800">
-                  <td className="py-3 px-4">
+                <tr key={doctor.id} className="border-b border-white/10 dark:border-gray-700/30 hover:bg-white/5 dark:hover:bg-gray-700/20 transition-colors">
+                  <td className="py-4 px-4">
                     <img
                       src={`http://localhost:5000${doctor.profile_image || '/uploads/avatars/default.png'}`}
                       alt={doctor.name}
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-gradient-to-r from-blue-500 to-purple-600"
                     />
                   </td>
-                  <td className="py-3 px-4 text-gray-900 dark:text-white">
+                  <td className="py-4 px-4 text-foreground font-medium">
                     {doctor.name}
                   </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
+                  <td className="py-4 px-4 text-muted-foreground">
                     {doctor.email}
                   </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
+                  <td className="py-4 px-4 text-muted-foreground">
                     {doctor.department || "-"}
                   </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
+                  <td className="py-4 px-4 text-muted-foreground">
                     {doctor.license_number || "-"}
                   </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
+                  <td className="py-4 px-4 text-muted-foreground">
                     {doctor.phone || "-"}
                   </td>
-                  <td className="py-3 px-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                  <td className="py-4 px-4">
+                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full shadow-sm ${
                       doctor.account_status === 'active' 
                         ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                         : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
@@ -159,17 +159,17 @@ export default function DoctorsTable() {
                       {doctor.account_status}
                     </span>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-4 px-4">
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleDeleteDoctor(doctor.id, doctor.name)}
-                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
+                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
                         Delete
                       </button>
                       <button
                         onClick={() => {/* TODO: Implement edit functionality */}}
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                       >
                         Edit
                       </button>

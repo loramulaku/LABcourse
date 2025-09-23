@@ -3,7 +3,7 @@ import contactImage from "../assets/contact_image.png"; // replace with your own
 
 const ContactForm = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 mx-4 sm:mx-[10%]">
       <div className="flex flex-col md:flex-row bg-white shadow-xl rounded-2xl max-w-5xl w-full">
         {/* Left Image Section */}
         <div className="md:w-1/2">

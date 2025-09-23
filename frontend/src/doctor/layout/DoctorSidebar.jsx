@@ -278,7 +278,7 @@ const DoctorSidebar = () => {
       </div>
 
       {/* Menu */}
-      <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear">
+      <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6 flex flex-col gap-4">
           <div>
             <h2

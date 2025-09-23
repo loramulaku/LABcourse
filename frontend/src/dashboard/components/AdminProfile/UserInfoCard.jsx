@@ -56,14 +56,14 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div className="mb-5 flex items-center justify-between">
-        <h4 className="text-base font-semibold text-white/90">
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <h4 className="text-xl font-semibold text-foreground">
           Personal Information
         </h4>
         <button
           onClick={() => setOpen(true)}
-          className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           Edit
         </button>
@@ -148,7 +148,7 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
               value={form.bio}
               onChange={onChange}
               rows={3}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder-white/40 focus:border-white/20"
+              className="mt-2 w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               placeholder="Team Manager"
             />
           </div>
@@ -161,7 +161,7 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                className="mt-2 block w-full cursor-pointer rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-sm hover:file:bg-white/20"
+                className="mt-2 block w-full cursor-pointer p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white file:mr-4 file:rounded-lg file:border-0 file:bg-blue-500 file:px-3 file:py-1.5 file:text-sm file:text-white hover:file:bg-blue-600"
               />
               <p className="mt-1 text-xs text-white/50">
                 Nëse nuk zgjidhni foto, do të përdoret fotoja default:{" "}
@@ -171,7 +171,7 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
             <button
               type="submit"
               disabled={saving}
-              className="h-11 rounded-xl bg-indigo-600 px-5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="h-11 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
@@ -185,16 +185,16 @@ export default function UserInfoCard({ name, email, profile, onSave }) {
 function Info({ label, value, full }) {
   return (
     <div className={`${full ? "sm:col-span-2" : ""}`}>
-      <div className="text-xs uppercase tracking-wide text-white/50">
+      <div className="text-sm font-medium text-muted-foreground">
         {label}
       </div>
-      <div className="mt-1 text-sm text-white/90">{value}</div>
+      <div className="mt-1 text-base text-foreground">{value}</div>
     </div>
   );
 }
 
 function Label({ children }) {
-  return <label className="text-sm text-white/80">{children}</label>;
+  return <label className="text-sm font-medium text-foreground">{children}</label>;
 }
 
 function Input({ label, ...props }) {
@@ -203,7 +203,7 @@ function Input({ label, ...props }) {
       <Label>{label}</Label>
       <input
         {...props}
-        className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder-white/40 focus:border-white/20 disabled:opacity-50"
+        className="mt-2 w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
       />
     </div>
   );

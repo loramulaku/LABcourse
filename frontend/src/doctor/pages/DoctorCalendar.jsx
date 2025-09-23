@@ -316,7 +316,7 @@ const DoctorCalendar = () => {
                 ))}
               </div>
               
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-96 overflow-y-auto no-scrollbar">
                 {getTimeSlots().map((timeSlot) => (
                   <div key={timeSlot.time} className="grid grid-cols-8 border-b border-gray-100">
                     <div className="p-3 bg-gray-50 text-sm text-gray-600 border-r border-gray-200">
@@ -360,7 +360,7 @@ const DoctorCalendar = () => {
                 <h3 className="font-semibold text-gray-900">{formatDate(selectedDate)}</h3>
               </div>
               
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-96 overflow-y-auto no-scrollbar">
                 {getTimeSlots().map((timeSlot) => {
                   const slotStatus = getSlotStatus(selectedDate, timeSlot);
                   return (

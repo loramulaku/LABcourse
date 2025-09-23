@@ -133,6 +133,7 @@ const LabProfile = React.lazy(() => import("./lab/pages/LabProfile.jsx"));
 const LabAnalysisTypes = React.lazy(
   () => import("./lab/pages/LabAnalysisTypes.jsx"),
 );
+const TailwindTest = React.lazy(() => import("./components/TailwindTest"));
 
 // Doctor Dashboard Components
 const DoctorLayout = React.lazy(() => import("./doctor/layout/DoctorLayout.jsx"));
@@ -159,7 +160,7 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <div className="container-main">
+      <div className="w-full">
         {/* Navbar gjithmonë on top */}
         <Navbar />
         <ToastContainer position="top-center" autoClose={3000} />
@@ -290,6 +291,7 @@ const App = () => {
             <Route path="/my-analyses" element={<MyAnalyses />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+            <Route path="/tailwind-test" element={<TailwindTest />} />
             {/* =================== DASHBOARD (ADMIN) =================== */}
             <Route
               path="/dashboard"

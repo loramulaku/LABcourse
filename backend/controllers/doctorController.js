@@ -37,7 +37,7 @@ const createDoctor = async (req, res) => {
       // 2) insert into doctors
       const insertDoctorSql = `
         INSERT INTO doctors (
-          user_id, image, speciality, degree, experience, about, fees, address_line1, address_line2, available
+          user_id, image, specialization, degree, experience, about, fees, address_line1, address_line2, available
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
@@ -72,7 +72,7 @@ const getDoctors = (req, res) => {
       d.id,
       u.name,
       d.image,
-      d.speciality,
+      d.specialization as speciality,
       d.available
     FROM doctors d
     JOIN users u ON d.user_id = u.id
@@ -92,11 +92,11 @@ const getDoctorById = (req, res) => {
       u.name,
       u.email,
       d.image,
-      d.speciality,
+      d.specialization as speciality,
       d.degree,
       d.experience,
-      d.about,
       d.fees,
+      d.about,
       d.address_line1,
       d.address_line2,
       d.available
@@ -139,7 +139,7 @@ const updateDoctor = (req, res) => {
     const updateDoctorSql = `
       UPDATE doctors SET
         image = COALESCE(?, image),
-        speciality = COALESCE(?, speciality),
+        specialization = COALESCE(?, specialization),
         degree = COALESCE(?, degree),
         experience = COALESCE(?, experience),
         about = COALESCE(?, about),

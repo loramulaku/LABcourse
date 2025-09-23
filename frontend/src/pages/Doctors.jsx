@@ -25,7 +25,7 @@ const Doctors = () => {
   }, [doctors, speciality]);
 
   return (
-    <div>
+    <div className="mx-4 sm:mx-[10%]">
       <p className="text-gray-600">Browse through the doctors specialist.</p>
       <div className="flex flex-col sm:flex-row items-start gap-5 mt-5">
         <button

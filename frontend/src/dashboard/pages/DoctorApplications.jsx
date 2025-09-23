@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "../components/ui/table";
 import Badge from "../components/ui/badge/Badge";
-import apiFetch from "../../../api";
+import apiFetch from "../../api";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -115,11 +115,18 @@ export default function DoctorApplications() {
   if (loading) return <p className="p-4">Duke u ngarkuar...</p>;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-semibold mb-4">Doctor Applications</h2>
+    <div className="w-full max-w-full mx-0 space-y-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Doctor Applications
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Review doctor applications</p>
+        </div>
+      </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white m-4">
-        <div className="max-w-full overflow-x-auto">
+      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+        <div className="max-w-full overflow-x-auto no-scrollbar">
           <Table>
             <TableHeader className="border-b border-gray-100">
               <TableRow>

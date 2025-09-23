@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import apiFetch, { API_URL } from "../../../api";
+import apiFetch, { API_URL } from "../../api";
 
 export default function AdminMessaging() {
   const [users, setUsers] = useState([]);
@@ -104,20 +104,24 @@ export default function AdminMessaging() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800">Send Message</h2>
-        <p className="text-gray-600">Send messages or notifications to users</p>
+    <div className="w-full max-w-full mx-0 space-y-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Send Message
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Send messages or notifications to users</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Message Form */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Message Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-foreground mb-3">
                   Message Type
                 </label>
                 <div className="space-y-2">
@@ -130,7 +134,7 @@ export default function AdminMessaging() {
                       onChange={(e) => handleMessageTypeChange(e.target.value)}
                       className="mr-3"
                     />
-                    <span className="text-gray-700">Individual Message</span>
+                    <span className="text-foreground">Individual Message</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -141,7 +145,7 @@ export default function AdminMessaging() {
                       onChange={(e) => handleMessageTypeChange(e.target.value)}
                       className="mr-3"
                     />
-                    <span className="text-gray-700">
+                    <span className="text-foreground">
                       Broadcast to All Users
                     </span>
                   </label>
@@ -150,7 +154,7 @@ export default function AdminMessaging() {
 
               {/* Subject */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Subject
                 </label>
                 <input
@@ -162,7 +166,7 @@ export default function AdminMessaging() {
                       subject: e.target.value,
                     }))
                   }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Enter message subject"
                   required
                 />
@@ -170,7 +174,7 @@ export default function AdminMessaging() {
 
               {/* Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Message Content
                 </label>
                 <textarea
@@ -181,7 +185,7 @@ export default function AdminMessaging() {
                       content: e.target.value,
                     }))
                   }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   rows={6}
                   placeholder="Enter your message..."
                   required
@@ -192,7 +196,7 @@ export default function AdminMessaging() {
               <button
                 type="submit"
                 disabled={sending}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
               >
                 {sending ? "Sending..." : "Send Message"}
               </button>
@@ -202,15 +206,15 @@ export default function AdminMessaging() {
 
         {/* User Selection */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               {messageForm.message_type === "broadcast"
                 ? "Broadcast Message"
                 : "Select Users"}
             </h3>
 
             {messageForm.message_type === "broadcast" ? (
-              <div className="text-center text-gray-600 py-8">
+              <div className="text-center text-muted-foreground py-8">
                 <svg
                   className="w-12 h-12 mx-auto mb-4 text-blue-500"
                   fill="none"
@@ -227,9 +231,9 @@ export default function AdminMessaging() {
                 <p>This message will be sent to all users in the system.</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto no-scrollbar">
                 {loading ? (
-                  <div className="text-center text-gray-500 py-4">
+                  <div className="text-center text-muted-foreground py-4">
                     Loading users...
                   </div>
                 ) : (
@@ -238,7 +242,7 @@ export default function AdminMessaging() {
                     .map((user) => (
                       <label
                         key={user.id}
-                        className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                        className="flex items-center p-3 hover:bg-white/70 dark:hover:bg-gray-700/50 rounded-lg cursor-pointer transition-all duration-300"
                       >
                         <input
                           type="checkbox"
@@ -247,10 +251,10 @@ export default function AdminMessaging() {
                           className="mr-3"
                         />
                         <div>
-                          <div className="font-medium text-gray-800">
+                          <div className="font-medium text-foreground">
                             {user.name}
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-muted-foreground">
                             {user.email}
                           </div>
                         </div>
@@ -259,8 +263,8 @@ export default function AdminMessaging() {
                 )}
 
                 {selectedUsers.length > 0 && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm font-medium text-blue-800">
+                  <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700/50">
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
                       {selectedUsers.length} user(s) selected
                     </p>
                   </div>

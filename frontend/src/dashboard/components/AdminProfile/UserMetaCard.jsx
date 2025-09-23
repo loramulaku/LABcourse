@@ -23,14 +23,14 @@ export default function UserMetaCard({
   );
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="relative">
             <img
               src={avatarUrl}
               alt="avatar"
-              className="h-16 w-16 rounded-full object-cover ring-2 ring-white/10"
+              className="h-16 w-16 rounded-full object-cover ring-4 ring-gradient-to-r from-blue-500 to-purple-600"
               onError={
                 onAvatarError ||
                 ((e) => {
@@ -40,11 +40,11 @@ export default function UserMetaCard({
             />
           </div>
           <div>
-            <div className="text-sm font-medium text-white/90">
+            <div className="text-lg font-semibold text-foreground">
               {name || "-"}
             </div>
-            <div className="text-xs text-white/60">{roleLabel}</div>
-            <div className="mt-1 text-xs text-white/60">{email || "-"}</div>
+            <div className="text-sm text-muted-foreground">{roleLabel}</div>
+            <div className="mt-1 text-sm text-muted-foreground">{email || "-"}</div>
           </div>
         </div>
 

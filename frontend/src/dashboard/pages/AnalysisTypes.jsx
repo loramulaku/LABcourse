@@ -62,25 +62,33 @@ export default function AnalysisTypes() {
   };
 
   return (
-    <div>
+    <div className="w-full max-w-full mx-0 space-y-8">
       <PageMeta title="Analysis Types" description="Manage analysis types" />
-      <PageBreadcrumb pageTitle="Analysis Types" />
 
-      <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100 p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Add Analysis Type
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Create a new analysis type</p>
+        </div>
+      </div>
+
+      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
         <form onSubmit={submit} className="grid grid-cols-2 gap-4">
           <input
             name="name"
             value={form.name}
             onChange={onChange}
-            className="p-2 rounded bg-gray-800 text-white"
-            placeholder="Name"
+            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            placeholder="Analysis Name"
             required
           />
           <select
             name="laboratory_id"
             value={form.laboratory_id}
             onChange={onChange}
-            className="p-2 rounded bg-gray-800 text-white"
+            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             required
             disabled={loadingLabs}
           >
@@ -97,14 +105,14 @@ export default function AnalysisTypes() {
             name="unit"
             value={form.unit}
             onChange={onChange}
-            className="p-2 rounded bg-gray-800 text-white"
+            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             placeholder="Unit (e.g., mg/dL)"
           />
           <input
             name="price"
             value={form.price}
             onChange={onChange}
-            className="p-2 rounded bg-gray-800 text-white"
+            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             placeholder="Price"
             type="number"
             step="0.01"
@@ -113,22 +121,22 @@ export default function AnalysisTypes() {
             name="normal_range"
             value={form.normal_range}
             onChange={onChange}
-            className="p-2 rounded bg-gray-800 text-white col-span-2"
+            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white col-span-2"
             placeholder="Normal range (e.g., 70-110)"
           />
           <textarea
             name="description"
             value={form.description}
             onChange={onChange}
-            className="p-2 rounded bg-gray-800 text-white col-span-2"
+            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white col-span-2"
             rows="3"
             placeholder="Description"
           />
           <button
             type="submit"
-            className="col-span-2 bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 transition-colors"
+            className="col-span-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            Save
+            Add Analysis Type
           </button>
         </form>
       </div>

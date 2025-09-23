@@ -146,7 +146,7 @@ export default function NotificationBell() {
               </div>
             </div>
 
-            <div className="max-h-64 overflow-y-auto">
+            <div className="max-h-64 overflow-y-auto no-scrollbar">
               {loading ? (
                 <div className="p-4 text-center text-gray-500">
                   Loading notifications...

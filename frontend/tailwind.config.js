@@ -3,6 +3,24 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./public/index.html",
+    "./src/**/*.html"
+  ],
+  safelist: [
+    // Admin dashboard specific classes
+    'bg-gray-800', 'bg-gray-900', 'bg-white',
+    'text-white', 'text-gray-900', 'text-gray-100',
+    'border-gray-200', 'border-gray-700',
+    'hover:bg-gray-50', 'hover:bg-gray-700',
+    'dark:bg-gray-800', 'dark:bg-gray-900',
+    'dark:text-white', 'dark:text-gray-100',
+    'dark:border-gray-700',
+    'dark:hover:bg-gray-700',
+    // Animation classes
+    'transition-all', 'duration-300', 'ease-in-out',
+    'transform', 'translate-x-0', '-translate-x-full',
+    // Dashboard layout
+    'w-full', 'max-w-full', 'mx-0', 'px-0'
   ],
   // Ensure compatibility with Tailwind v3
   future: {
@@ -11,14 +29,26 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Consistent admin theme
+        admin: {
+          primary: '#1e40af',      // Blue-800
+          secondary: '#3b82f6',    // Blue-500
+          accent: '#60a5fa',       // Blue-400
+          surface: '#f8fafc',     // Slate-50
+          'surface-dark': '#1e293b', // Slate-800
+          muted: '#64748b',        // Slate-500
+          border: '#e2e8f0',      // Slate-200
+          'border-dark': '#334155', // Slate-700
+        },
+        // Keep existing CSS variables for compatibility
         border: "var(--color-border)",
         input: "var(--color-input)",
         ring: "var(--color-ring)",
         background: "var(--color-background)",
         foreground: "var(--color-foreground)",
         primary: {
-          DEFAULT: "var(--color-primary)",
-          foreground: "var(--color-primary-foreground)",
+          DEFAULT: "#3b82f6", // Blue-500
+          foreground: "#ffffff",
           50: "#eff6ff",
           100: "#dbeafe", 
           200: "#bfdbfe",

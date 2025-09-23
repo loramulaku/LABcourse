@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
-@import "./fallback.css";
 
 /* Tailwind CSS Base */
 @tailwind base;
@@ -126,20 +125,29 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Ensure Tailwind utilities work properly */
+  html {
+    @apply h-full;
+  }
+  
+  #root {
+    @apply h-full;
+  }
 }
 
 @layer components {
-  /* Menu Item Styles */
+  /* Menu Item Styles - Modern glassmorphism design */
   .menu-item {
-    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium;
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 text-sm font-medium hover:shadow-lg backdrop-blur-sm;
   }
 
   .menu-item-active {
-    @apply bg-primary text-primary-foreground shadow-sm;
+    @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 backdrop-blur-md;
   }
 
   .menu-item-inactive {
-    @apply text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800;
+    @apply text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 hover:shadow-md;
   }
 
   .menu-item-icon-size {
@@ -158,24 +166,24 @@
     @apply flex-1 truncate;
   }
 
-  /* Menu Dropdown Styles */
+  /* Menu Dropdown Styles - Enhanced */
   .menu-dropdown-item {
-    @apply block px-4 py-2 text-sm rounded-lg transition-colors duration-200 ml-4;
+    @apply block px-4 py-2 text-sm rounded-lg transition-all duration-200 ml-4 hover:shadow-sm hover:scale-105;
   }
 
   .menu-dropdown-item-active {
-    @apply bg-primary text-primary-foreground bg-opacity-10 dark:bg-opacity-20;
+    @apply bg-primary text-primary-foreground bg-opacity-20 shadow-sm transform scale-105;
   }
 
   .menu-dropdown-item-inactive {
-    @apply text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200;
+    @apply text-gray-400 hover:text-white hover:bg-gray-700 hover:shadow-sm;
   }
 
   .menu-dropdown-category {
     @apply px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 mt-2 first:mt-0;
   }
-  
-  /* Homepage Layout Fixes Only */
+
+  /* Homepage Layout Styles - Restored for Home page */
   .container-main {
     @apply mx-4 sm:mx-[10%] min-h-screen;
   }
@@ -211,9 +219,170 @@
   .banner-image img {
     @apply w-full max-w-md object-contain;
   }
+
+  /* Calendar styles for consistent background */
+  .custom-calendar {
+    @apply bg-transparent;
+  }
+
+  /* React Big Calendar styles - More specific selectors */
+  .rbc-calendar {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-header {
+    @apply bg-white/50 dark:bg-gray-700/50 border-b border-white/20 dark:border-gray-600/50 text-gray-800 dark:text-gray-200 !important;
+  }
+
+  .rbc-month-view {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-month-row {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-date-cell {
+    @apply bg-transparent text-gray-800 dark:text-gray-200 !important;
+  }
+
+  .rbc-off-range-bg {
+    @apply bg-gray-50/50 dark:bg-gray-700/30 !important;
+  }
+
+  .rbc-today {
+    @apply bg-blue-100/50 dark:bg-blue-900/30 !important;
+  }
+
+  .rbc-event {
+    @apply bg-blue-500/80 dark:bg-blue-600/80 text-white border-0 rounded-lg shadow-sm !important;
+  }
+
+  .rbc-event-content {
+    @apply text-white font-medium !important;
+  }
+
+  /* Remove white backgrounds from calendar cells */
+  .rbc-month-view .rbc-date-cell {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-month-view .rbc-off-range {
+    @apply bg-gray-50/30 dark:bg-gray-700/20 !important;
+  }
+
+  /* FullCalendar styles - More specific selectors */
+  .fc {
+    @apply bg-transparent !important;
+  }
+
+  .fc-theme-standard .fc-scrollgrid {
+    @apply border-white/20 dark:border-gray-600/50 !important;
+  }
+
+  .fc-theme-standard td,
+  .fc-theme-standard th {
+    @apply border-white/20 dark:border-gray-600/50 !important;
+  }
+
+  .fc-daygrid-day {
+    @apply bg-transparent !important;
+  }
+
+  .fc-daygrid-day-number {
+    @apply text-gray-800 dark:text-gray-200 !important;
+  }
+
+  .fc-day-today {
+    @apply bg-blue-100/50 dark:bg-blue-900/30 !important;
+  }
+
+  .fc-event {
+    @apply bg-blue-500/80 dark:bg-blue-600/80 text-white border-0 rounded-lg shadow-sm !important;
+  }
+
+  .fc-button {
+    @apply bg-white/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 border-white/20 dark:border-gray-600/50 hover:bg-white/70 dark:hover:bg-gray-600/70 !important;
+  }
+
+  .fc-button-primary {
+    @apply bg-blue-500/80 dark:bg-blue-600/80 text-white border-0 hover:bg-blue-600/80 dark:hover:bg-blue-700/80 !important;
+  }
+
+  /* Override any white backgrounds */
+  .fc-daygrid-day-frame {
+    @apply bg-transparent !important;
+  }
+
+  .fc-daygrid-day-events {
+    @apply bg-transparent !important;
+  }
+
+  .fc-daygrid-day-bg {
+    @apply bg-transparent !important;
+  }
+
+  /* Force uniform background for all calendar elements */
+  .rbc-month-view .rbc-row {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-month-view .rbc-row-content {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-month-view .rbc-row-segment {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-month-view .rbc-date-cell {
+    @apply bg-transparent !important;
+  }
+
+  .rbc-month-view .rbc-off-range {
+    @apply bg-gray-50/20 dark:bg-gray-700/10 !important;
+  }
+
+  /* FullCalendar additional overrides */
+  .fc-daygrid-day-frame {
+    @apply bg-transparent !important;
+  }
+
+  .fc-daygrid-day-events {
+    @apply bg-transparent !important;
+  }
+
+  .fc-daygrid-day-bg {
+    @apply bg-transparent !important;
+  }
+
+  .fc-daygrid-day-top {
+    @apply bg-transparent !important;
+  }
+
+  .fc-daygrid-day-number {
+    @apply text-gray-800 dark:text-gray-200 !important;
+  }
+
+  /* Ensure no white backgrounds anywhere */
+  .rbc-calendar * {
+    background-color: transparent !important;
+  }
+
+  .rbc-calendar .rbc-header {
+    @apply bg-white/50 dark:bg-gray-700/50 !important;
+  }
+
+  .rbc-calendar .rbc-off-range-bg {
+    @apply bg-gray-50/30 dark:bg-gray-700/20 !important;
+  }
+
+  .rbc-calendar .rbc-today {
+    @apply bg-blue-100/50 dark:bg-blue-900/30 !important;
+  }
 }
 
-/* Utilities Layer - Custom utilities for layout fixes */
+/* Utilities Layer - Only essential custom utilities */
 @layer utilities {
   .layout-fix {
     position: relative;
@@ -229,5 +398,35 @@
   .safe-area {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+
+  /* Hide scrollbar completely */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+
+  /* Hide all scrollbars globally */
+  * {
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  }
+
+  *::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+
+  /* Ensure no scrollbars on body and html */
+  html, body {
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  }
+
+  html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
   }
 }

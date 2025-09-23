@@ -6,29 +6,28 @@ const SearchBar: React.FC = () => {
   const { searchQuery, setSearchQuery, toggleSidebar } = useSidebar();
 
   return (
-    <div className="flex items-center gap-3 w-full max-w-md">
+    <div className="flex items-center gap-4 w-full">
       {/* Butoni për toggle sidebar */}
       <button
         onClick={toggleSidebar}
-        className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+        className="p-3 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300 hover:scale-105"
       >
         <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
       </button>
 
-      {/* Input për search */}
+      {/* Input për search - Full width */}
       <div className="relative flex-1">
-        {/* Ikona e search-it në mes */}
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
 
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search..."
-          className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm 
-                     text-gray-900 placeholder-gray-400 
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-500
-                     dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
+          placeholder="Search across all data..."
+          className="w-full rounded-xl border border-white/30 dark:border-gray-600/50 bg-white/50 dark:bg-gray-700/50 py-3 pl-12 pr-4 text-sm 
+                     text-gray-900 placeholder-gray-500 backdrop-blur-sm
+                     focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/30 focus:bg-white/70 dark:focus:bg-gray-700/70
+                     dark:text-white dark:placeholder-gray-400 transition-all duration-300"
         />
       </div>
     </div>
