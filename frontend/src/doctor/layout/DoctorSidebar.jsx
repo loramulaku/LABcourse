@@ -237,42 +237,34 @@ const DoctorSidebar = () => {
 
   return (
     <aside
-      className={`flex flex-col px-5 bg-white dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out border-r border-gray-200
-    ${isExpanded || isMobileOpen ? "w-[240px]" : isHovered ? "w-[240px]" : "w-[90px]"}
+      className={`flex flex-col px-5 bg-sidebar text-sidebar-foreground h-screen transition-all duration-300 ease-in-out border-r border-sidebar-border
+    ${isExpanded || isMobileOpen ? "w-[280px]" : isHovered ? "w-[280px]" : "w-[100px]"}
 
       ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo */}
+      {/* Dashboard Button */}
       <div
         className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}
       >
-        <Link to="/doctor/dashboard">
-          {(isExpanded || isHovered || isMobileOpen) ? (
-            <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+        <Link
+          to="/doctor/dashboard"
+          className={`menu-item group transition-all duration-200 hover:scale-105 ${
+            location.pathname === "/doctor/dashboard" ? "menu-item-active" : "menu-item-inactive"
+          } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+        >
+          <span
+            className={`menu-item-icon-size ${
+              location.pathname === "/doctor/dashboard"
+                ? "menu-item-icon-active"
+                : "menu-item-icon-inactive"
+            }`}
+          >
+            <GridIcon />
+          </span>
+          {(isExpanded || isHovered || isMobileOpen) && (
+            <span className="menu-item-text">Doctor Dashboard</span>
           )}
         </Link>
       </div>

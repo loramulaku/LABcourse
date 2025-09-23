@@ -67,10 +67,17 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    name: "Doctor Management",
+    icon: <UserCircleIcon />,
+    subItems: [
+      { name: "Add Doctor", path: "/dashboard/blank" },
+      { name: "Edit & Delete Doctor", path: "/dashboard/doctors-management" },
+    ],
+  },
+  {
     name: "Pages",
     icon: <PageIcon />,
     subItems: [
-      { name: "Add Doctor", path: "/dashboard/blank" },
       { name: "404 Error", path: "/dashboard/error-404" },
     ],
   },

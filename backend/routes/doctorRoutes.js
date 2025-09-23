@@ -8,6 +8,8 @@ const {
   getDoctorById,
   updateDoctor,
   deleteDoctor,
+  getMyProfile,
+  updateMyProfile,
 } = require("../controllers/doctorController");
 
 const router = express.Router();
@@ -38,6 +40,10 @@ router.post(
 // Public endpoints
 router.get("/", getDoctors);
 router.get("/:id", getDoctorById);
+
+// Doctor's own profile endpoints
+router.get("/me", authenticateToken, getMyProfile);
+router.put("/me", authenticateToken, updateMyProfile);
 
 // Admin update/delete
 router.put(

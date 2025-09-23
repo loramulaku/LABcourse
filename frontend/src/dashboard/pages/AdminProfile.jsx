@@ -174,7 +174,7 @@ export default function AdminProfile() {
             onSave={(payload) => updateAddress(payload)}
           />
 
-          <AddDoctorCard onDoctorAdded={() => setRefreshDoctors(prev => prev + 1)} />
+          {/* AddDoctorCard removed - use AdminDoctors page instead */}
 
           <DoctorsTable key={refreshDoctors} />
         </div>

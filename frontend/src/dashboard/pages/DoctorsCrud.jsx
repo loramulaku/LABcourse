@@ -1,269 +1,550 @@
-import React, { useEffect, useMemo, useState } from "react";
-import PageBreadcrumb from "../components/common/PageBreadCrumb";
-import PageMeta from "../components/common/PageMeta";
+import React, { useState, useEffect } from "react";
 import { API_URL } from "../../api";
-import { useOutletContext } from "react-router-dom";
 
 export default function DoctorsCrud() {
   const [doctors, setDoctors] = useState([]);
-  const { searchQuery } = useOutletContext();
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({});
-  const [image, setImage] = useState(null);
-
-  const load = async () => {
-    try {
-      const r = await fetch(`${API_URL}/api/doctors`);
-      if (!r.ok) {
-        throw new Error(`HTTP error! status: ${r.status}`);
-      }
-      const data = await r.json();
-      if (Array.isArray(data)) {
-        setDoctors(data);
-      } else {
-        console.warn("Doctors data is not an array:", data);
-        setDoctors([]);
-      }
-    } catch (error) {
-      console.error("Error loading doctors:", error);
-      setDoctors([]);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [editingDoctor, setEditingDoctor] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
-    load();
+    fetchDoctors();
   }, []);
 
-  const filtered = useMemo(() => {
-    if (!Array.isArray(doctors)) return [];
-    const q = (searchQuery || "").toLowerCase().trim();
-    if (!q) return doctors;
-    return doctors.filter((d) =>
-      [d.name, d.speciality, d.email].some((v) =>
-        String(v || "")
-          .toLowerCase()
-          .includes(q),
-      ),
-    );
-  }, [doctors, searchQuery]);
+  const fetchDoctors = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/doctors`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        credentials: "include",
+      });
 
-  const startEdit = async (id) => {
-    const r = await fetch(`${API_URL}/api/doctors/${id}`);
-    const d = await r.json();
-    setEditing(id);
-    setForm({ ...d });
-    setImage(null);
-  };
-
-  const cancelEdit = () => {
-    setEditing(null);
-    setForm({});
-    setImage(null);
-  };
-
-  const saveEdit = async (e) => {
-    e.preventDefault();
-    const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v ?? ""));
-    if (image) fd.append("image", image);
-    const r = await fetch(`${API_URL}/api/doctors/${editing}`, {
-      method: "PUT",
-      body: fd,
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
-    if (r.ok) {
-      await load();
-      cancelEdit();
-    } else {
-      const j = await r.json().catch(() => ({}));
-      alert(j.error || "Update failed");
+      if (response.ok) {
+        const data = await response.json();
+        setDoctors(data);
+      } else {
+        console.error("Error fetching doctors");
+      }
+    } catch (err) {
+      console.error("Error fetching doctors:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const del = async (id) => {
-    if (!confirm("Delete this doctor?")) return;
-    const r = await fetch(`${API_URL}/api/doctors/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
-    if (r.ok) load();
-    else alert("Delete failed");
+  const handleEdit = async (doctor) => {
+    try {
+      const response = await fetch(`${API_URL}/api/doctors/${doctor.id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const fullDoctorData = await response.json();
+        setEditingDoctor(fullDoctorData);
+        setShowAddForm(false);
+      } else {
+        console.error("Error fetching doctor details");
+      }
+    } catch (err) {
+      console.error("Error fetching doctor details:", err);
+    }
   };
 
-  return (
-    <div>
-      <PageMeta title="Edit & Delete Doctors" description="Manage doctors" />
-      <PageBreadcrumb pageTitle="Edit & Delete Doctors" />
+  const handleDelete = async (doctorId) => {
+    if (!window.confirm("Are you sure you want to delete this doctor?")) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/doctors/${doctorId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        credentials: "include",
+      });
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        {!editing ? (
+      if (response.ok) {
+        alert("Doctor deleted successfully");
+        fetchDoctors();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "Error deleting doctor");
+      }
+    } catch (err) {
+      console.error("Error deleting doctor:", err);
+      alert("Error deleting doctor");
+    }
+  };
+
+  const handleAdd = () => {
+    setEditingDoctor(null);
+    setShowAddForm(true);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const url = editingDoctor ? `${API_URL}/api/doctors/${editingDoctor.id}` : `${API_URL}/api/doctors`;
+      const method = editingDoctor ? "PUT" : "POST";
+      
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(editingDoctor),
+      });
+
+      if (response.ok) {
+        alert(editingDoctor ? "Doctor updated successfully" : "Doctor added successfully");
+        setEditingDoctor(null);
+        setShowAddForm(false);
+        fetchDoctors();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "Error saving doctor");
+      }
+    } catch (err) {
+      console.error("Error saving doctor:", err);
+      alert("Error saving doctor");
+    }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setEditingDoctor(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const filteredDoctors = doctors.filter(doctor =>
+    doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doctor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-full mx-0 space-y-8">
+        <div className="h-32 animate-pulse rounded-xl bg-muted" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-full mx-0 space-y-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Doctors Management ({doctors.length})
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage all doctor profiles</p>
+        </div>
+        <button
+          onClick={handleAdd}
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+        >
+          Add New Doctor
+        </button>
+      </div>
+
+      {(showAddForm || editingDoctor) ? (
+        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {editingDoctor ? `Edit Doctor: ${editingDoctor.name}` : "Add New Doctor"}
+            </h3>
+          </div>
+          
+          <form onSubmit={handleSave} className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <h4 className="col-span-2 text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                Basic Information
+              </h4>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.name || ""}
+                  onChange={(e) => handleFieldChange('name', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={editingDoctor?.email || ""}
+                  onChange={(e) => handleFieldChange('email', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+              
+              {!editingDoctor && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                  <input
+                    type="password"
+                    value={editingDoctor?.password || ""}
+                    onChange={(e) => handleFieldChange('password', e.target.value)}
+                    className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    required
+                  />
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
+                <input
+                  type="tel"
+                  value={editingDoctor?.phone || ""}
+                  onChange={(e) => handleFieldChange('phone', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Professional Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <h4 className="col-span-2 text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                Professional Information
+              </h4>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Specialization</label>
+                <select
+                  value={editingDoctor?.specialization || ""}
+                  onChange={(e) => handleFieldChange('specialization', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">Select Speciality</option>
+                  <option value="General physician">General physician</option>
+                  <option value="Gynecologist">Gynecologist</option>
+                  <option value="Dermatologist">Dermatologist</option>
+                  <option value="Pediatricians">Pediatricians</option>
+                  <option value="Neurologist">Neurologist</option>
+                  <option value="Gastroenterologist">Gastroenterologist</option>
+                  <option value="Cardiologist">Cardiologist</option>
+                  <option value="Orthopedist">Orthopedist</option>
+                  <option value="Psychiatrist">Psychiatrist</option>
+                  <option value="Oncologist">Oncologist</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Department</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.department || ""}
+                  onChange={(e) => handleFieldChange('department', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Degree</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.degree || ""}
+                  onChange={(e) => handleFieldChange('degree', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">License Number</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.license_number || ""}
+                  onChange={(e) => handleFieldChange('license_number', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Experience (Years)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={editingDoctor?.experience_years || ""}
+                  onChange={(e) => handleFieldChange('experience_years', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Experience Details</label>
+                <textarea
+                  value={editingDoctor?.experience || ""}
+                  onChange={(e) => handleFieldChange('experience', e.target.value)}
+                  rows="3"
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Financial Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <h4 className="col-span-2 text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                Financial Information
+              </h4>
+              
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Consultation Fee (€)</label>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editingDoctor?.consultation_fee || editingDoctor?.fees || ""}
+                  onChange={(e) => handleFieldChange('consultation_fee', e.target.value)}
+                  className="w-full pl-7 p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={editingDoctor?.available || false}
+                  onChange={(e) => handleFieldChange('available', e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Doctor is available for appointments
+                </label>
+              </div>
+            </div>
+
+            {/* Address Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <h4 className="col-span-2 text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                Address Information
+              </h4>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address Line 1</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.address_line1 || ""}
+                  onChange={(e) => handleFieldChange('address_line1', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address Line 2</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.address_line2 || ""}
+                  onChange={(e) => handleFieldChange('address_line2', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Country</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.country || ""}
+                  onChange={(e) => handleFieldChange('country', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">City/State</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.city_state || ""}
+                  onChange={(e) => handleFieldChange('city_state', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Postal Code</label>
+                <input
+                  type="text"
+                  value={editingDoctor?.postal_code || ""}
+                  onChange={(e) => handleFieldChange('postal_code', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Social Media */}
+            <div className="grid grid-cols-2 gap-4">
+              <h4 className="col-span-2 text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                Social Media & Contact
+              </h4>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Facebook</label>
+                <input
+                  type="url"
+                  value={editingDoctor?.facebook || ""}
+                  onChange={(e) => handleFieldChange('facebook', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">X (Twitter)</label>
+                <input
+                  type="url"
+                  value={editingDoctor?.x || ""}
+                  onChange={(e) => handleFieldChange('x', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">LinkedIn</label>
+                <input
+                  type="url"
+                  value={editingDoctor?.linkedin || ""}
+                  onChange={(e) => handleFieldChange('linkedin', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instagram</label>
+                <input
+                  type="url"
+                  value={editingDoctor?.instagram || ""}
+                  onChange={(e) => handleFieldChange('instagram', e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* About */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2 mb-4">
+                About Doctor
+              </h4>
+              <textarea
+                value={editingDoctor?.about || ""}
+                onChange={(e) => handleFieldChange('about', e.target.value)}
+                rows="4"
+                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                placeholder="About the doctor"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingDoctor(null);
+                  setShowAddForm(false);
+                }}
+                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                {editingDoctor ? "Update Doctor" : "Add Doctor"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+          <div className="p-6 border-b border-white/20 dark:border-gray-700/50">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search doctors..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+          </div>
+          
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="text-gray-600">
-                <tr>
-                  <th className="py-2 pr-4">Photo</th>
-                  <th className="py-2 pr-4">Name</th>
-                  <th className="py-2 pr-4">Speciality</th>
-                  <th className="py-2 pr-4">Actions</th>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Name</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Email</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Phone</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Specialization</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Department</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Experience</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Fees</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Available</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((d) => (
-                  <tr key={d.id} className="border-t border-gray-200">
-                    <td className="py-2 pr-4">
-                      <img
-                        src={
-                          d.image?.startsWith("http")
-                            ? d.image
-                            : `${API_URL}${d.image || ""}`
-                        }
-                        alt=""
-                        className="w-14 h-14 object-cover rounded"
-                      />
+                {filteredDoctors.map((doctor) => (
+                  <tr key={doctor.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{doctor.name || "N/A"}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{doctor.email || "N/A"}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{doctor.phone || "N/A"}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{doctor.specialization || "N/A"}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{doctor.department || "N/A"}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{doctor.experience_years ? `${doctor.experience_years} years` : "N/A"}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">€{doctor.consultation_fee || doctor.fees || "N/A"}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        doctor.available 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      }`}>
+                        {doctor.available ? 'Available' : 'Not Available'}
+                      </span>
                     </td>
-                    <td className="py-2 pr-4">{d.name}</td>
-                    <td className="py-2 pr-4">{d.speciality}</td>
-                    <td className="py-2 pr-4 flex gap-2">
-                      <button
-                        onClick={() => startEdit(d.id)}
-                        className="px-3 py-1 rounded bg-green-600 text-white"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => del(d.id)}
-                        className="px-3 py-1 rounded bg-red-600 text-white"
-                      >
-                        Delete
-                      </button>
+                    <td className="py-3 px-4">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEdit(doctor)}
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(doctor.id)}
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {filteredDoctors.length === 0 && (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                {searchTerm ? "No doctors found matching your search." : "No doctors found. Add your first doctor to get started."}
+              </div>
+            )}
           </div>
-        ) : (
-          <form onSubmit={saveEdit} className="grid grid-cols-2 gap-4">
-            <input
-              name="name"
-              value={form.name || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-              placeholder="Name"
-            />
-            <input
-              name="email"
-              value={form.email || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-              placeholder="Email"
-            />
-            <select
-              name="speciality"
-              value={form.speciality || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-            >
-              <option value="">Select Speciality</option>
-              <option value="General physician">General physician</option>
-              <option value="Gynecologist">Gynecologist</option>
-              <option value="Dermatologist">Dermatologist</option>
-              <option value="Pediatricians">Pediatricians</option>
-              <option value="Neurologist">Neurologist</option>
-              <option value="Gastroenterologist">Gastroenterologist</option>
-            </select>
-            <input
-              name="degree"
-              value={form.degree || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-              placeholder="Degree"
-            />
-            <input
-              name="experience"
-              value={form.experience || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-              placeholder="Experience"
-            />
-            <input
-              name="fees"
-              type="number"
-              step="0.01"
-              value={form.fees || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-              placeholder="Fees"
-            />
-            <input
-              name="address_line1"
-              value={form.address_line1 || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-              placeholder="Address line 1"
-            />
-            <input
-              name="address_line2"
-              value={form.address_line2 || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white"
-              placeholder="Address line 2"
-            />
-            <textarea
-              name="about"
-              value={form.about || ""}
-              onChange={(e) =>
-                setForm({ ...form, [e.target.name]: e.target.value })
-              }
-              className="p-2 rounded bg-gray-800 text-white col-span-2"
-              placeholder="About"
-            />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
-              className="col-span-2"
-            />
-            <div className="col-span-2 flex gap-2">
-              <button
-                type="submit"
-                className="bg-green-600 text-white px-4 py-2 rounded"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="bg-gray-500 text-white px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

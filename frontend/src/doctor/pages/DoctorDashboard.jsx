@@ -88,7 +88,7 @@ const DoctorDashboard = () => {
       <PageMeta title="Doctor Dashboard" description="Doctor dashboard overview" />
       <PageBreadcrumb pageTitle="Dashboard" />
 
-      <div className="p-6" style={{backgroundColor: '#1e293b', color: 'white'}}>
+      <div className="p-6 bg-slate-900 text-white">
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div>
@@ -117,11 +117,11 @@ const DoctorDashboard = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-xl">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl">
                   <svg
-                    className="w-7 h-7 text-blue-600"
+                    className="w-7 h-7 text-blue-600 dark:text-blue-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -135,17 +135,17 @@ const DoctorDashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4 flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Appointments</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.totalAppointments}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Appointments</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalAppointments}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-xl">
+                <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-xl">
                   <svg
-                    className="w-7 h-7 text-green-600"
+                    className="w-7 h-7 text-green-600 dark:text-green-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -159,17 +159,17 @@ const DoctorDashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4 flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Today's Appointments</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.todayAppointments}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Today's Appointments</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.todayAppointments}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-yellow-100 rounded-xl">
+                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded-xl">
                   <svg
-                    className="w-7 h-7 text-yellow-600"
+                    className="w-7 h-7 text-yellow-600 dark:text-yellow-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -183,17 +183,17 @@ const DoctorDashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4 flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Pending</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.pendingAppointments}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Pending</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.pendingAppointments}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-xl">
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl">
                   <svg
-                    className="w-7 h-7 text-purple-600"
+                    className="w-7 h-7 text-purple-600 dark:text-purple-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -207,17 +207,17 @@ const DoctorDashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4 flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Active Therapies</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.activeTherapies}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Active Therapies</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.activeTherapies}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-indigo-100 rounded-xl">
+                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/20 rounded-xl">
                   <svg
-                    className="w-7 h-7 text-indigo-600"
+                    className="w-7 h-7 text-indigo-600 dark:text-indigo-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -231,8 +231,8 @@ const DoctorDashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4 flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Patients</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.totalPatients}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Patients</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalPatients}</p>
                 </div>
               </div>
             </div>
@@ -242,13 +242,13 @@ const DoctorDashboard = () => {
         {/* Recent Appointments and Upcoming Appointments */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Appointments */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+            <div className="p-6 border-b border-white/20 dark:border-gray-700/50">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">Recent Appointments</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Appointments</h2>
                 <button
                   onClick={() => navigate("/doctor/appointments")}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
                 >
                   View All
                 </button>
@@ -258,7 +258,7 @@ const DoctorDashboard = () => {
               {recentAppointments.length === 0 ? (
                 <div className="text-center py-8">
                   <svg
-                    className="w-12 h-12 text-gray-400 mx-auto mb-4"
+                    className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -270,26 +270,26 @@ const DoctorDashboard = () => {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-gray-500">No recent appointments</p>
+                  <p className="text-gray-500 dark:text-gray-400">No recent appointments</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {recentAppointments.slice(0, 5).map((appointment) => (
                     <div
                       key={appointment.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium text-gray-900">{appointment.patient_name}</p>
-                        <p className="text-sm text-gray-600">{formatDate(appointment.scheduled_for)}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{appointment.patient_name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(appointment.scheduled_for)}</p>
                       </div>
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           appointment.status === "confirmed"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
                             : appointment.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                            : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
                         }`}
                       >
                         {appointment.status}
@@ -302,13 +302,13 @@ const DoctorDashboard = () => {
           </div>
 
           {/* Upcoming Appointments */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+            <div className="p-6 border-b border-white/20 dark:border-gray-700/50">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">Upcoming Appointments</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Upcoming Appointments</h2>
                 <button
                   onClick={() => navigate("/doctor/calendar")}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
                 >
                   View Calendar
                 </button>
@@ -318,7 +318,7 @@ const DoctorDashboard = () => {
               {upcomingAppointments.length === 0 ? (
                 <div className="text-center py-8">
                   <svg
-                    className="w-12 h-12 text-gray-400 mx-auto mb-4"
+                    className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -330,22 +330,22 @@ const DoctorDashboard = () => {
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <p className="text-gray-500">No upcoming appointments</p>
+                  <p className="text-gray-500 dark:text-gray-400">No upcoming appointments</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {upcomingAppointments.slice(0, 5).map((appointment) => (
                     <div
                       key={appointment.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium text-gray-900">{appointment.patient_name}</p>
-                        <p className="text-sm text-gray-600">{formatDate(appointment.scheduled_for)}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{appointment.patient_name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(appointment.scheduled_for)}</p>
                       </div>
                       <button
                         onClick={() => navigate(`/doctor/appointment/${appointment.id}`)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
                       >
                         View Details
                       </button>

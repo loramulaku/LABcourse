@@ -67,9 +67,6 @@ const BasicTableOne = React.lazy(
   () => import("./dashboard/components/tables/BasicTables/BasicTableOne"),
 );
 const AppLayout = React.lazy(() => import("./dashboard/layout/AppLayout"));
-const DoctorsCrud = React.lazy(
-  () => import("./dashboard/pages/DoctorsCrud.jsx"),
-);
 const AdminLaboratories = React.lazy(
   () => import("./dashboard/pages/AdminLaboratories.jsx"),
 );
@@ -81,6 +78,9 @@ const AppointmentsCalendar = React.lazy(
 );
 const AdminUsers = React.lazy(() => import("./dashboard/pages/AdminUsers.jsx"));
 const Users = React.lazy(() => import("./dashboard/pages/Users.jsx"));
+const AdminDoctorsManagement = React.lazy(() => import("./dashboard/pages/AdminDoctorsManagement.jsx"));
+const EditDoctor = React.lazy(() => import("./dashboard/pages/EditDoctor.jsx"));
+const DoctorsCrud = React.lazy(() => import("./dashboard/pages/DoctorsCrud.jsx"));
 const DashboardDoctors = React.lazy(
   () => import("./dashboard/pages/Doctors.jsx"),
 );
@@ -315,6 +315,9 @@ const App = () => {
               <Route path="admin-users" element={<AdminUsers />} />
               <Route path="users" element={<Users />} />
               <Route path="doctors" element={<DashboardDoctors />} />
+              <Route path="doctors-management" element={<AdminDoctorsManagement />} />
+              <Route path="doctors-management/edit/:id" element={<EditDoctor />} />
+              <Route path="doctors-crud" element={<DoctorsCrud />} />
               <Route path="laboratories" element={<Laboratories />} />
               <Route path="patient-analyses" element={<PatientAnalyses />} />
               <Route
@@ -323,7 +326,6 @@ const App = () => {
               />
               <Route path="messaging" element={<AdminMessaging />} />
               <Route path="blank" element={<Blank />} />
-              <Route path="doctors-crud" element={<DoctorsCrud />} />
               <Route path="add-laboratory" element={<AdminLaboratories />} />
               <Route path="laboratories-crud" element={<LaboratoriesCrud />} />
               <Route path="analysis-types" element={<AnalysisTypes />} />
