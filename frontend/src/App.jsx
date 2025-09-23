@@ -174,9 +174,9 @@ const App = () => {
             <Route
               path="/"
               element={
-                <ProtectedRoute>
+                
                   <Home />
-                </ProtectedRoute>
+                
               }
             />
             <Route
@@ -198,17 +198,17 @@ const App = () => {
             <Route
               path="/about"
               element={
-                <ProtectedRoute>
+                
                   <About />
-                </ProtectedRoute>
+                
               }
             />
             <Route
               path="/contact"
               element={
-                <ProtectedRoute>
+                
                   <Contact />
-                </ProtectedRoute>
+                
               }
             />
             <Route
