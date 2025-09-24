@@ -46,5 +46,6 @@ export default defineConfig({
     port: 5173,
     host: true,
     cors: true,
+    strictPort: false, // Allow Vite to try other ports if 5173 is busy
   },
 });

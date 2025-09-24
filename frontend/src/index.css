@@ -11,6 +11,22 @@
   font-family: Outfit;
 }
 
+/* DOCTOR SIDEBAR ONLY - Blue Text Styling */
+.doctor-sidebar .menu-item-inactive {
+  @apply text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md;
+}
+
+.doctor-sidebar .menu-item-icon-inactive {
+  @apply text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300;
+}
+
+.doctor-sidebar .menu-dropdown-item-inactive {
+  @apply text-blue-500 hover:text-blue-700 hover:bg-blue-50 hover:shadow-sm;
+}
+
+
+
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

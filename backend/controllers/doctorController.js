@@ -308,9 +308,30 @@ const getMyProfile = (req, res) => {
   
   db.query(sql, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (!results || results.length === 0)
-      return res.status(404).json({ error: "Doctor profile not found" });
-    res.json(results[0]);
+    if (!results || results.length === 0) {
+      // If no doctor profile exists, create a default one
+      const createDefaultProfile = `
+        INSERT INTO doctors (user_id, first_name, last_name, phone, department, license_number, experience, facebook, x, linkedin, instagram, country, city_state, postal_code, specialization, degree, experience_years, consultation_fee, fees, about, address_line1, address_line2, available, image, avatar_path)
+        VALUES (?, '', '', '', '', '', '', '', '', '', '', '', '', '', 'General Physician', 'MD', '0', '50', '50', 'Experienced medical professional', '', '', 1, '', '/uploads/avatars/default.png')
+      `;
+      
+      db.query(createDefaultProfile, [userId], (createErr, createResults) => {
+        if (createErr) {
+          console.error("Error creating default doctor profile:", createErr);
+          return res.status(500).json({ error: "Failed to create doctor profile" });
+        }
+        
+        // Now fetch the newly created profile
+        db.query(sql, [userId], (fetchErr, fetchResults) => {
+          if (fetchErr) return res.status(500).json({ error: fetchErr.message });
+          if (!fetchResults || fetchResults.length === 0)
+            return res.status(404).json({ error: "Doctor profile not found" });
+          res.json(fetchResults[0]);
+        });
+      });
+    } else {
+      res.json(results[0]);
+    }
   });
 };
 

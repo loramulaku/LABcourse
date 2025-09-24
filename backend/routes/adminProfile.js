@@ -292,6 +292,8 @@ router.post("/add-doctor", authenticateToken, upload.single('profilePhoto'), asy
       [userId, speciality, department, licenseNumber, experience || '', phone, about || '', degree || '', fees || '']
     );
 
+
+
     // Update user profile image
     await db.promise().query(
       'UPDATE users SET profile_image = ? WHERE id = ?',

@@ -9,7 +9,7 @@ const DoctorLayout = () => {
   const { isMobileOpen, toggleMobileSidebar } = useSidebar();
 
   return (
-    <div className="flex h-screen bg-slate-900 text-white">
+    <div className="flex h-screen text-gray-900">
       {/* Doctor Sidebar */}
       <DoctorSidebar />
 
@@ -17,18 +17,10 @@ const DoctorLayout = () => {
       {isMobileOpen && <Backdrop onClick={toggleMobileSidebar} />}
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 bg-slate-900">
-        {/* Search bar global */}
-        <div className="p-6 border-b border-slate-700 w-full bg-slate-900">
-          <div className="flex justify-center">
-            <div className="w-full max-w-2xl">
-              <SearchBar />
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-col flex-1">
 
         {/* Content */}
-        <main className="flex-1 p-8 w-full min-h-screen bg-slate-900">
+        <main className="flex-1 p-8 w-full min-h-screen">
           <Outlet />
         </main>
       </div>

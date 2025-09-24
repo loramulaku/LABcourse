@@ -88,14 +88,14 @@ const DoctorDashboard = () => {
       <PageMeta title="Doctor Dashboard" description="Doctor dashboard overview" />
       <PageBreadcrumb pageTitle="Dashboard" />
 
-      <div className="p-6 bg-slate-900 text-white">
+      <div className="p-6">
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Welcome back, Doctor
               </h1>
-              <p className="text-slate-300">
+              <p className="text-gray-600">
                 Here's what's happening with your practice today
               </p>
             </div>

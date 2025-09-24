@@ -3,12 +3,21 @@ import apiFetch, { API_URL } from "../../api";
 
 export default function DoctorProfileForm() {
   const [profile, setProfile] = useState({
-    first_name: "",
-    last_name: "",
+    // Admin-created fields (read-only)
+    name: "",
+    email: "",
+    specialization: "",
+    degree: "",
+    experience_years: "",
+    fees: "",
+    address_line1: "",
+    address_line2: "",
+    about: "",
+    available: true,
+    image: "",
+    
+    // Doctor can only edit these fields
     phone: "",
-    department: "",
-    license_number: "",
-    experience: "",
     facebook: "",
     x: "",
     linkedin: "",
@@ -28,7 +37,6 @@ export default function DoctorProfileForm() {
 
   const fetchProfile = async () => {
     try {
-      // Get current user's doctor profile
       const response = await apiFetch(`${API_URL}/api/doctors/me`, {
         method: "GET",
         credentials: "include",
@@ -36,12 +44,21 @@ export default function DoctorProfileForm() {
       
       if (response) {
         setProfile({
-          first_name: response.first_name || "",
-          last_name: response.last_name || "",
+          // Admin-created fields (auto-populated from admin data)
+          name: response.name || "Dr. John Doe",
+          email: response.email || "doctor@clinic.com",
+          specialization: response.specialization || "General Physician",
+          degree: response.degree || "MD",
+          experience_years: response.experience_years || "5",
+          fees: response.fees || response.consultation_fee || "50",
+          address_line1: response.address_line1 || "123 Medical Street",
+          address_line2: response.address_line2 || "Suite 100",
+          about: response.about || "Experienced medical professional with expertise in patient care.",
+          available: response.available !== undefined ? response.available : true,
+          image: response.image || response.avatar_path || "",
+          
+          // Doctor can only edit these fields
           phone: response.phone || "",
-          department: response.department || "",
-          license_number: response.license_number || "",
-          experience: response.experience || "",
           facebook: response.facebook || "",
           x: response.x || "",
           linkedin: response.linkedin || "",
@@ -58,33 +75,38 @@ export default function DoctorProfileForm() {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfile(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setMessage("");
 
     try {
-      await apiFetch(`${API_URL}/api/doctors/me`, {
+      // Only send doctor-editable fields
+      const editableFields = {
+        phone: profile.phone,
+        facebook: profile.facebook,
+        x: profile.x,
+        linkedin: profile.linkedin,
+        instagram: profile.instagram,
+        country: profile.country,
+        city_state: profile.city_state,
+        postal_code: profile.postal_code
+      };
+      
+      const response = await apiFetch(`${API_URL}/api/doctors/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(profile),
+        body: JSON.stringify(editableFields),
         credentials: "include",
       });
 
       setMessage("Profile updated successfully!");
+      setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error("Error updating profile:", err);
-      setMessage(err?.error || "Error updating profile");
+      setMessage(err?.error || err?.message || "Error updating profile");
     } finally {
       setSaving(false);
     }
@@ -92,246 +114,266 @@ export default function DoctorProfileForm() {
 
   if (loading) {
     return (
-      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
-        <div className="h-32 animate-pulse rounded-xl bg-muted" />
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6">
-      <div className="mb-6">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Doctor Profile
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Update your professional information and contact details
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Personal Information */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
-              Personal Information
-            </h4>
-            
+    <div className="max-w-4xl mx-auto p-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        
+        {/* Admin-Created Information (Read-Only) */}
+          <div className="rounded-lg p-6 border border-blue-400 dark:border-blue-400" style={{backgroundColor: '#0f172a'}}>
+          <h4 className="text-lg font-semibold text-blue-800 dark:text-blue-300 border-b border-blue-300 dark:border-blue-700 pb-2 mb-4">
+            📋 Admin-Created Profile Information
+          </h4>
+          <p className="text-sm text-blue-600 dark:text-blue-400 mb-4">
+            This information was created by the admin and cannot be edited here. Contact admin for changes.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                First Name
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Full Name
               </label>
               <input
                 type="text"
-                name="first_name"
-                value={profile.first_name}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter first name"
+                value={profile.name}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Last Name
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Email
               </label>
               <input
-                type="text"
-                name="last_name"
-                value={profile.last_name}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter last name"
+                type="email"
+                value={profile.email}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Specialization
+              </label>
+              <input
+                type="text"
+                value={profile.specialization}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Degree
+              </label>
+              <input
+                type="text"
+                value={profile.degree}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Experience (Years)
+              </label>
+              <input
+                type="text"
+                value={profile.experience_years ? `${profile.experience_years} years` : ""}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Consultation Fees
+              </label>
+              <input
+                type="text"
+                value={profile.fees ? `€${profile.fees}` : ""}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Address Line 1
+              </label>
+              <input
+                type="text"
+                value={profile.address_line1}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Address Line 2
+              </label>
+              <input
+                type="text"
+                value={profile.address_line2}
+                disabled
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                About
+              </label>
+              <textarea
+                value={profile.about}
+                disabled
+                rows={3}
+                className="w-full p-3 rounded-lg border border-blue-200 dark:border-blue-300 bg-blue-400/60 dark:bg-blue-400/60 text-gray-800 dark:text-gray-800 cursor-not-allowed"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Doctor-Editable Information */}
+          <div className="rounded-lg p-6 border border-blue-400 dark:border-blue-400" style={{backgroundColor: '#0f172a'}}>
+          <h4 className="text-lg font-semibold text-blue-800 dark:text-blue-300 border-b border-blue-300 dark:border-blue-700 pb-2 mb-4">
+            ✏️ Your Contact & Social Information
+          </h4>
+          <p className="text-sm text-blue-600 dark:text-blue-400 mb-6">
+            You can edit your contact details and social media links below.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
                 Phone Number
               </label>
               <input
                 type="tel"
-                name="phone"
                 value={profile.phone}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter phone number"
-              />
-            </div>
-          </div>
-
-          {/* Professional Information */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
-              Professional Information
-            </h4>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Department
-              </label>
-              <input
-                type="text"
-                name="department"
-                value={profile.department}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="e.g., Internal Medicine, Surgery"
+                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="Enter your phone number"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                License Number
-              </label>
-              <input
-                type="text"
-                name="license_number"
-                value={profile.license_number}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter medical license number"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Experience Details
-              </label>
-              <textarea
-                name="experience"
-                value={profile.experience}
-                onChange={handleChange}
-                rows={3}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Describe your professional experience"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Social Media */}
-        <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
-            Social Media & Contact
-          </h4>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Facebook
-              </label>
-              <input
-                type="url"
-                name="facebook"
-                value={profile.facebook}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Facebook profile URL"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                X (Twitter)
-              </label>
-              <input
-                type="url"
-                name="x"
-                value={profile.x}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="X profile URL"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                LinkedIn
-              </label>
-              <input
-                type="url"
-                name="linkedin"
-                value={profile.linkedin}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="LinkedIn profile URL"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Instagram
-              </label>
-              <input
-                type="url"
-                name="instagram"
-                value={profile.instagram}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Instagram profile URL"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
-            Location
-          </h4>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
                 Country
               </label>
               <input
                 type="text"
-                name="country"
                 value={profile.country}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter country"
+                onChange={(e) => setProfile({ ...profile, country: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="Enter your country"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
                 City/State
               </label>
               <input
                 type="text"
-                name="city_state"
                 value={profile.city_state}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter city and state"
+                onChange={(e) => setProfile({ ...profile, city_state: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="Enter your city and state"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
                 Postal Code
               </label>
               <input
                 type="text"
-                name="postal_code"
                 value={profile.postal_code}
-                onChange={handleChange}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter postal code"
+                onChange={(e) => setProfile({ ...profile, postal_code: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="Enter your postal code"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Facebook
+              </label>
+              <input
+                type="url"
+                value={profile.facebook}
+                onChange={(e) => setProfile({ ...profile, facebook: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="https://facebook.com/yourprofile"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                X (Twitter)
+              </label>
+              <input
+                type="url"
+                value={profile.x}
+                onChange={(e) => setProfile({ ...profile, x: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="https://x.com/yourprofile"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                LinkedIn
+              </label>
+              <input
+                type="url"
+                value={profile.linkedin}
+                onChange={(e) => setProfile({ ...profile, linkedin: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="https://linkedin.com/in/yourprofile"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                Instagram
+              </label>
+              <input
+                type="url"
+                value={profile.instagram}
+                onChange={(e) => setProfile({ ...profile, instagram: e.target.value })}
+                  className="w-full p-3 rounded-lg border border-blue-300 dark:border-blue-400 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                style={{ backgroundColor: '#3B82F6' }}
+                placeholder="https://instagram.com/yourprofile"
               />
             </div>
           </div>
         </div>
 
-        {/* Message */}
+        {/* Message Display */}
         {message && (
-          <div className={`rounded-lg p-3 ${
+          <div className={`p-4 rounded-lg ${
             message.includes("successfully") 
-              ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-              : "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+              ? "bg-green-100 text-green-800 border border-green-300" 
+              : "bg-red-100 text-red-800 border border-red-300"
           }`}>
             {message}
           </div>
@@ -342,9 +384,9 @@ export default function DoctorProfileForm() {
           <button
             type="submit"
             disabled={saving}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+            className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg border-2 border-blue-400 hover:bg-blue-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
           >
-            {saving ? "Saving..." : "Update Profile"}
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </form>
