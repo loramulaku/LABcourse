@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Home } from "lucide-react";
+
 import {
   BoxCubeIcon,
   CalenderIcon,
@@ -38,10 +40,7 @@ const navItems = [
     name: "Calendar",
     subItems: [
       { name: "Analyses Calendar", path: "/dashboard/analyses-calendar" },
-      {
-        name: "Appointments Calendar",
-        path: "/dashboard/appointments-calendar",
-      },
+      { name: "Appointments Calendar", path: "/dashboard/appointments-calendar" },
     ],
   },
   {
@@ -57,45 +56,10 @@ const navItems = [
     icon: <ListIcon />,
     subItems: [
       { name: "Add Laboratory", path: "/dashboard/add-laboratory" },
-      {
-        name: "Laboratories",
-        path: "/dashboard/laboratories-crud",
-      },
+      { name: "Laboratories", path: "/dashboard/laboratories-crud" },
       { name: "Analysis Types", path: "/dashboard/analysis-types" },
     ],
   },
-];
-
-const othersItems = [
-  // {
-  //   icon: <PieChartIcon />,
-  //   name: "Charts",
-  //   subItems: [
-  //     { name: "Line Chart", path: "/dashboard/line-chart" },
-  //     { name: "Bar Chart", path: "/dashboard/bar-chart" },
-  //   ],
-  // },
-  // {
-  //   icon: <BoxCubeIcon />,
-  //   name: "UI Elements",
-  //   subItems: [
-  //     { name: "Alerts", path: "/dashboard/alerts" },
-  //     { name: "Avatar", path: "/dashboard/avatars" },
-  //     { name: "Badge", path: "/dashboard/badge" },
-  //     { name: "Buttons", path: "/dashboard/buttons" },
-  //     { name: "Images", path: "/dashboard/images" },
-  //     { name: "Videos", path: "/dashboard/videos" },
-  //   ],
-  // },
-  // {
-  //   name: "Patient History",
-  //   icon: <PageIcon />,
-  //   subItems: [
-  //     { name: "Patient Analyses", path: "/dashboard/patient-analyses" },
-  //     { name: "Patient Appointments", path: "/dashboard/patient-appointments" },
-  //     { name: "404 Error", path: "/dashboard/error-404" },
-  //   ],
-  // },
 ];
 
 // ---------------- COMPONENT ----------------
@@ -110,14 +74,14 @@ const AppSidebar = () => {
   // Active route check
   const isActive = useCallback(
     (path) => location.pathname === path,
-    [location.pathname],
+    [location.pathname]
   );
 
   // Auto-open submenu if route matches
   useEffect(() => {
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+      const items = menuType === "main" ? navItems : [];
       items.forEach((nav, index) => {
         nav.subItems?.forEach((subItem) => {
           if (isActive(subItem.path)) {
@@ -147,7 +111,7 @@ const AppSidebar = () => {
     setOpenSubmenu((prev) =>
       prev && prev.type === menuType && prev.index === index
         ? null
-        : { type: menuType, index },
+        : { type: menuType, index }
     );
   };
 
@@ -241,7 +205,6 @@ const AppSidebar = () => {
     <aside
       className={`flex flex-col px-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-800 dark:text-white h-screen transition-all duration-300 ease-in-out border-r border-white/20 dark:border-gray-700/50 fixed lg:relative z-50 shadow-xl
     ${isExpanded || isMobileOpen ? "w-[280px]" : isHovered ? "w-[280px]" : "w-[100px]"}
-
       ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -277,47 +240,25 @@ const AppSidebar = () => {
           <div>
             <h2
               className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-300 ${
-                !isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "justify-start"
+                !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
               }`}
             >
-              {isExpanded || isHovered || isMobileOpen ? (
-                "Menu"
-              ) : (
-                <HorizontaLDots className="size-6" />
-              )}
+              {isExpanded || isHovered || isMobileOpen ? "Menu" : <HorizontaLDots className="size-6" />}
             </h2>
             {renderMenuItems(navItems, "main")}
           </div>
-
-          <div>
-            <h2
-              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-300 ${
-                !isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "justify-start"
-              }`}
-            >
-              {/* {isExpanded || isHovered || isMobileOpen ? (
-                "Others"
-              ) : (
-                <HorizontaLDots />
-              )} */}
-            </h2>
-            {/* {renderMenuItems(othersItems, "others")} */}
-          </div>
         </nav>
+      </div>
 
-        {/* {(isExpanded || isHovered || isMobileOpen) && (
-          <div className="mt-auto mb-4">
-            <SidebarWidget
-              to="/logout"
-              icon={<CloseIcon className="w-5 h-5" />}
-              label="Logout"
-            />
-          </div>
-        )} */}
+      {/* Back to Home link */}
+      <div className="mt-auto mb-6">
+        <Link
+          to="/"
+          className="flex items-center gap-3 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+        >
+          <Home className="w-5 h-5" />
+          <span>Back to Home</span>
+        </Link>
       </div>
     </aside>
   );
