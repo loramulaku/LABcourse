@@ -58,7 +58,7 @@ const navItems = [
     subItems: [
       { name: "Add Laboratory", path: "/dashboard/add-laboratory" },
       {
-        name: "Edit & Delete Laboratories",
+        name: "Laboratories",
         path: "/dashboard/laboratories-crud",
       },
       { name: "Analysis Types", path: "/dashboard/analysis-types" },
@@ -67,35 +67,35 @@ const navItems = [
 ];
 
 const othersItems = [
-  {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/dashboard/line-chart" },
-      { name: "Bar Chart", path: "/dashboard/bar-chart" },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { name: "Alerts", path: "/dashboard/alerts" },
-      { name: "Avatar", path: "/dashboard/avatars" },
-      { name: "Badge", path: "/dashboard/badge" },
-      { name: "Buttons", path: "/dashboard/buttons" },
-      { name: "Images", path: "/dashboard/images" },
-      { name: "Videos", path: "/dashboard/videos" },
-    ],
-  },
-  {
-    name: "Patient History",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Patient Analyses", path: "/dashboard/patient-analyses" },
-      { name: "Patient Appointments", path: "/dashboard/patient-appointments" },
-      { name: "404 Error", path: "/dashboard/error-404" },
-    ],
-  },
+  // {
+  //   icon: <PieChartIcon />,
+  //   name: "Charts",
+  //   subItems: [
+  //     { name: "Line Chart", path: "/dashboard/line-chart" },
+  //     { name: "Bar Chart", path: "/dashboard/bar-chart" },
+  //   ],
+  // },
+  // {
+  //   icon: <BoxCubeIcon />,
+  //   name: "UI Elements",
+  //   subItems: [
+  //     { name: "Alerts", path: "/dashboard/alerts" },
+  //     { name: "Avatar", path: "/dashboard/avatars" },
+  //     { name: "Badge", path: "/dashboard/badge" },
+  //     { name: "Buttons", path: "/dashboard/buttons" },
+  //     { name: "Images", path: "/dashboard/images" },
+  //     { name: "Videos", path: "/dashboard/videos" },
+  //   ],
+  // },
+  // {
+  //   name: "Patient History",
+  //   icon: <PageIcon />,
+  //   subItems: [
+  //     { name: "Patient Analyses", path: "/dashboard/patient-analyses" },
+  //     { name: "Patient Appointments", path: "/dashboard/patient-appointments" },
+  //     { name: "404 Error", path: "/dashboard/error-404" },
+  //   ],
+  // },
 ];
 
 // ---------------- COMPONENT ----------------
@@ -299,17 +299,17 @@ const AppSidebar = () => {
                   : "justify-start"
               }`}
             >
-              {isExpanded || isHovered || isMobileOpen ? (
+              {/* {isExpanded || isHovered || isMobileOpen ? (
                 "Others"
               ) : (
                 <HorizontaLDots />
-              )}
+              )} */}
             </h2>
-            {renderMenuItems(othersItems, "others")}
+            {/* {renderMenuItems(othersItems, "others")} */}
           </div>
         </nav>
 
-        {(isExpanded || isHovered || isMobileOpen) && (
+        {/* {(isExpanded || isHovered || isMobileOpen) && (
           <div className="mt-auto mb-4">
             <SidebarWidget
               to="/logout"
@@ -317,7 +317,7 @@ const AppSidebar = () => {
               label="Logout"
             />
           </div>
-        )}
+        )} */}
       </div>
     </aside>
   );

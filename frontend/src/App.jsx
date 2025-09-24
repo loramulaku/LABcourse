@@ -162,7 +162,10 @@ const App = () => {
     <ErrorBoundary>
       <div className="w-full">
         {/* Navbar gjithmonë on top */}
-        <Navbar />
+        {/* <Navbar /> */}
+        {!location.pathname.startsWith("/dashboard") && 
+         !location.pathname.startsWith("/doctor") && 
+         !location.pathname.startsWith("/lab") && <Navbar />}
         <ToastContainer position="top-center" autoClose={3000} />
         <ScrollToTop />
 
@@ -400,6 +403,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+
 
         {/* Footer vetëm kur nuk je në dashboard */}
         {!location.pathname.startsWith("/dashboard") && 

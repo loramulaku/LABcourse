@@ -118,10 +118,10 @@ export default function LaboratoriesCrud() {
     return (
       <div>
         <PageMeta
-          title="Edit & Delete Laboratories"
+          title="Laboratories"
           description="Manage laboratories"
         />
-        <PageBreadcrumb pageTitle="Edit & Delete Laboratories" />
+        <PageBreadcrumb pageTitle="Laboratories" />
         <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100 p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
@@ -134,10 +134,10 @@ export default function LaboratoriesCrud() {
   return (
     <div>
       <PageMeta
-        title="Edit & Delete Laboratories"
+        title="Laboratories"
         description="Manage laboratories"
       />
-      <PageBreadcrumb pageTitle="Edit & Delete Laboratories" />
+      <PageBreadcrumb pageTitle="Laboratories" />
 
       <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100 p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
         {!editing ? (
