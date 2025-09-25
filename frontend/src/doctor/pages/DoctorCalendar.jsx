@@ -16,7 +16,7 @@ const DoctorCalendar = () => {
 
   useEffect(() => {
     fetchCalendarData();
-  }, [currentDate]);
+  }, [currentDate, view]);
 
   const fetchCalendarData = async () => {
     try {
@@ -162,12 +162,13 @@ const DoctorCalendar = () => {
   const getAppointmentForSlot = (date, timeSlot) => {
     const slotDateTime = new Date(date);
     slotDateTime.setHours(timeSlot.hour, timeSlot.minute, 0, 0);
-    
     return appointments.find(appointment => {
       const appointmentTime = new Date(appointment.scheduled_for);
-      return appointmentTime.toDateString() === slotDateTime.toDateString() &&
-             appointmentTime.getHours() === timeSlot.hour &&
-             appointmentTime.getMinutes() === timeSlot.minute;
+      return (
+        appointmentTime.toDateString() === slotDateTime.toDateString() &&
+        appointmentTime.getHours() === timeSlot.hour &&
+        appointmentTime.getMinutes() === timeSlot.minute
+      );
     });
   };
 
@@ -180,17 +181,17 @@ const DoctorCalendar = () => {
         appointment,
       };
     }
-    
+
     const slotDateTime = new Date(date);
     slotDateTime.setHours(timeSlot.hour, timeSlot.minute, 0, 0);
-    const isBlocked = availableSlots.some(slot => 
+    const isBlocked = availableSlots.some(slot =>
       new Date(slot.datetime).getTime() === slotDateTime.getTime() && slot.status === "blocked"
     );
-    
+
     if (isBlocked) {
       return { type: "blocked" };
     }
-    
+
     return { type: "available" };
   };
 
@@ -226,6 +227,71 @@ const DoctorCalendar = () => {
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() + (direction * 7));
     setCurrentDate(newDate);
+  };
+
+  // Funksioni për shfaqjen mujore
+  const renderMonthView = () => {
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const daysInMonth = endOfMonth.getDate();
+
+    const startDay = startOfMonth.getDay();
+    const weeks = [];
+    let currentDay = 1 - startDay;
+
+    while (currentDay <= daysInMonth) {
+      const week = [];
+      for (let i = 0; i < 7; i++) {
+        if (currentDay > 0 && currentDay <= daysInMonth) {
+          week.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDay));
+        } else {
+          week.push(null);
+        }
+        currentDay++;
+      }
+      weeks.push(week);
+    }
+
+    return (
+      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+        <div className="grid grid-cols-7 bg-gray-50 p-2 font-semibold text-gray-900">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            <div key={day} className="text-center">{day}</div>
+          ))}
+        </div>
+        {weeks.map((week, index) => (
+          <div key={index} className="grid grid-cols-7 border-t border-gray-200">
+            {week.map((date, idx) => (
+              <div
+                key={idx}
+                className={`p-2 border border-gray-100 ${
+                  date ? "hover:bg-gray-100 cursor-pointer" : ""
+                }`}
+                onClick={() => {
+                  if (date) {
+                    setSelectedDate(date);
+                  }
+                }}
+              >
+                {date ? (
+                  <div className="relative h-16 w-full flex items-start justify-center">
+                    <div
+                      className={`w-6 h-6 flex items-center justify-center rounded-full ${
+                        date.toDateString() === new Date().toDateString()
+                          ? "bg-blue-500 text-white"
+                          : ""
+                      }`}
+                    >
+                      {date.getDate()}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   if (loading) {
@@ -303,8 +369,11 @@ const DoctorCalendar = () => {
             </div>
           </div>
 
-          {/* Calendar Grid */}
-          {view === "week" && (
+          {/* Këtu vendosim shfaqjen e pamjes së muajit */}
+          {view === "month" ? (
+            renderMonthView()
+          ) : view === "week" ? (
+            // Kalendari i javës si më parë
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="grid grid-cols-8 border-b border-gray-200">
                 <div className="p-4 bg-gray-50 font-semibold text-gray-900">Time</div>
@@ -315,7 +384,6 @@ const DoctorCalendar = () => {
                   </div>
                 ))}
               </div>
-              
               <div className="max-h-96 overflow-y-auto no-scrollbar">
                 {getTimeSlots().map((timeSlot) => (
                   <div key={timeSlot.time} className="grid grid-cols-8 border-b border-gray-100">
@@ -330,7 +398,9 @@ const DoctorCalendar = () => {
                           className={`p-3 min-h-[50px] border-l border-gray-100 cursor-pointer ${getSlotColor(slotStatus)}`}
                           onClick={() => {
                             if (slotStatus.type === "available") {
-                              createAppointment(new Date(day.setHours(timeSlot.hour, timeSlot.minute, 0, 0)));
+                              createAppointment(
+                                new Date(day.setHours(timeSlot.hour, timeSlot.minute, 0, 0))
+                              );
                             } else if (slotStatus.type === "appointment") {
                               navigate(`/doctor/appointment/${slotStatus.appointment.id}`);
                             }
@@ -352,14 +422,12 @@ const DoctorCalendar = () => {
                 ))}
               </div>
             </div>
-          )}
-
-          {view === "day" && (
+          ) : (
+            // Ditë pamja
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-4 bg-gray-50 border-b border-gray-200">
                 <h3 className="font-semibold text-gray-900">{formatDate(selectedDate)}</h3>
               </div>
-              
               <div className="max-h-96 overflow-y-auto no-scrollbar">
                 {getTimeSlots().map((timeSlot) => {
                   const slotStatus = getSlotStatus(selectedDate, timeSlot);
@@ -369,7 +437,9 @@ const DoctorCalendar = () => {
                       className={`p-4 border-b border-gray-100 cursor-pointer ${getSlotColor(slotStatus)}`}
                       onClick={() => {
                         if (slotStatus.type === "available") {
-                          createAppointment(new Date(selectedDate.setHours(timeSlot.hour, timeSlot.minute, 0, 0)));
+                          createAppointment(
+                            new Date(selectedDate.setHours(timeSlot.hour, timeSlot.minute, 0, 0))
+                          );
                         } else if (slotStatus.type === "appointment") {
                           navigate(`/doctor/appointment/${slotStatus.appointment.id}`);
                         }
@@ -395,7 +465,7 @@ const DoctorCalendar = () => {
             </div>
           )}
 
-          {/* Legend */}
+          {/* Legenda */}
           <div className="mt-6 bg-white rounded-lg shadow-md p-4">
             <h3 className="font-semibold text-gray-900 mb-3">Legend</h3>
             <div className="flex flex-wrap gap-4">
