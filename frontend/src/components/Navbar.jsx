@@ -12,19 +12,13 @@ const Navbar = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch user profile info for navbar
+  // Fetch user profile info
   const fetchUserInfo = async () => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-      console.log("No access token found, user not authenticated");
       setToken(false);
       return;
     }
-
-    console.log(
-      "Fetching user info with token:",
-      accessToken.substring(0, 20) + "...",
-    );
 
     try {
       setLoading(true);
@@ -32,10 +26,7 @@ const Navbar = () => {
       const data = await apiFetch(`${API_URL}/api/auth/navbar-info`);
       setUserInfo(data);
     } catch (err) {
-      console.error("Error fetching user info:", err);
-      // If 401/403, user is not authenticated, clear token
       if (err.status === 401 || err.status === 403) {
-        console.log("User not authenticated, clearing tokens");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("role");
         setToken(false);
@@ -43,8 +34,6 @@ const Navbar = () => {
         setUserInfo(null);
         return;
       }
-      // Fallback to default values for other errors
-      console.log("Using fallback user info");
       setUserInfo({
         profilePhoto: "/uploads/avatars/default.png",
         name: "User",
@@ -75,7 +64,6 @@ const Navbar = () => {
       setUserInfo(null);
       navigate("/login");
     } catch (err) {
-      console.error("Gabim gjatë logout", err);
       localStorage.removeItem("accessToken");
       localStorage.removeItem("role");
       setToken(false);
@@ -98,24 +86,20 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  // Get the correct profile photo URL
+  // Get correct profile photo
   const getProfilePhotoUrl = () => {
     if (!userInfo || !userInfo.profilePhoto) {
       const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       return `${API_URL}/uploads/avatars/default.png`;
     }
-
-    // If it's already a full URL, return as is
     if (userInfo.profilePhoto.startsWith("http")) {
       return userInfo.profilePhoto;
     }
-
-    // If it's a relative path, construct the full URL
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     return `${API_URL}${userInfo.profilePhoto}`;
   };
 
-  // Navigate to the correct profile page based on user role
+  // Navigate to profile based on role
   const navigateToProfile = () => {
     if (role === "admin") {
       navigate("/dashboard/profile");
@@ -129,7 +113,8 @@ const Navbar = () => {
   };
 
   return (
-    <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
+    <div className="md:mx-10">
+    <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400 px-6">
       {/* Branding */}
       {token && role === "lab" ? (
         <div className="flex items-center gap-3 select-none">
@@ -151,17 +136,17 @@ const Navbar = () => {
       )}
 
       {/* Menu links */}
-      <ul className="hidden md:flex items-start gap-5 font-medium">
-        <NavLink to="/">
+      <ul className="hidden md:flex items-center gap-8 font-medium">
+        <NavLink to="/" className="hover:text-blue-600">
           <li>HOME</li>
         </NavLink>
-        <NavLink to="/doctors">
+        <NavLink to="/doctors" className="hover:text-blue-600">
           <li>ALL DOCTORS</li>
         </NavLink>
-        <NavLink to="/about">
+        <NavLink to="/about" className="hover:text-blue-600">
           <li>ABOUT</li>
         </NavLink>
-        <NavLink to="/contact">
+        <NavLink to="/contact" className="hover:text-blue-600">
           <li>CONTACT</li>
         </NavLink>
       </ul>
@@ -182,7 +167,9 @@ const Navbar = () => {
                 className="w-8 h-8 rounded-full object-cover"
                 src={getProfilePhotoUrl()}
                 alt="Profile"
-                fallbackSrc={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/uploads/avatars/default.png`}
+                fallbackSrc={`${
+                  import.meta.env.VITE_API_URL || "http://localhost:5000"
+                }/uploads/avatars/default.png`}
                 placeholder={
                   <div className="w-8 h-8 rounded-full bg-gray-300 animate-pulse" />
                 }
@@ -192,10 +179,10 @@ const Navbar = () => {
 
             {/* Dropdown */}
             <div
-              className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 
-                            z-20 opacity-0 pointer-events-none 
-                            group-hover:opacity-100 group-hover:pointer-events-auto 
-                            transition-all duration-200"
+              className="absolute top-full right-0 mt-2 text-base font-medium text-gray-600 
+                          z-20 opacity-0 pointer-events-none 
+                          group-hover:opacity-100 group-hover:pointer-events-auto 
+                          transition-all duration-200"
             >
               <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4 shadow-lg">
                 {role === "lab" ? (
@@ -261,13 +248,14 @@ const Navbar = () => {
         ) : (
           <button
             onClick={goToSignUp}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 
                        rounded-full font-medium hidden md:block transition-colors"
           >
             Create Account
           </button>
         )}
       </div>
+    </div>
     </div>
   );
 };
