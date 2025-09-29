@@ -10,6 +10,9 @@ const usersRoutes = require("./routes/users");
 const adminProfileRoutes = require("./routes/adminProfile");
 const doctorRoutes = require("./routes/doctorRoutes");
 const doctorApplicationsRoutes = require('./routes/doctorApplications');
+const employeeRoutes = require("./routes/employeeRoutes");
+const contractRoutes = require("./routes/contractRoutes"); 
+
 
 const app = express();
 
@@ -56,7 +59,8 @@ app.use("/api/notifications", notificationRoutes);
 // Patient routes
 const patientRoutes = require("./routes/patientRoutes");
 app.use("/api/patient-analyses", patientRoutes);
-
+app.use("/api/employees", employeeRoutes);
+app.use("/api/contracts", contractRoutes);  
 // Rrugët kryesore
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);

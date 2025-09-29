@@ -113,6 +113,8 @@ const MyTherapies = React.lazy(() => import("./pages/MyTherapies.jsx"));
 const TherapyDashboard = React.lazy(
   () => import("./dashboard/pages/DoctorTherapyDashboard.jsx"),
 );
+const TestCrud = React.lazy(() => import("./dashboard/pages/TestCrud.jsx")); 
+
 const TherapyCreateForm = React.lazy(
   () => import("./dashboard/pages/TherapyCreateForm.jsx"),
 );
@@ -338,8 +340,9 @@ const App = () => {
               <Route path="doctor-applications/:applicationId" element={<DoctorApplicationDetail />} />
               <Route path="therapy" element={<TherapyDashboard />} />
               <Route path="therapy/create" element={<TherapyCreateForm />} />
+              <Route path="test-crud" element={<TestCrud />} />
               <Route path="therapy/calendar" element={<TherapyCalendar />} />
-              <Route path="alerts" element={<Alerts />} />
+               <Route path="alerts" element={<Alerts />} />
               <Route path="avatars" element={<Avatars />} />
               <Route path="badge" element={<Badges />} />
               <Route path="buttons" element={<Buttons />} />

@@ -60,7 +60,12 @@ const navItems = [
       { name: "Analysis Types", path: "/dashboard/analysis-types" },
     ],
   },
-];
+  {
+    name: "Test CRUD",
+    icon: <TableIcon />,
+    path: "/dashboard/test-crud",
+  },]; 
+
 
 // ---------------- COMPONENT ----------------
 const AppSidebar = () => {
