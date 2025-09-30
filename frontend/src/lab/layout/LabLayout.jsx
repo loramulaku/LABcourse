@@ -132,6 +132,24 @@ export default function LabLayout() {
                 />
                 Pending Result
               </NavLink>
+
+              <NavLink
+                to="/lab/inbox"
+                className={({ isActive }) =>
+                  `flex items-center px-4 py-3 rounded-lg text-white transition-all duration-200 ${
+                    isActive
+                      ? "bg-green-600 bg-opacity-40 shadow-lg border border-green-400"
+                      : "hover:bg-green-700 hover:bg-opacity-30"
+                  }`
+                }
+              >
+                <img
+                  src="/src/lab/labicon/1.jpg"
+                  alt="Inbox"
+                  className="w-5 h-5 mr-3"
+                />
+                Inbox
+              </NavLink>
             </nav>
 
             {/* Back to App Button */}

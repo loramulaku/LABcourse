@@ -113,13 +113,18 @@ const MyTherapies = React.lazy(() => import("./pages/MyTherapies.jsx"));
 const TherapyDashboard = React.lazy(
   () => import("./dashboard/pages/DoctorTherapyDashboard.jsx"),
 );
-const TestCrud = React.lazy(() => import("./dashboard/pages/TestCrud.jsx")); 
 
 const TherapyCreateForm = React.lazy(
   () => import("./dashboard/pages/TherapyCreateForm.jsx"),
 );
 const TherapyCalendar = React.lazy(
   () => import("./dashboard/pages/TherapyCalendar.jsx"),
+);
+const ContactMessages = React.lazy(
+  () => import("./dashboard/pages/ContactMessages.jsx"),
+);
+const Inbox = React.lazy(
+  () => import("./dashboard/pages/Inbox.jsx"),
 );
 const LabLayout = React.lazy(() => import("./lab/layout/LabLayout.jsx"));
 const LabHistory = React.lazy(() => import("./lab/pages/LabHistory.jsx"));
@@ -340,8 +345,8 @@ const App = () => {
               <Route path="doctor-applications/:applicationId" element={<DoctorApplicationDetail />} />
               <Route path="therapy" element={<TherapyDashboard />} />
               <Route path="therapy/create" element={<TherapyCreateForm />} />
-              <Route path="test-crud" element={<TestCrud />} />
               <Route path="therapy/calendar" element={<TherapyCalendar />} />
+              <Route path="contact-messages" element={<ContactMessages />} />
                <Route path="alerts" element={<Alerts />} />
               <Route path="avatars" element={<Avatars />} />
               <Route path="badge" element={<Badges />} />
@@ -380,6 +385,7 @@ const App = () => {
               <Route path="documents/files" element={<DoctorDocumentFiles />} />
               <Route path="therapy/create" element={<DoctorTherapyDashboard />} />
               <Route path="therapy" element={<DoctorTherapyDashboard />} />
+              <Route path="inbox" element={<Inbox />} />
             </Route>
 
             {/* =================== LAB DASHBOARD (LAB ROLE) =================== */}
@@ -400,6 +406,7 @@ const App = () => {
               <Route path="calendar/:date" element={<LabCalendarDate />} />
               <Route path="confirmed" element={<LabConfirmed />} />
               <Route path="pending" element={<LabPendingResult />} />
+              <Route path="inbox" element={<Inbox />} />
             </Route>
 
             {/* Not Found */}

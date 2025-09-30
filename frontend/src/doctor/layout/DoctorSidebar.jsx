@@ -69,6 +69,11 @@ const navItems = [
       { name: "Patient Files", path: "/doctor/documents/files" },
     ],
   },
+  {
+    icon: <UserCircleIcon />,
+    name: "Inbox",
+    path: "/doctor/inbox",
+  },
 ];
 
 const othersItems = [

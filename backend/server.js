@@ -11,7 +11,8 @@ const adminProfileRoutes = require("./routes/adminProfile");
 const doctorRoutes = require("./routes/doctorRoutes");
 const doctorApplicationsRoutes = require('./routes/doctorApplications');
 const lecturerRoutes = require("./routes/lecturerRoutes");
-const trainRoutes = require("./routes/trainRoutes"); 
+const trainRoutes = require("./routes/trainRoutes");
+const contactRoutes = require("./routes/contactRoutes"); 
 
 
 const app = express();
@@ -72,6 +73,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/admin-profiles", adminProfileRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use('/api/doctor-applications', doctorApplicationsRoutes);
+app.use("/api/contact", contactRoutes);
 
 
 
@@ -193,8 +195,30 @@ const ensureTables = async () => {
           }
         }
       } else {
-        console.log("✅ All required columns present in appointments table");
-      }
+    console.log("✅ All required columns present in appointments table");
+  }
+
+  // Ensure message_senders table exists
+  const [messageSendersTables] = await db.promise().query(`
+    SELECT TABLE_NAME 
+    FROM information_schema.TABLES 
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'message_senders'
+  `);
+  if (messageSendersTables.length === 0) {
+    await db.promise().query(`
+      CREATE TABLE message_senders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        message_id INT NOT NULL,
+        sender_name VARCHAR(255) NOT NULL,
+        sender_email VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log("✅ Created message_senders table");
+  } else {
+    console.log("✅ message_senders table already exists");
+  }
     }
 
     // Ensure therapies table exists

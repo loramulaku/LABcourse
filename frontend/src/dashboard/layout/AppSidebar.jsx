@@ -61,10 +61,11 @@ const navItems = [
     ],
   },
   {
-    name: "Test CRUD",
-    icon: <TableIcon />,
-    path: "/dashboard/test-crud",
-  },]; 
+    icon: <UserCircleIcon />,
+    name: "Contact Messages",
+    path: "/dashboard/contact-messages",
+  },
+]; 
 
 
 // ---------------- COMPONENT ----------------
