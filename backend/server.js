@@ -10,8 +10,8 @@ const usersRoutes = require("./routes/users");
 const adminProfileRoutes = require("./routes/adminProfile");
 const doctorRoutes = require("./routes/doctorRoutes");
 const doctorApplicationsRoutes = require('./routes/doctorApplications');
-const employeeRoutes = require("./routes/employeeRoutes");
-const contractRoutes = require("./routes/contractRoutes"); 
+const lecturerRoutes = require("./routes/lecturerRoutes");
+const trainRoutes = require("./routes/trainRoutes"); 
 
 
 const app = express();
@@ -59,15 +59,22 @@ app.use("/api/notifications", notificationRoutes);
 // Patient routes
 const patientRoutes = require("./routes/patientRoutes");
 app.use("/api/patient-analyses", patientRoutes);
-app.use("/api/employees", employeeRoutes);
-app.use("/api/contracts", contractRoutes);  
+
+
+
+
 // Rrugët kryesore
+app.use("/api/lecturers", lecturerRoutes);
+app.use("/api/trains", trainRoutes);  
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/admin-profiles", adminProfileRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use('/api/doctor-applications', doctorApplicationsRoutes);
+
+
+
 
 // bëj folderin uploads publik
 const path = require("path");
