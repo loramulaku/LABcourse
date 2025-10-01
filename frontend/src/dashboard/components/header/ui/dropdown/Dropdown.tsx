@@ -17,21 +17,40 @@ export const Dropdown: React.FC<DropdownProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !(event.target as HTMLElement).closest(".dropdown-toggle")
-      ) {
-        onClose();
+      const target = event.target as HTMLElement;
+      
+      // Don't close if clicking inside the dropdown
+      if (dropdownRef.current && dropdownRef.current.contains(target)) {
+        return;
       }
+      
+      // Don't close if clicking on the dropdown toggle button
+      if (target.closest(".dropdown-toggle")) {
+        return;
+      }
+      
+      // Don't close if clicking on any button or interactive element
+      if (target.tagName === 'BUTTON' || target.closest('button')) {
+        return;
+      }
+      
+      // Close the dropdown for any other clicks
+      onClose();
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    // Add a small delay to prevent immediate closure
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 10);
+
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [onClose]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

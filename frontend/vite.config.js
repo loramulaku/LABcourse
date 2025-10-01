@@ -45,7 +45,14 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    cors: true,
-    strictPort: false, // Allow Vite to try other ports if 5173 is busy
+    strictPort: false,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      }
+    }
   },
 });

@@ -1,11 +1,15 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Link } from "react-router";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -18,7 +22,90 @@ export default function NotificationDropdown() {
   const handleClick = () => {
     toggleDropdown();
     setNotifying(false);
+    if (!isOpen) {
+      loadNotifications();
+    }
   };
+
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('accessToken');
+      const userId = localStorage.getItem('userId');
+      
+      if (!token || !userId) {
+        console.log('No auth token or userId found');
+        setNotifications([]);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/notifications/my-notifications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+        
+        // Check if there are unread notifications
+        const hasUnread = data.some(n => !n.is_read);
+        setNotifying(hasUnread);
+      } else {
+        console.error('Failed to fetch notifications:', response.status);
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      await fetch(`${API_URL}/api/notifications/${notificationId}/read`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Update local state
+      setNotifications(prev => 
+        prev.map(n => 
+          n.id === notificationId ? { ...n, is_read: true } : n
+        )
+      );
+
+      // Update notifying badge
+      const hasUnread = notifications.some(n => n.id !== notificationId && !n.is_read);
+      setNotifying(hasUnread);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ', ' + date.toLocaleTimeString();
+  };
+
+  // Load notifications on component mount
+  useEffect(() => {
+    loadNotifications();
+    
+    // Refresh notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className="relative">
       <button
@@ -77,8 +164,63 @@ export default function NotificationDropdown() {
           </button>
         </div>
         <ul className="flex flex-col h-auto overflow-y-auto no-scrollbar">
-          {/* Example notification items */}
-          <li>
+          {loading && (
+            <li className="p-4 text-center text-gray-500">
+              Loading notifications...
+            </li>
+          )}
+          
+          {!loading && notifications.length === 0 && (
+            <li className="p-4 text-center text-gray-500">
+              No notifications yet
+            </li>
+          )}
+          
+          {!loading && notifications.map((notification) => (
+            <li key={notification.id}>
+              <DropdownItem
+                onItemClick={() => {
+                  markAsRead(notification.id);
+                  closeDropdown();
+                }}
+                className={`flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5 ${
+                  !notification.is_read ? 'bg-green-50 dark:bg-green-900/10' : ''
+                }`}
+              >
+                <span className="relative block w-full h-10 rounded-full z-1 max-w-10">
+                  <span className="flex items-center justify-center w-full h-full overflow-hidden rounded-full bg-orange-100 dark:bg-orange-900/30">
+                    🔔
+                  </span>
+                  {!notification.is_read && (
+                    <span className="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-green-500 dark:border-gray-900"></span>
+                  )}
+                </span>
+
+                <span className="block">
+                  <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
+                    <span className="font-medium text-gray-800 dark:text-white/90">
+                      {notification.title}
+                    </span>
+                    {!notification.is_read && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        New
+                      </span>
+                    )}
+                  </span>
+                  <span className="block mb-1 text-sm text-gray-600 dark:text-gray-400">
+                    {notification.message}
+                  </span>
+                  <span className="block text-xs text-gray-400">
+                    {formatDate(notification.created_at)}
+                  </span>
+                </span>
+              </DropdownItem>
+            </li>
+          ))}
+          
+          {/* Keep one example for reference - will be replaced by real data */}
+          {false && (
+            <li>
             <DropdownItem
               onItemClick={closeDropdown}
               className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
@@ -366,6 +508,7 @@ export default function NotificationDropdown() {
               </span>
             </DropdownItem>
           </li>
+          )}
           {/* Add more items as needed */}
         </ul>
         <Link

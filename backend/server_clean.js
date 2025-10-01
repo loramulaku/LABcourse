@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 // Initialize Stripe
@@ -13,28 +12,9 @@ const db = require("./db");
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-app.use(cookieParser());
+app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-
-// Debug middleware to log cookies on every request
-app.use((req, res, next) => {
-  if (req.path.includes('/auth/refresh')) {
-    console.log('\n🔍 === INCOMING REQUEST TO /auth/refresh ===');
-    console.log('📍 Origin:', req.headers.origin);
-    console.log('🍪 Cookie header:', req.headers.cookie);
-    console.log('🍪 Parsed cookies:', req.cookies);
-    console.log('🍪 Signed cookies:', req.signedCookies);
-    console.log('===========================================\n');
-  }
-  next();
-});
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -89,7 +69,7 @@ const userRoutes = require("./routes/users");
 const doctorRoutes = require("./routes/doctorRoutes");
 const labRoutes = require("./routes/laboratoryRoutes");
 const lecturerRoutes = require("./routes/lecturerRoutes");
-const { router: notificationRoutes } = require("./routes/notificationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const profileRoutes = require("./routes/profile");
 const adminProfileRoutes = require("./routes/adminProfile");

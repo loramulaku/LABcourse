@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { getAccessToken, setAccessToken } from "../api";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { getAccessToken, setAccessToken, API_URL } from "../api";
 
 const ProtectedRoute = ({ children, requireRole }) => {
   const [loading, setLoading] = useState(true);
@@ -22,49 +20,38 @@ const ProtectedRoute = ({ children, requireRole }) => {
         return;
       }
 
-      // Only try to refresh if we don't have an access token
-      // Check if we have any stored session data first
-      const hasStoredSession = localStorage.getItem("role") || document.cookie.includes("refreshToken");
-      
-      if (!hasStoredSession) {
-        // No session data at all, redirect to login
-        setAuthed(false);
-        setLoading(false);
-        return;
-      }
-
+      // No access token - try to refresh
       try {
         const res = await fetch(`${API_URL}/api/auth/refresh`, {
           method: "POST",
           credentials: "include",
         });
 
-        if (!res.ok) {
-          // Clear any stale session data
+        if (res.ok) {
+          const data = await res.json();
+
+          if (data.accessToken) {
+            setAccessToken(data.accessToken);
+
+            if (data.role) {
+              localStorage.setItem("role", data.role);
+              setRole(data.role);
+            } else {
+              setRole(localRole);
+            }
+
+            setAuthed(true);
+          } else {
+            setAuthed(false);
+          }
+        } else {
+          // Refresh failed
           localStorage.removeItem("role");
           setAccessToken(null);
-          throw new Error("Refresh failed");
-        }
-
-        const data = await res.json();
-
-        if (data.accessToken) {
-          setAccessToken(data.accessToken);
-
-          if (data.role) {
-            localStorage.setItem("role", data.role);
-            setRole(data.role);
-          } else {
-            setRole(localRole);
-          }
-
-          setAuthed(true);
-        } else {
           setAuthed(false);
         }
       } catch (err) {
-        console.error("❌ Refresh error:", err);
-        // Clear any stale session data on error
+        console.error("Refresh error:", err);
         localStorage.removeItem("role");
         setAccessToken(null);
         setAuthed(false);

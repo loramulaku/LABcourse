@@ -44,6 +44,15 @@ const Navbar = () => {
     }
   };
 
+  // Re-check token state on mount (in case it was restored by useAuthInit)
+  useEffect(() => {
+    const currentToken = localStorage.getItem("accessToken");
+    const currentRole = localStorage.getItem("role");
+    
+    setToken(!!currentToken);
+    setRole(currentRole);
+  }, []);
+
   useEffect(() => {
     if (token) {
       fetchUserInfo();
@@ -52,7 +61,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/api/auth/logout", {
+      await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });

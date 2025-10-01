@@ -19,11 +19,11 @@ const Login = () => {
     try {
       if (state === "Sign Up") {
         // Thirrje e thjeshtë fetch për Sign Up, nuk ka token akoma
-        const response = await fetch("http://localhost:5000/api/auth/signup", {
+        const response = await fetch("/api/auth/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password }),
-          credentials: "include", // ✅ shto këtë
+          credentials: "include",
         });
 
         const data = await response.json();
@@ -36,7 +36,7 @@ const Login = () => {
         }
       } else {
         // Login → përdorim apiFetch me auto-refresh
-        const data = await apiFetch("http://localhost:5000/api/auth/login", {
+        const data = await apiFetch("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });

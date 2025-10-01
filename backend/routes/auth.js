@@ -18,18 +18,19 @@ function generateRefreshToken(user) {
   return jwt.sign(
     { id: user.id },
     process.env.REFRESH_SECRET,
-    { expiresIn: process.env.REFRESH_EXPIRES_IN || "1d" }, // zakonisht ditë
+    { expiresIn: process.env.REFRESH_EXPIRES_IN || "7d" }, // zakonisht ditë
   );
 }
 
 function setRefreshCookie(res, token) {
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // dev: false, prod: true
+    secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   });
+  console.log('🍪 Refresh token cookie set');
 }
 
 // SIGN UP (Only for regular users, doctors are added by admin)
@@ -45,26 +46,39 @@ router.post("/signup", async (req, res) => {
 
   try {
     const hashed = await bcrypt.hash(password, 10);
-    const query =
-      "INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)";
-    db.query(query, [name, email, hashed, "user"], (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: "User u krijua, tash kyçu" });
+    const query = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
+    
+    const [result] = await db.promise().query(query, [name, email, hashed, "user"]);
+    
+    // Create user profile entry
+    await db.promise().query(
+      "INSERT INTO user_profiles (user_id, profile_image) VALUES (?, ?)",
+      [result.insertId, 'uploads/default.png']
+    );
+    
+    res.json({ 
+      message: "User u krijua, tash kyçu",
+      userId: result.insertId 
     });
   } catch (e) {
+    console.error("Signup error:", e);
+    if (e.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ error: "Email already exists" });
+    }
     res.status(500).json({ error: "Gabim gjatë signup" });
   }
 });
 
 // LOGIN
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const query = "SELECT * FROM users WHERE email = ?";
-
-  db.query(query, [email], async (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (results.length === 0)
+  
+  try {
+    const [results] = await db.promise().query("SELECT * FROM users WHERE email = ?", [email]);
+    
+    if (results.length === 0) {
       return res.status(400).json({ error: "Ska user me ketë email" });
+    }
 
     const user = results[0];
     const match = await bcrypt.compare(password, user.password);
@@ -76,67 +90,130 @@ router.post("/login", (req, res) => {
        `Login attempt from ${req.ip || 'unknown'}`, req.ip || 'unknown']
     );
     
-    if (!match) return res.status(400).json({ error: "Password gabim" });
+    if (!match) {
+      return res.status(400).json({ error: "Password gabim" });
+    }
 
-    // Check account status for doctors
-    if (user.role === 'doctor' && user.account_status === 'inactive') {
+    // Check account status
+    if (user.account_status !== 'active') {
       return res.status(403).json({ 
-        error: "Your doctor account is inactive. Please contact admin.",
-        status: "inactive"
+        error: `Your account is ${user.account_status}. Please contact admin.`,
+        status: user.account_status
       });
     }
 
+    console.log('✅ Password match, generating tokens for user:', user.id);
+    
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
+    
+    console.log('🔑 Access token generated (expires in', process.env.JWT_EXPIRES_IN || '15m', ')');
+    console.log('🔑 Refresh token generated (expires in', process.env.REFRESH_EXPIRES_IN || '1d', ')');
 
-    db.query(
+    // Store refresh token
+    await db.promise().query(
       "INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)",
-      [user.id, refreshToken],
-      (e2) => {
-        if (e2) return res.status(500).json({ error: e2.message });
-        setRefreshCookie(res, refreshToken);
-        res.json({ message: "Login sukses", accessToken, role: user.role });
-      },
+      [user.id, refreshToken]
     );
-  });
+    
+    console.log('✅ Refresh token stored in database');
+
+    setRefreshCookie(res, refreshToken);
+    console.log('✅ Refresh token cookie set');
+    console.log('📤 Sending login response with access token');
+    
+    res.json({ 
+      message: "Login sukses", 
+      accessToken, 
+      role: user.role,
+      userId: user.id,
+      name: user.name
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Gabim gjatë login" });
+  }
 });
 
 // REFRESH
 router.post("/refresh", (req, res) => {
+  console.log('\n🔄 ===== REFRESH TOKEN REQUEST =====');
+  console.log('📧 Cookies received:', req.cookies);
+  console.log('📧 All headers:', req.headers.cookie);
+  
   const refreshToken = req.cookies?.refreshToken;
-  if (!refreshToken)
+  
+  if (!refreshToken) {
+    console.log('❌ No refresh token found in cookies');
     return res.status(401).json({ error: "Nuk ka refresh token" });
+  }
+
+  console.log('✅ Refresh token found in cookie');
+  console.log('🔍 Checking database for token...');
 
   db.query(
     "SELECT * FROM refresh_tokens WHERE token = ?",
     [refreshToken],
     (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (rows.length === 0)
+      if (err) {
+        console.log('❌ Database error:', err.message);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      console.log('📊 Database lookup result:', rows.length, 'rows found');
+      
+      if (rows.length === 0) {
+        console.log('❌ Refresh token not found in database');
         return res.status(403).json({ error: "Refresh token i pavlefshëm" });
+      }
+      
+      console.log('✅ Refresh token found in database for user:', rows[0].user_id);
 
+      console.log('🔐 Verifying JWT signature...');
+      
       jwt.verify(refreshToken, process.env.REFRESH_SECRET, (e2, payload) => {
-        if (e2) return res.status(403).json({ error: "Refresh token skadoi" });
+        if (e2) {
+          console.log('❌ JWT verification failed:', e2.message);
+          return res.status(403).json({ error: "Refresh token skadoi" });
+        }
+
+        console.log('✅ JWT verified, payload:', payload);
+        console.log('🔍 Fetching user from database...');
 
         const q = "SELECT id, role FROM users WHERE id = ? LIMIT 1";
         db.query(q, [payload.id], (e3, r2) => {
-          if (e3 || r2.length === 0)
+          if (e3 || r2.length === 0) {
+            console.log('❌ User not found:', e3?.message || 'No results');
             return res.status(403).json({ error: "User jo valid" });
+          }
 
           const user = r2[0];
+          console.log('✅ User found:', user.id, 'Role:', user.role);
+          console.log('🔑 Generating new access token...');
+          
           const newAccess = generateAccessToken(user);
+          console.log('✅ New access token generated');
 
           // ROTATE refresh token
+          console.log('🔄 Rotating refresh token...');
           const newRefresh = generateRefreshToken(user);
+          
           db.query(
             "DELETE FROM refresh_tokens WHERE token = ?",
             [refreshToken],
             () => {
+              console.log('✅ Old refresh token deleted from database');
+              
               db.query(
                 "INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)",
                 [user.id, newRefresh],
                 () => {
+                  console.log('✅ New refresh token stored in database');
                   setRefreshCookie(res, newRefresh);
+                  console.log('✅ New refresh token cookie set');
+                  console.log('📤 Sending response with new access token and role:', user.role);
+                  console.log('===== REFRESH TOKEN SUCCESS =====\n');
+                  
                   // 👉 tani kthejmë edhe rolin bashkë me token
                   return res.json({ accessToken: newAccess, role: user.role });
                 },
@@ -150,23 +227,31 @@ router.post("/refresh", (req, res) => {
 });
 
 // LOGOUT
-router.post("/logout", (req, res) => {
-  const refreshToken = req.cookies?.refreshToken;
-  if (refreshToken) {
-    db.query(
-      "DELETE FROM refresh_tokens WHERE token = ?",
-      [refreshToken],
-      () => {
-        res.clearCookie("refreshToken", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
-        });
-        return res.json({ message: "Logout successful" });
-      },
-    );
-  } else {
-    return res.json({ message: "Logout successful" });
+router.post("/logout", async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    
+    if (refreshToken) {
+      // Delete refresh token from database
+      await db.promise().query(
+        "DELETE FROM refresh_tokens WHERE token = ?",
+        [refreshToken]
+      );
+      console.log('✅ Refresh token deleted from database');
+    }
+    
+    // Clear the refresh token cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      path: "/",
+    });
+    
+    res.json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "Logout failed" });
   }
 });
 
@@ -178,6 +263,29 @@ router.get("/dashboard", authenticateToken, isAdmin, (req, res) => {
 // Info user-i nga access token
 router.get("/me", authenticateToken, (req, res) => {
   res.json({ user: req.user });
+});
+
+// Test endpoint to check if cookies are working
+router.get("/test-cookie", (req, res) => {
+  console.log('\n🧪 === COOKIE TEST ENDPOINT ===');
+  console.log('📧 All cookies received:', req.cookies);
+  console.log('📧 Cookie header:', req.headers.cookie);
+  console.log('===========================\n');
+  
+  // Set a test cookie
+  res.cookie('testCookie', 'testValue123', {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 60000, // 1 minute
+    path: '/'
+  });
+  
+  res.json({
+    message: 'Cookie test endpoint',
+    cookiesReceived: req.cookies,
+    cookieHeader: req.headers.cookie,
+    testCookieSet: true
+  });
 });
 
 // Get user profile info for navbar (photo, name, role)

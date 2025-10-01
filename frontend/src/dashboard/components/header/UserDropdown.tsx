@@ -1,18 +1,45 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { Link } from "react-router";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
-  function toggleDropdown() {
+  function toggleDropdown(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Toggle dropdown clicked, current state:', isOpen);
     setIsOpen(!isOpen);
   }
 
   function closeDropdown() {
+    console.log('Closing dropdown');
     setIsOpen(false);
   }
+
+  const handleLogout = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("role");
+      localStorage.removeItem("userId");
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      // Still clear local storage and navigate even if API call fails
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("role");
+      localStorage.removeItem("userId");
+      navigate("/login");
+    }
+  };
   return (
     <div className="relative">
       <button
@@ -135,9 +162,9 @@ export default function UserDropdown() {
             </DropdownItem>
           </li>
         </ul>
-        <Link
-          to="/signin"
-          className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300 w-full text-left"
         >
           <svg
             className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
@@ -155,7 +182,7 @@ export default function UserDropdown() {
             />
           </svg>
           Sign out
-        </Link>
+        </button>
       </Dropdown>
     </div>
   );

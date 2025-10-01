@@ -175,6 +175,19 @@ const ContactForm = () => {
                 {loading ? "Sending..." : "Send Message →"}
               </button>
             </div>
+            
+            {/* Check Replies Link */}
+            <div className="mt-6 text-center">
+              <p className="text-gray-600 text-sm mb-2">
+                Want to check for replies to your messages?
+              </p>
+              <a
+                href="/check-replies"
+                className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+              >
+                <span>📧 Check Your Replies</span>
+              </a>
+            </div>
           </form>
         </div>
       </div>

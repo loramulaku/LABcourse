@@ -1,5 +1,5 @@
-// src/api.js
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// Empty string for relative paths (uses Vite proxy), or full URL for direct calls
+export const API_URL = import.meta.env.VITE_API_URL || "";
 
 export function getAccessToken() {
   return localStorage.getItem("accessToken");

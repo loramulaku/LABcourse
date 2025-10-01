@@ -15,6 +15,7 @@ const Login = React.lazy(() => import("./pages/Login"));
 const DoctorRegistration = React.lazy(() => import("./pages/DoctorRegistration"));
 const About = React.lazy(() => import("./pages/About"));
 const Contact = React.lazy(() => import("./pages/Contact"));
+const CheckReplies = React.lazy(() => import("./pages/CheckReplies"));
 const MyProfile = React.lazy(() => import("./pages/MyProfile"));
 const MyAppointments = React.lazy(() => import("./pages/MyAppointments"));
 const Appointment = React.lazy(() => import("./pages/Appointment"));
@@ -218,6 +219,14 @@ const App = () => {
               element={
                 
                   <Contact />
+                
+              }
+            />
+            <Route
+              path="/check-replies"
+              element={
+                
+                  <CheckReplies />
                 
               }
             />
