@@ -4,12 +4,12 @@ const multer = require("multer");
 const path = require("path");
 const {
   createDoctor,
-  getDoctors,
+  getAllDoctors,
   getDoctorById,
   updateDoctor,
   deleteDoctor,
-  getMyProfile,
-  updateMyProfile,
+  getDoctorByUserId,
+  updateDoctorByUserId,
 } = require("../controllers/doctorController");
 
 const router = express.Router();
@@ -38,11 +38,11 @@ router.post(
 );
 
 // Doctor's own profile endpoints (MUST come before /:id routes)
-router.get("/me", authenticateToken, getMyProfile);
-router.put("/me", authenticateToken, updateMyProfile);
+router.get("/me", authenticateToken, getDoctorByUserId);
+router.put("/me", authenticateToken, updateDoctorByUserId);
 
 // Public endpoints
-router.get("/", getDoctors);
+router.get("/", getAllDoctors);
 router.get("/:id", getDoctorById);
 
 // Admin update/delete

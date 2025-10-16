@@ -12,12 +12,25 @@ export default function Laboratories() {
 
   const fetchLaboratories = async () => {
     try {
+      console.log('🔍 Fetching laboratories from API...');
+      
       const data = await apiFetch(`${API_URL}/api/laboratories`, {
         credentials: "include",
       });
-      setLaboratories(data);
+      
+      console.log('✅ Laboratories received:', data);
+      console.log('   Count:', Array.isArray(data) ? data.length : 0);
+      
+      if (Array.isArray(data)) {
+        setLaboratories(data);
+        console.log('✅ Laboratories set in state:', data.length, 'items');
+      } else {
+        console.error('❌ Expected array, got:', typeof data);
+        setLaboratories([]);
+      }
     } catch (error) {
-      console.error("Error fetching laboratories:", error);
+      console.error("❌ Error fetching laboratories:", error);
+      setLaboratories([]);
     } finally {
       setLoading(false);
     }

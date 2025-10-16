@@ -1,8 +1,138 @@
-// models/Therapy.js
-const db = require("../db");
+'use strict';
 
-class Therapy {
-  static async getAll() {
+/**
+ * Therapy Model - Refactored for Sequelize compatibility
+ * 
+ * Note: This model still uses some legacy methods.
+ * Consider creating TherapyService for business logic.
+ */
+
+module.exports = (sequelize, DataTypes) => {
+  const Therapy = sequelize.define('Therapy', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    appointment_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    doctor_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    patient_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    therapy_text: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    medications: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    dosage: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    frequency: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    duration: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    instructions: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    follow_up_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    therapy_type: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    start_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    end_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    priority: {
+      type: DataTypes.ENUM('low', 'medium', 'high', 'urgent'),
+      defaultValue: 'medium',
+    },
+    patient_notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    doctor_notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.ENUM('draft', 'active', 'completed', 'cancelled'),
+      defaultValue: 'draft',
+    },
+  }, {
+    tableName: 'therapies',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    indexes: [
+      {
+        name: 'idx_therapy_appointment',
+        fields: ['appointment_id'],
+      },
+      {
+        name: 'idx_therapy_doctor',
+        fields: ['doctor_id'],
+      },
+      {
+        name: 'idx_therapy_patient',
+        fields: ['patient_id'],
+      },
+      {
+        name: 'idx_therapy_status',
+        fields: ['status'],
+      },
+      {
+        name: 'idx_therapy_follow_up',
+        fields: ['follow_up_date'],
+      },
+    ],
+  });
+
+  Therapy.associate = function(models) {
+    Therapy.belongsTo(models.Appointment, {
+      foreignKey: 'appointment_id',
+      onDelete: 'CASCADE',
+    });
+
+    Therapy.belongsTo(models.Doctor, {
+      foreignKey: 'doctor_id',
+      onDelete: 'CASCADE',
+    });
+
+    Therapy.belongsTo(models.User, {
+      foreignKey: 'patient_id',
+      as: 'Patient',
+      onDelete: 'CASCADE',
+    });
+  };
+
+  // Legacy static methods using raw SQL (to be refactored to service layer)
+  const db = require("../db");
+
+  Therapy.getAll = async function() {
     const [rows] = await db.promise().query(
       `SELECT t.id,
                     t.appointment_id,
@@ -29,9 +159,9 @@ class Therapy {
              JOIN appointments a ON a.id = t.appointment_id`,
     );
     return rows;
-  }
+  };
 
-  static async getById(id) {
+  Therapy.getById = async function(id) {
     const [rows] = await db.promise().query(
       `SELECT t.id,
                     t.appointment_id,
@@ -60,9 +190,9 @@ class Therapy {
       [id],
     );
     return rows[0];
-  }
+  };
 
-  static async getByPatientId(patientId) {
+  Therapy.getByPatientId = async function(patientId) {
     const [rows] = await db.promise().query(
       `SELECT t.id,
                     t.appointment_id,
@@ -89,9 +219,9 @@ class Therapy {
       [patientId],
     );
     return rows;
-  }
+  };
 
-  static async getByDoctorId(doctorId) {
+  Therapy.getByDoctorId = async function(doctorId) {
     const [rows] = await db.promise().query(
       `SELECT t.id,
                     t.appointment_id,
@@ -119,9 +249,9 @@ class Therapy {
       [doctorId],
     );
     return rows;
-  }
+  };
 
-  static async create(data) {
+  Therapy.create = async function(data) {
     const {
       appointment_id,
       doctor_id,
@@ -168,9 +298,9 @@ class Therapy {
       ],
     );
     return result.insertId;
-  }
+  };
 
-  static async update(id, data) {
+  Therapy.update = async function(id, data) {
     const {
       therapy_text,
       medications,
@@ -213,14 +343,14 @@ class Therapy {
         id,
       ],
     );
-  }
+  };
 
-  static async delete(id) {
+  Therapy.delete = async function(id) {
     await db.promise().query("DELETE FROM therapies WHERE id = ?", [id]);
-  }
+  };
 
   // Get therapy statistics for doctor dashboard
-  static async getDoctorStats(doctorId) {
+  Therapy.getDoctorStats = async function(doctorId) {
     const [rows] = await db.promise().query(
       `SELECT 
                 COUNT(*) as total_therapies,
@@ -232,10 +362,10 @@ class Therapy {
       [doctorId],
     );
     return rows[0];
-  }
+  };
 
   // Get therapy statistics for patient
-  static async getPatientStats(patientId) {
+  Therapy.getPatientStats = async function(patientId) {
     const [rows] = await db.promise().query(
       `SELECT 
                 COUNT(*) as total_therapies,
@@ -246,10 +376,10 @@ class Therapy {
       [patientId],
     );
     return rows[0];
-  }
+  };
 
   // Get upcoming follow-ups for doctor
-  static async getUpcomingFollowUps(doctorId) {
+  Therapy.getUpcomingFollowUps = async function(doctorId) {
     const [rows] = await db.promise().query(
       `SELECT t.id, t.follow_up_date, u.name as patient_name, t.therapy_text
              FROM therapies t
@@ -261,10 +391,10 @@ class Therapy {
       [doctorId],
     );
     return rows;
-  }
+  };
 
   // Get upcoming follow-ups for patient
-  static async getPatientUpcomingFollowUps(patientId) {
+  Therapy.getPatientUpcomingFollowUps = async function(patientId) {
     const [rows] = await db.promise().query(
       `SELECT t.id, t.follow_up_date, d.speciality as doctor_speciality, t.therapy_text
              FROM therapies t
@@ -276,10 +406,10 @@ class Therapy {
       [patientId],
     );
     return rows;
-  }
+  };
 
   // Get therapies by status for doctor dashboard
-  static async getTherapiesByStatus(doctorId, status) {
+  Therapy.getTherapiesByStatus = async function(doctorId, status) {
     const [rows] = await db.promise().query(
       `SELECT t.id, t.therapy_type, t.start_date, t.end_date, t.priority,
                     t.status, t.created_at, t.updated_at,
@@ -293,10 +423,10 @@ class Therapy {
       [doctorId, status],
     );
     return rows;
-  }
+  };
 
   // Get therapy calendar data for doctor
-  static async getTherapyCalendar(doctorId, startDate, endDate) {
+  Therapy.getTherapyCalendar = async function(doctorId, startDate, endDate) {
     const [rows] = await db.promise().query(
       `SELECT t.id, t.start_date, t.follow_up_date, t.status, t.therapy_type,
                     u.name as patient_name, t.priority
@@ -308,20 +438,20 @@ class Therapy {
       [doctorId, startDate, endDate, startDate, endDate],
     );
     return rows;
-  }
+  };
 
   // Update therapy status
-  static async updateStatus(id, status) {
+  Therapy.updateStatus = async function(id, status) {
     await db
       .promise()
       .query(
         "UPDATE therapies SET status = ?, updated_at = NOW() WHERE id = ?",
         [status, id],
       );
-  }
+  };
 
   // Get therapy templates (common therapies)
-  static async getTherapyTemplates() {
+  Therapy.getTherapyTemplates = async function() {
     return [
       {
         id: 1,
@@ -356,7 +486,7 @@ class Therapy {
           "Monitor blood sugar, follow diabetic diet, regular check-ups",
       },
     ];
-  }
-}
+  };
 
-module.exports = Therapy;
+  return Therapy;
+};

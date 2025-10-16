@@ -15,6 +15,9 @@ export default function AdminDoctors() {
     about: "",
     available: true
   });
+  
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -24,22 +27,72 @@ export default function AdminDoctors() {
     });
   };
 
+  const onImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      setImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
 
+    // Validate required fields
+    if (!form.name || !form.email || !form.password) {
+      alert("Please fill in all required fields: Name, Email, and Password");
+      return;
+    }
+
     try {
+      // Use FormData if there's an image, otherwise JSON
+      let requestBody;
+      let headers = {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      };
+
+      if (imageFile) {
+        // Use FormData for file upload
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        Object.keys(form).forEach(key => {
+          formData.append(key, form[key]);
+        });
+        requestBody = formData;
+        // Don't set Content-Type header - browser will set it with boundary
+      } else {
+        // Use JSON
+        headers['Content-Type'] = 'application/json';
+        requestBody = JSON.stringify(form);
+      }
+
       const response = await fetch(`${API_URL}/api/doctors`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
+        headers: headers,
         credentials: "include",
-        body: JSON.stringify(form),
+        body: requestBody,
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert("Doctor added successfully!");
+        alert(data.message || "Doctor added successfully!");
+        // Reset form
         setForm({
           name: "",
           email: "",
@@ -53,13 +106,18 @@ export default function AdminDoctors() {
           about: "",
           available: true
         });
+        setImageFile(null);
+        setImagePreview(null);
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Error adding doctor");
+        // Show detailed error message
+        const errorMsg = data.details 
+          ? `${data.error}: ${Array.isArray(data.details) ? data.details.join(', ') : data.details}`
+          : data.error || "Error adding doctor";
+        alert(errorMsg);
       }
     } catch (err) {
-      console.error(err);
-      alert("Error adding doctor");
+      console.error("Error adding doctor:", err);
+      alert("Network error: Could not connect to server. Please try again.");
     }
   };
 
@@ -178,6 +236,43 @@ export default function AdminDoctors() {
           value={form.about}
           onChange={onChange}
         />
+        
+        {/* Image Upload */}
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Doctor Profile Image (Optional)
+          </label>
+          <div className="flex items-start space-x-4">
+            <div className="flex-1">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onImageChange}
+                className="block w-full text-sm text-gray-500 dark:text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100
+                  dark:file:bg-blue-900 dark:file:text-blue-300
+                  cursor-pointer"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                PNG, JPG, GIF up to 5MB
+              </p>
+            </div>
+            {imagePreview && (
+              <div className="flex-shrink-0">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="h-20 w-20 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="col-span-2 flex items-center space-x-3">
           <input
             type="checkbox"

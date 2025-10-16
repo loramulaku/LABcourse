@@ -18,7 +18,15 @@ export default function AdminLaboratories() {
   const submit = async (e) => {
     e.preventDefault();
 
+    // Validate required fields
+    if (!form.name || !form.login_email || !form.password) {
+      alert("Please fill in all required fields: Name, Login Email, and Password");
+      return;
+    }
+
     try {
+      console.log('🏥 Creating laboratory:', form.name);
+
       const response = await fetch(`${API_URL}/api/laboratories`, {
         method: "POST",
         headers: {
@@ -29,8 +37,13 @@ export default function AdminLaboratories() {
         body: JSON.stringify(form),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert("Laboratory added successfully!");
+        console.log('✅ Laboratory created successfully:', data);
+        alert(data.message || "Laboratory added successfully!");
+        
+        // Reset form
         setForm({
           name: "",
           login_email: "",
@@ -42,12 +55,16 @@ export default function AdminLaboratories() {
           working_hours: "",
         });
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Error adding laboratory");
+        console.error('❌ Laboratory creation failed:', data);
+        // Show detailed error message
+        const errorMsg = data.details 
+          ? `${data.error}: ${Array.isArray(data.details) ? data.details.join(', ') : data.details}`
+          : data.error || "Error adding laboratory";
+        alert(errorMsg);
       }
     } catch (err) {
-      console.error(err);
-      alert("Error adding laboratory");
+      console.error("❌ Network error creating laboratory:", err);
+      alert("Network error: Could not connect to server. Please try again.");
     }
   };
 

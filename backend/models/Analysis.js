@@ -1,148 +1,79 @@
-// models/Analysis.js
-const db = require("../db");
+'use strict';
 
-class Analysis {
-  static async getAllTypes() {
-    const [rows] = await db.promise().query("SELECT * FROM analysis_types");
-    return rows;
-  }
+/**
+ * Analysis Model - Deprecated wrapper for backward compatibility
+ * 
+ * This file now exports proper Sequelize models.
+ * For new code, use AnalysisService and AnalysisRepository instead.
+ * 
+ * @deprecated Use AnalysisService for business logic
+ */
 
-  static async getTypesByLaboratory(labId) {
-    const [rows] = await db
-      .promise()
-      .query("SELECT * FROM analysis_types WHERE laboratory_id = ?", [labId]);
-    return rows;
-  }
+module.exports = (sequelize, DataTypes) => {
+  // This is a virtual model that doesn't represent a real table
+  // It's just here to satisfy the models/index.js loader
+  // The actual models are AnalysisType and PatientAnalysis
+  
+  // We return a placeholder that won't conflict with the loader
+  const Analysis = sequelize.define('Analysis', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+  }, {
+    tableName: '_analysis_deprecated',
+    timestamps: false,
+    // This model is just a placeholder and should not sync
+    sync: { force: false, alter: false },
+  });
 
-  static async createRequest(data) {
-    console.log("Analysis.createRequest called with data:", data);
+  // Store reference to models for backward compatibility methods
+  Analysis.getModels = () => {
+    const models = require('./index');
+    return {
+      AnalysisType: models.AnalysisType,
+      PatientAnalysis: models.PatientAnalysis,
+      Laboratory: models.Laboratory,
+      User: models.User,
+    };
+  };
 
-    const {
-      user_id,
-      analysis_type_id,
-      laboratory_id,
-      appointment_date,
-      notes,
-    } = data;
+  // Backward compatibility static methods (deprecated)
+  Analysis.getAllTypes = async function() {
+    console.warn('⚠️  Analysis.getAllTypes() is deprecated. Use AnalysisService.getAllTypes() instead.');
+    const { AnalysisType } = this.getModels();
+    return await AnalysisType.findAll();
+  };
 
-    // Validate required fields
-    if (!user_id || !analysis_type_id || !laboratory_id || !appointment_date) {
-      throw new Error(
-        "Missing required fields: user_id, analysis_type_id, laboratory_id, appointment_date",
-      );
-    }
+  Analysis.getTypesByLaboratory = async function(labId) {
+    console.warn('⚠️  Analysis.getTypesByLaboratory() is deprecated. Use AnalysisService.getTypesByLaboratory() instead.');
+    const { AnalysisType } = this.getModels();
+    return await AnalysisType.findAll({
+      where: { laboratory_id: labId }
+    });
+  };
 
-    console.log("Validating time slot availability...");
+  Analysis.createRequest = async function(data) {
+    console.warn('⚠️  Analysis.createRequest() is deprecated. Use AnalysisService.createRequest() instead.');
+    const AnalysisService = require('../services/AnalysisService');
+    const service = new AnalysisService();
+    return await service.createRequest(data);
+  };
 
-    // Expect local datetime string (YYYY-MM-DDTHH:MM:SS), store exactly as provided
-    const mysqlDateTime = (() => {
-      if (typeof appointment_date === "string") {
-        // Ensure we have seconds, then convert to MySQL format
-        const hasSeconds = appointment_date.match(/T\d{2}:\d{2}:\d{2}$/);
-        const normalized = hasSeconds
-          ? appointment_date
-          : `${appointment_date}:00`;
-        return normalized.replace("T", " ");
-      }
-      // If somehow a Date object is passed, convert it carefully
-      const d = new Date(appointment_date);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      const hour = String(d.getHours()).padStart(2, "0");
-      const minute = String(d.getMinutes()).padStart(2, "0");
-      const second = String(d.getSeconds()).padStart(2, "0");
-      return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
-    })();
-    console.log("Converted datetime for MySQL:", mysqlDateTime);
+  Analysis.getPatientAnalyses = async function(userId) {
+    console.warn('⚠️  Analysis.getPatientAnalyses() is deprecated. Use AnalysisService.getPatientAnalyses() instead.');
+    const AnalysisService = require('../services/AnalysisService');
+    const service = new AnalysisService();
+    return await service.getPatientAnalyses(userId);
+  };
 
-    // Check if the time slot is available
-    const Laboratory = require("./Laboratory");
-    const isAvailable = await Laboratory.isTimeSlotAvailable(
-      laboratory_id,
-      mysqlDateTime,
-    );
+  Analysis.updateResult = async function(id, result, status = 'completed') {
+    console.warn('⚠️  Analysis.updateResult() is deprecated. Use AnalysisService.updateResult() instead.');
+    const AnalysisService = require('../services/AnalysisService');
+    const service = new AnalysisService();
+    return await service.updateResult(id, result, status);
+  };
 
-    console.log("Time slot available:", isAvailable);
-
-    if (!isAvailable) {
-      throw new Error("TIME_SLOT_BOOKED");
-    }
-
-    console.log("Inserting analysis request into database...");
-
-    // Use a transaction to prevent race conditions
-    const connection = await db.promise().getConnection();
-
-    try {
-      await connection.beginTransaction();
-
-      // Double-check availability within the transaction
-      const [checkRows] = await connection.query(
-        `SELECT COUNT(*) as count FROM patient_analyses 
-                 WHERE laboratory_id = ? 
-                 AND status != "cancelled"
-                 AND appointment_date = ?`,
-        [laboratory_id, mysqlDateTime],
-      );
-
-      if (checkRows[0].count > 0) {
-        await connection.rollback();
-        throw new Error("TIME_SLOT_BOOKED");
-      }
-
-      // Insert the new request
-      const [result] = await connection.query(
-        "INSERT INTO patient_analyses (user_id, analysis_type_id, laboratory_id, appointment_date, notes) VALUES (?, ?, ?, ?, ?)",
-        [user_id, analysis_type_id, laboratory_id, mysqlDateTime, notes],
-      );
-
-      await connection.commit();
-      console.log("Analysis request created with ID:", result.insertId);
-      return result.insertId;
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
-    }
-  }
-
-  static async getPatientAnalyses(userId) {
-    const [rows] = await db.promise().query(
-      `SELECT 
-                pa.id,
-                pa.user_id,
-                pa.analysis_type_id,
-                pa.laboratory_id,
-                pa.result,
-                pa.status,
-                DATE_FORMAT(pa.appointment_date, '%Y-%m-%d %H:%i:%s') AS appointment_date,
-                DATE_FORMAT(pa.completion_date, '%Y-%m-%d %H:%i:%s') AS completion_date,
-                pa.notes,
-                DATE_FORMAT(pa.created_at, '%Y-%m-%d %H:%i:%s') AS created_at,
-                DATE_FORMAT(pa.updated_at, '%Y-%m-%d %H:%i:%s') AS updated_at,
-                at.name AS analysis_name,
-                u.name AS laboratory_name
-             FROM patient_analyses pa
-             JOIN analysis_types at ON pa.analysis_type_id = at.id
-             JOIN laboratories l ON pa.laboratory_id = l.id
-             JOIN users u ON u.id = l.user_id
-             WHERE pa.user_id = ?
-             ORDER BY pa.created_at DESC`,
-      [userId],
-    );
-    return rows;
-  }
-
-  static async updateResult(id, result, status = "completed") {
-    await db
-      .promise()
-      .query(
-        "UPDATE patient_analyses SET result=?, status=?, completion_date=NOW() WHERE id=?",
-        [result, status, id],
-      );
-  }
-}
-
-module.exports = Analysis;
+  return Analysis;
+};

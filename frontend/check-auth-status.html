@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Status Checker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .status {
+      margin: 15px 0;
+      padding: 15px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .success {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      color: #155724;
+    }
+    .error {
+      background: #f8d7da;
+      border-left: 4px solid #dc3545;
+      color: #721c24;
+    }
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      color: #856404;
+    }
+    .info {
+      background: #d1ecf1;
+      border-left: 4px solid #17a2b8;
+      color: #0c5460;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .btn-danger {
+      background: #dc3545;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Authentication Status Checker</h1>
+    <p>This tool checks why you're getting 403 Forbidden errors.</p>
+    
+    <div id="results"></div>
+    
+    <button onclick="checkStatus()">🔍 Check Auth Status</button>
+    <button onclick="clearAndReload()" class="btn-danger">🗑️ Clear Storage & Reload</button>
+    <button onclick="window.location.href='/login'">🔑 Go to Login</button>
+  </div>
+
+  <script>
+    function checkStatus() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<h2>Checking...</h2>';
+      
+      let html = '';
+      
+      // Check 1: Token exists
+      const token = localStorage.getItem('accessToken');
+      const role = localStorage.getItem('role');
+      
+      if (!token) {
+        html += `
+          <div class="status error">
+            <strong>❌ NOT LOGGED IN</strong>
+            <p>No access token found in localStorage.</p>
+            <p><strong>Solution:</strong> Click "Go to Login" button above and login.</p>
+          </div>
+        `;
+        results.innerHTML = html;
+        return;
+      }
+      
+      html += `
+        <div class="status success">
+          <strong>✅ Token Found</strong>
+          <p>Access token exists in localStorage</p>
+        </div>
+      `;
+      
+      // Check 2: Token format
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) throw new Error('Invalid format');
+        
+        html += `
+          <div class="status success">
+            <strong>✅ Token Format Valid</strong>
+            <p>Token has correct JWT structure</p>
+          </div>
+        `;
+        
+        // Check 3: Token expiry
+        const payload = JSON.parse(atob(parts[1]));
+        const expiry = new Date(payload.exp * 1000);
+        const now = new Date();
+        const isExpired = now > expiry;
+        
+        const expiryInfo = `
+          <strong>${isExpired ? '❌' : '✅'} Token Expiry</strong>
+          <p>Expires: ${expiry.toLocaleString()}</p>
+          <p>Current: ${now.toLocaleString()}</p>
+          <p>Status: ${isExpired ? '🔴 EXPIRED' : '🟢 VALID'}</p>
+        `;
+        
+        if (isExpired) {
+          html += `<div class="status error">${expiryInfo}
+            <p><strong>Solution:</strong> Token expired. Login again to get fresh token.</p>
+          </div>`;
+        } else {
+          html += `<div class="status success">${expiryInfo}
+            <p>Time remaining: ${Math.floor((expiry - now) / 1000 / 60)} minutes</p>
+          </div>`;
+        }
+        
+        // Check 4: Token payload
+        html += `
+          <div class="status info">
+            <strong>ℹ️ Token Payload</strong>
+            <pre>${JSON.stringify({
+              id: payload.id,
+              role: payload.role,
+              exp: new Date(payload.exp * 1000).toLocaleString()
+            }, null, 2)}</pre>
+          </div>
+        `;
+        
+        // Check 5: Role
+        html += `
+          <div class="status ${role ? 'success' : 'warning'}">
+            <strong>${role ? '✅' : '⚠️'} User Role</strong>
+            <p>Role: <strong>${role || 'not set'}</strong></p>
+          </div>
+        `;
+        
+        // Test API call
+        if (!isExpired) {
+          html += `
+            <div class="status info">
+              <strong>🧪 Testing API...</strong>
+              <p>Attempting to call /api/auth/navbar-info</p>
+            </div>
+          `;
+          
+          results.innerHTML = html;
+          
+          // Test the actual endpoint
+          fetch('/api/auth/navbar-info', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include'
+          })
+          .then(res => {
+            if (res.ok) {
+              return res.json().then(data => {
+                html += `
+                  <div class="status success">
+                    <strong>✅ API Test Successful!</strong>
+                    <p>navbar-info responded with 200 OK</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p><strong>Conclusion:</strong> Authentication is working correctly! 🎉</p>
+                  </div>
+                `;
+                results.innerHTML = html;
+              });
+            } else {
+              return res.json().then(data => {
+                html += `
+                  <div class="status error">
+                    <strong>❌ API Test Failed</strong>
+                    <p>Status: ${res.status} ${res.statusText}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p><strong>Solution:</strong> Token might be invalid. Clear storage and login again.</p>
+                  </div>
+                `;
+                results.innerHTML = html;
+              });
+            }
+          })
+          .catch(err => {
+            html += `
+              <div class="status error">
+                <strong>❌ Network Error</strong>
+                <p>${err.message}</p>
+                <p><strong>Solution:</strong> Make sure backend server is running on port 5000.</p>
+              </div>
+            `;
+            results.innerHTML = html;
+          });
+        }
+        
+      } catch (e) {
+        html += `
+          <div class="status error">
+            <strong>❌ Token Invalid</strong>
+            <p>Cannot parse token: ${e.message}</p>
+            <p><strong>Solution:</strong> Clear storage and login again.</p>
+          </div>
+        `;
+      }
+      
+      results.innerHTML = html;
+    }
+    
+    function clearAndReload() {
+      if (confirm('This will clear all stored data and reload. Continue?')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        location.reload();
+      }
+    }
+    
+    // Auto-check on load
+    window.addEventListener('load', () => {
+      setTimeout(checkStatus, 500);
+    });
+  </script>
+</body>
+</html>
+

@@ -113,3 +113,4 @@ The components use Tailwind CSS and can be customized by modifying the className
 
 ### Debug Mode
 Enable console logging by setting `localStorage.setItem('debug', 'true')` in browser console.
+

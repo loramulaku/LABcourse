@@ -3,8 +3,10 @@ const express = require("express");
 const { authenticateToken, isAdmin } = require("../middleware/auth");
 const multer = require("multer");
 const path = require("path");
-const Laboratory = require("../models/Laboratory");
-const Analysis = require("../models/Analysis");
+const { Laboratory, User } = require("../models"); // Use Sequelize models from index
+const Analysis = require("../models/Analysis"); // Deprecated - use AnalysisService
+const AnalysisService = require("../services/AnalysisService");
+const LaboratoryRepository = require("../repositories/LaboratoryRepository");
 const db = require("../db");
 const bcrypt = require("bcrypt");
 
@@ -86,11 +88,39 @@ async function logAnalysisHistory(
 // Get all laboratories
 router.get("/", async (req, res) => {
   try {
-    const laboratories = await Laboratory.getAll();
-    res.json(laboratories);
+    console.log('📋 Fetching all laboratories...');
+    
+    const laboratories = await Laboratory.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'email', 'account_status'],
+        },
+      ],
+      order: [['created_at', 'DESC']],
+    });
+
+    console.log(`✅ Found ${laboratories.length} laboratories`);
+
+    // Transform data to include user name as laboratory name
+    const formattedLabs = laboratories.map(lab => ({
+      id: lab.id,
+      user_id: lab.user_id,
+      name: lab.User?.name || 'Unknown Laboratory',
+      email: lab.email,
+      phone: lab.phone,
+      address: lab.address,
+      description: lab.description,
+      working_hours: lab.working_hours,
+      account_status: lab.User?.account_status,
+      created_at: lab.created_at,
+      updated_at: lab.updated_at,
+    }));
+
+    res.json(formattedLabs);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('❌ Error fetching laboratories:', error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
@@ -915,11 +945,15 @@ router.delete("/:id", authenticateToken, isAdmin, async (req, res) => {
 // Get analysis types for a specific laboratory
 router.get("/:id/analysis-types", async (req, res) => {
   try {
-    const types = await Analysis.getTypesByLaboratory(req.params.id);
+    const analysisService = new AnalysisService();
+    const types = await analysisService.getTypesByLaboratory(req.params.id);
     res.json(types);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    const statusCode = error.name === 'NotFoundError' ? 404 : 500;
+    res.status(statusCode).json({ 
+      error: error.message || "Internal server error" 
+    });
   }
 });
 
@@ -1056,18 +1090,36 @@ router.post("/request-analysis", authenticateToken, async (req, res) => {
 
     console.log("Request data:", requestData);
 
-    const analysisRequest = await Analysis.createRequest(requestData);
-    res.status(201).json({ id: analysisRequest });
+    const analysisService = new AnalysisService();
+    const analysisId = await analysisService.createRequest(requestData);
+    res.status(201).json({ id: analysisId });
   } catch (error) {
     console.error("Error in analysis request:", error);
     console.error("Error stack:", error.stack);
-    if (error.message === "TIME_SLOT_BOOKED") {
+    
+    // Handle specific error types
+    if (error.name === 'ConflictError' || error.message === "TIME_SLOT_BOOKED") {
       return res.status(400).json({
         error: "TIME_SLOT_BOOKED",
         message:
           "This time slot is not available. Please select an available time slot from the calendar.",
       });
     }
+    
+    if (error.name === 'NotFoundError') {
+      return res.status(404).json({
+        error: "NOT_FOUND",
+        message: error.message,
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        error: "VALIDATION_ERROR",
+        message: error.message,
+      });
+    }
+    
     res
       .status(500)
       .json({ error: "Internal server error", details: error.message });
@@ -1077,7 +1129,8 @@ router.post("/request-analysis", authenticateToken, async (req, res) => {
 // Get patient's analyses (protected route)
 router.get("/my-analyses", authenticateToken, async (req, res) => {
   try {
-    const analyses = await Analysis.getPatientAnalyses(req.user.id);
+    const analysisService = new AnalysisService();
+    const analyses = await analysisService.getPatientAnalyses(req.user.id);
     res.json(analyses);
   } catch (error) {
     console.error(error);

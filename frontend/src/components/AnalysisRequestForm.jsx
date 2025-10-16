@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { API_URL } from "../api";
 import AnalysisCalendar from "./AnalysisCalendar";
+import Footer from "./Footer";
 
 const AnalysisRequestForm = () => {
   const { labId } = useParams();
@@ -120,31 +121,39 @@ const AnalysisRequestForm = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gradient-to-br from-blue-100 to-blue-200 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="bg-blue-600 text-white p-6">
-            <h1 className="text-3xl font-bold">Request Laboratory Analysis</h1>
-            <p className="text-blue-100 mt-2">
-              Select your preferred date and time for the analysis
-            </p>
-          </div>
+    <div className="mx-4 sm:mx-[10%]">
+      {/* Header Section */}
+      <div className="text-center my-16">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-800 mb-4">
+          Request Laboratory Analysis
+        </h1>
+        <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
+          Select your preferred analysis type, date, and time for your appointment.
+        </p>
+      </div>
 
-          <div className="p-6">
+      <div className="max-w-6xl mx-auto mb-16">
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+          <div className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Analysis Details Form */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                  Analysis Details
-                </h2>
+                <div className="border-b border-gray-200 pb-4 mb-6">
+                  <h2 className="text-2xl font-semibold text-gray-800">
+                    Analysis Details
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Fill in the details for your analysis request
+                  </p>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
                     <label
                       htmlFor="analysis_type_id"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
-                      Analysis Type *
+                      Analysis Type <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="analysis_type_id"
@@ -152,12 +161,12 @@ const AnalysisRequestForm = () => {
                       value={formData.analysis_type_id}
                       onChange={handleChange}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     >
                       <option value="">Select Analysis Type</option>
                       {analysisTypes.map((type) => (
                         <option key={type.id} value={type.id}>
-                          {type.name} - ${type.price}
+                          {type.name} {type.price ? `- €${type.price}` : ''}
                         </option>
                       ))}
                     </select>
@@ -175,42 +184,84 @@ const AnalysisRequestForm = () => {
                       name="notes"
                       value={formData.notes}
                       onChange={handleChange}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Any additional notes or special requirements..."
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+                      placeholder="Any additional notes or special requirements (e.g., fasting, medications)..."
                     />
                   </div>
 
                   {selectedTimeSlot && (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-green-800 font-medium">
-                        Selected Time:{" "}
-                        {new Date(selectedTimeSlot).toLocaleDateString()} at{" "}
-                        {new Date(selectedTimeSlot).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+                    <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-green-800">
+                            Appointment Scheduled
+                          </p>
+                          <p className="text-sm text-green-700 mt-1">
+                            {new Date(selectedTimeSlot).toLocaleDateString('en-US', { 
+                              weekday: 'long', 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })} at{" "}
+                            {new Date(selectedTimeSlot).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-red-800 font-medium">{error}</p>
+                    <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-red-800">{error}</p>
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
+                    disabled={!selectedTimeSlot || !formData.analysis_type_id}
+                    className="w-full bg-primary text-white py-3 px-6 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all font-medium disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
                   >
-                    Submit Request
+                    {!selectedTimeSlot ? 'Select Date & Time to Continue' : 'Submit Request'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/laboratories')}
+                    className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all font-medium"
+                  >
+                    ← Back to Laboratories
                   </button>
                 </form>
               </div>
 
               {/* Calendar Component */}
               <div>
+                <div className="border-b border-gray-200 pb-4 mb-6">
+                  <h2 className="text-2xl font-semibold text-gray-800">
+                    Select Date & Time
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Choose your preferred appointment slot
+                  </p>
+                </div>
                 <AnalysisCalendar
                   labId={labId}
                   selectedDate={selectedDate}
@@ -222,6 +273,9 @@ const AnalysisRequestForm = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer Section */}
+      <Footer />
     </div>
   );
 };

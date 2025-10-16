@@ -17,16 +17,19 @@ const Navbar = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
       setToken(false);
+      setUserInfo(null);
       return;
     }
 
     try {
       setLoading(true);
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const data = await apiFetch(`${API_URL}/api/auth/navbar-info`);
+      // Use proxy path (no full URL needed)
+      const data = await apiFetch(`/api/auth/navbar-info`);
       setUserInfo(data);
     } catch (err) {
+      console.error('Error fetching navbar info:', err);
       if (err.status === 401 || err.status === 403) {
+        // Token invalid/expired - clear everything
         localStorage.removeItem("accessToken");
         localStorage.removeItem("role");
         setToken(false);
@@ -34,9 +37,10 @@ const Navbar = () => {
         setUserInfo(null);
         return;
       }
+      // Network or other error - use fallback
       setUserInfo({
         profilePhoto: "/uploads/avatars/default.png",
-        name: "User",
+        name: localStorage.getItem("userName") || "User",
         role: role,
       });
     } finally {

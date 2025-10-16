@@ -4,11 +4,11 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
+// Initialize Sequelize models
+const { sequelize } = require('./models');
+
 // Initialize Stripe
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-
-// Database connection
-const db = require("./db");
 
 const app = express();
 
@@ -46,40 +46,20 @@ if (process.env.STRIPE_SECRET_KEY) {
   console.log("⚠️ Stripe not configured");
 }
 
-// Check database tables status (all tables already exist in your database)
-const checkTables = async () => {
+// Database connection using Sequelize
+const connectDatabase = async () => {
   try {
-    // List of core tables that should exist in your database
-    const coreTables = [
-      'users', 'user_profiles', 'doctors', 'laboratories', 'appointments',
-      'notifications', 'messages', 'message_senders', 'contact_message_redirects',
-      'patient_analyses', 'analysis_types', 'analysis_history', 'doctor_applications',
-      'admin_profiles', 'refresh_tokens', 'password_reset_tokens', 'audit_logs'
-    ];
-
-    console.log("🔍 Checking database tables...");
+    await sequelize.authenticate();
+    console.log('✅ Sequelize database connection established successfully');
     
-    for (const tableName of coreTables) {
-      try {
-        const [tables] = await db.promise().query(`
-          SELECT TABLE_NAME 
-          FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
-        `, [tableName]);
-        
-        if (tables.length > 0) {
-          console.log(`✅ ${tableName} table exists`);
-        } else {
-          console.log(`⚠️ ${tableName} table not found`);
-        }
-      } catch (error) {
-        console.log(`❌ Error checking ${tableName}:`, error.message);
-      }
+    // Sync models in development (NOT recommended for production)
+    if (process.env.NODE_ENV === 'development') {
+      // Use migrations instead: npx sequelize-cli db:migrate
+      console.log('ℹ️ To create/update tables, run: npx sequelize-cli db:migrate');
     }
-    
-    console.log("✅ Database tables check completed");
   } catch (error) {
-    console.error("❌ Failed to check database tables:", error);
+    console.error('❌ Unable to connect to the database:', error);
+    process.exit(1);
   }
 };
 
@@ -103,7 +83,8 @@ const contactRoutes = require("./routes/contactRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/doctors", doctorRoutes);
-app.use("/api/labs", labRoutes);
+app.use("/api/laboratories", labRoutes); // Changed from /api/labs to match frontend
+app.use("/api/labs", labRoutes); // Keep legacy route for backward compatibility
 app.use("/api/lecturers", lecturerRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/patients", patientRoutes);
@@ -120,12 +101,22 @@ app.get("/api/health", (req, res) => {
   res.json({ 
     status: "OK", 
     message: "Server is running",
+    database: sequelize.authenticate() ? "Connected" : "Disconnected",
     timestamp: new Date().toISOString()
   });
 });
 
-// Check database tables on startup
-checkTables();
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('❌ Error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server po punon në portën ${PORT}`));
+// Connect to database and start server
+connectDatabase().then(() => {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`🚀 Server po punon në portën ${PORT}`));
+});

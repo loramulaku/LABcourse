@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "@daily-co/daily-js": "^0.84.0",
+    "argon2": "^0.44.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
@@ -24,10 +25,13 @@
     "mysql2": "^3.14.3",
     "node-fetch": "^2.7.0",
     "nodemailer": "^7.0.6",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.3",
     "stripe": "^16.12.0"
   },
   "devDependencies": {
     "@svgr/core": "^8.1.0",
+    "axios": "^1.12.2",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
     "vite-plugin-svgr": "^4.5.0"
