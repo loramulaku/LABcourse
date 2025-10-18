@@ -35,4 +35,7 @@ router.post('/forgot-password', authController.forgotPassword);
 // RESET PASSWORD
 router.post('/reset-password', authController.resetPassword);
 
+// SECURITY: Validate user role (server-side validation)
+router.get('/validate-role', authenticateToken, authController.validateRole);
+
 module.exports = router;

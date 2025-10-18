@@ -176,10 +176,18 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
 
-  // Instance method to verify password
+  // Instance method to verify password (supports both Argon2 and bcrypt)
   User.prototype.verifyPassword = async function(password) {
     try {
-      return await argon2.verify(this.password, password);
+      if (this.password.startsWith('$argon2')) {
+        // New Argon2 hash
+        return await argon2.verify(this.password, password);
+      } else if (this.password.startsWith('$2b$') || this.password.startsWith('$2a$')) {
+        // Legacy bcrypt hash
+        const bcrypt = require('bcrypt');
+        return await bcrypt.compare(password, this.password);
+      }
+      return false;
     } catch (error) {
       return false;
     }

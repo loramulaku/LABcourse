@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiFetch from "../api"; // ✅ Përmirësim: përdorim wrapper me auto-refresh dhe menaxhim token
+import apiFetch, { setAccessToken, setRole, clearAuth } from "../api";
 import ForgotPassword from "../components/ForgotPassword";
 
 const Login = () => {
@@ -49,8 +49,8 @@ const Login = () => {
 
         // ✅ Përmirësim: ruaj access token dhe role në localStorage
         if (data.accessToken)
-          localStorage.setItem("accessToken", data.accessToken);
-        if (data.role) localStorage.setItem("role", data.role);
+          setAccessToken(data.accessToken);
+        if (data.role) setRole(data.role);
 
         if (window.handleLogin) window.handleLogin();
 
@@ -71,8 +71,21 @@ const Login = () => {
       setEmail("");
       setPassword("");
     } catch (err) {
-      console.error(err);
-      setMessage(err.error || "Gabim në lidhje me serverin");
+      console.error('Login error:', err);
+      console.log('Error details:', {
+        error: err.error,
+        message: err.message,
+        status: err.status
+      });
+      
+      // Show specific error message from backend
+      if (err.error) {
+        setMessage(err.error);
+      } else if (err.message) {
+        setMessage(err.message);
+      } else {
+        setMessage("Gabim në lidhje me serverin");
+      }
     }
   };
 
@@ -101,6 +114,9 @@ const Login = () => {
             <p>Full Name</p>
             <input
               type="text"
+              id="name"
+              name="name"
+              autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="border border-zinc-300 rounded w-full p-2 mt-1"
@@ -113,6 +129,9 @@ const Login = () => {
           <p>Email</p>
           <input
             type="email"
+            id="email"
+            name="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="border border-zinc-300 rounded w-full p-2 mt-1"
@@ -124,6 +143,9 @@ const Login = () => {
           <p>Password</p>
           <input
             type="password"
+            id="password"
+            name="password"
+            autoComplete={state === "Sign Up" ? "new-password" : "current-password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="border border-zinc-300 rounded w-full p-2 mt-1"

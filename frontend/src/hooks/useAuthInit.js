@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAccessToken, setAccessToken, API_URL } from '../api';
+import { getAccessToken, setAccessToken } from '../api';
 
 /**
  * Hook to initialize authentication on app mount
@@ -22,10 +22,10 @@ export function useAuthInit() {
       // No access token, try to refresh if we have a refresh token cookie
       console.log('🔄 No access token found, checking for refresh token...');
       console.log('🍪 Current cookies:', document.cookie);
-      console.log('📍 Calling refresh endpoint:', `${API_URL}/api/auth/refresh`);
+      console.log('📍 Calling refresh endpoint: http://localhost:5000/api/auth/refresh');
       
       try {
-        const res = await fetch(`${API_URL}/api/auth/refresh`, {
+        const res = await fetch(`http://localhost:5000/api/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
           headers: {

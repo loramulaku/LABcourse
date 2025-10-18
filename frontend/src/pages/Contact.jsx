@@ -114,7 +114,9 @@ const ContactForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input
                 type="text"
+                id="firstName"
                 name="firstName"
+                autoComplete="given-name"
                 placeholder="Enter your first name..."
                 value={formData.firstName}
                 onChange={handleInputChange}
@@ -123,7 +125,9 @@ const ContactForm = () => {
               />
               <input
                 type="text"
+                id="lastName"
                 name="lastName"
+                autoComplete="family-name"
                 placeholder="Enter your last name..."
                 value={formData.lastName}
                 onChange={handleInputChange}
@@ -134,6 +138,8 @@ const ContactForm = () => {
 
             <input
               type="email"
+              id="email"
+              autoComplete="email"
               name="email"
               placeholder="Enter your email address..."
               value={formData.email}
@@ -143,6 +149,7 @@ const ContactForm = () => {
             />
 
             <textarea
+              id="message"
               name="message"
               placeholder="Enter your message here..."
               rows="4"

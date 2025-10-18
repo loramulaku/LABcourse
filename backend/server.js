@@ -36,8 +36,27 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve uploaded files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Serve uploaded files with CORS headers to prevent CORB
+app.use("/uploads", (req, res, next) => {
+  // Set CORS headers to allow cross-origin access
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Range");
+  
+  // Important: Set Cross-Origin-Resource-Policy to cross-origin to prevent CORB
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  
+  // Ensure proper content type detection
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+}, express.static(path.join(__dirname, "uploads")));
 
 // Initialize Stripe
 if (process.env.STRIPE_SECRET_KEY) {

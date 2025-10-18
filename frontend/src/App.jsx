@@ -1,7 +1,8 @@
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
+import { startTokenMonitoring } from "./api";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -166,6 +167,17 @@ const LoadingSpinner = () => (
 const App = () => {
   const location = useLocation(); // kjo ndjek path-in aktual
 
+  // Start token monitoring when app loads
+  useEffect(() => {
+    console.log('[APP] Starting token monitoring...');
+    startTokenMonitoring();
+    
+    // Cleanup on unmount
+    return () => {
+      console.log('[APP] App unmounting, token monitoring will continue');
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <div className="w-full">
@@ -182,6 +194,7 @@ const App = () => {
             {/* =================== APP NORMAL =================== */}
             <Route path="/login" element={<Login />} />
             <Route path="/doctor-registration" element={<DoctorRegistration />} />
+
             <Route
               path="/"
               element={

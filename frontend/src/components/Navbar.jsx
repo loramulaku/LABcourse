@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
-import apiFetch from "../api";
+import apiFetch, { getAccessToken, getRole, clearAuth } from "../api";
 import LazyImage from "./LazyImage";
 import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [token, setToken] = useState(!!localStorage.getItem("accessToken"));
-  const [role, setRole] = useState(localStorage.getItem("role"));
+  const [token, setToken] = useState(!!getAccessToken());
+  const [role, setRole] = useState(getRole());
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Fetch user profile info
   const fetchUserInfo = async () => {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = getAccessToken();
     if (!accessToken) {
       setToken(false);
       setUserInfo(null);
@@ -30,8 +30,7 @@ const Navbar = () => {
       console.error('Error fetching navbar info:', err);
       if (err.status === 401 || err.status === 403) {
         // Token invalid/expired - clear everything
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("role");
+        clearAuth();
         setToken(false);
         setRole(null);
         setUserInfo(null);
@@ -50,8 +49,8 @@ const Navbar = () => {
 
   // Re-check token state on mount (in case it was restored by useAuthInit)
   useEffect(() => {
-    const currentToken = localStorage.getItem("accessToken");
-    const currentRole = localStorage.getItem("role");
+    const currentToken = getAccessToken();
+    const currentRole = getRole();
     
     setToken(!!currentToken);
     setRole(currentRole);
@@ -70,15 +69,13 @@ const Navbar = () => {
         credentials: "include",
       });
 
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("role");
+      clearAuth();
       setToken(false);
       setRole(null);
       setUserInfo(null);
       navigate("/login");
     } catch (err) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("role");
+      clearAuth();
       setToken(false);
       setRole(null);
       setUserInfo(null);
@@ -88,7 +85,7 @@ const Navbar = () => {
 
   const handleLogin = () => {
     setToken(true);
-    setRole(localStorage.getItem("role"));
+    setRole(getRole());
   };
 
   useEffect(() => {
