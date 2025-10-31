@@ -97,6 +97,7 @@ const doctorApplicationRoutes = require("./routes/doctorApplications");
 const therapyRoutes = require("./routes/therapyRoutes");
 const trainRoutes = require("./routes/trainRoutes");
 const contactRoutes = require("./routes/contactRoutes");
+const departmentRoutes = require("./routes/departmentRoutes");
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -114,6 +115,7 @@ app.use("/api/doctor-applications", doctorApplicationRoutes);
 app.use("/api/therapy", therapyRoutes);
 app.use("/api/train", trainRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/departments", departmentRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

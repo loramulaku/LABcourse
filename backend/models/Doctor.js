@@ -32,9 +32,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(255),
       defaultValue: '',
     },
-    department: {
-      type: DataTypes.STRING(255),
-      defaultValue: '',
+    department_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'Foreign key to departments table',
     },
     degree: {
       type: DataTypes.STRING(255),
@@ -126,6 +127,12 @@ module.exports = (sequelize, DataTypes) => {
     Doctor.belongsTo(models.User, {
       foreignKey: 'user_id',
       onDelete: 'CASCADE',
+    });
+
+    Doctor.belongsTo(models.Department, {
+      foreignKey: 'department_id',
+      allowNull: true,
+      as: 'department',
     });
 
     Doctor.hasMany(models.Appointment, {

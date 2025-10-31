@@ -47,7 +47,8 @@ const navItems = [
     name: "Doctor Management",
     icon: <ListIcon />,
     subItems: [
-      { name: "Add Doctor", path: "/dashboard/blank" },
+      { name: "Departments", path: "/dashboard/departments" },
+      { name: "Add Doctor", path: "/dashboard/add-doctor" },
       { name: "Edit & Delete Doctors", path: "/dashboard/doctors-crud" },
     ],
   },

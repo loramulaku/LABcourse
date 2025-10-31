@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../../api";
-import { Edit2, Trash2, X, Upload } from "lucide-react";
+import { Edit2, Trash2, ChevronDown } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function DoctorsCrud() {
@@ -9,9 +9,8 @@ export default function DoctorsCrud() {
   const [loading, setLoading] = useState(true);
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedDoctor, setExpandedDoctor] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const [photoFile, setPhotoFile] = useState(null);
 
   useEffect(() => {
     fetchDoctors();
@@ -62,11 +61,6 @@ export default function DoctorsCrud() {
     }
   };
 
-  const getDepartmentName = (deptId) => {
-    const dept = departments.find((d) => d.id === deptId);
-    return dept?.name || "N/A";
-  };
-
   const handleEdit = async (doctor) => {
     try {
       const response = await fetch(`${API_URL}/api/doctors/${doctor.id}`, {
@@ -81,14 +75,6 @@ export default function DoctorsCrud() {
         const fullDoctorData = await response.json();
         setEditingDoctor(fullDoctorData);
         setSelectedDepartment(fullDoctorData.department_id || null);
-        // Set photo preview if doctor has an image
-        if (fullDoctorData.image) {
-          const imageUrl = fullDoctorData.image.startsWith("http")
-            ? fullDoctorData.image
-            : `${API_URL}${fullDoctorData.image}`;
-          setPhotoPreview(imageUrl);
-        }
-        setPhotoFile(null);
       } else {
         toast.error("Error fetching doctor details");
       }
@@ -96,35 +82,6 @@ export default function DoctorsCrud() {
       console.error("Error fetching doctor details:", err);
       toast.error("Error fetching doctor details");
     }
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size must be less than 5MB");
-        return;
-      }
-
-      setPhotoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removePhoto = () => {
-    setPhotoFile(null);
-    setPhotoPreview(null);
   };
 
   const handleDelete = async (doctorId) => {
@@ -155,48 +112,26 @@ export default function DoctorsCrud() {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!editingDoctor.User?.name || !editingDoctor.User?.email) {
+    if (!editingDoctor.name || !editingDoctor.email) {
       toast.error("Name and email are required");
       return;
     }
 
     try {
-      // Create FormData to handle file upload
-      const formDataToSend = new FormData();
-      
-      // Add doctor fields
-      formDataToSend.append("phone", editingDoctor.phone);
-      formDataToSend.append("specialization", editingDoctor.specialization);
-      formDataToSend.append("department_id", editingDoctor.department_id);
-      formDataToSend.append("degree", editingDoctor.degree);
-      formDataToSend.append("license_number", editingDoctor.license_number);
-      formDataToSend.append("experience_years", editingDoctor.experience_years);
-      formDataToSend.append("consultation_fee", editingDoctor.consultation_fee);
-      
-      // Add user fields
-      formDataToSend.append("name", editingDoctor.User?.name);
-      formDataToSend.append("email", editingDoctor.User?.email);
-
-      // Add photo if a new one was selected
-      if (photoFile) {
-        formDataToSend.append("image", photoFile);
-      }
-
       const response = await fetch(`${API_URL}/api/doctors/${editingDoctor.id}`, {
         method: "PUT",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         credentials: "include",
-        body: formDataToSend,
+        body: JSON.stringify(editingDoctor),
       });
 
       if (response.ok) {
         toast.success("Doctor updated successfully");
         setEditingDoctor(null);
         setSelectedDepartment(null);
-        setPhotoPreview(null);
-        setPhotoFile(null);
         fetchDoctors();
       } else {
         const errorData = await response.json();
@@ -231,8 +166,8 @@ export default function DoctorsCrud() {
 
   const filteredDoctors = doctors.filter(
     (doctor) =>
-      doctor.User?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.User?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -271,69 +206,13 @@ export default function DoctorsCrud() {
       {editingDoctor && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Edit Doctor
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {editingDoctor.User?.name || "N/A"} • {editingDoctor.User?.email || "N/A"}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setEditingDoctor(null);
-                  setSelectedDepartment(null);
-                }}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-              >
-                <X size={24} className="text-gray-600 dark:text-gray-400" />
-              </button>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Edit Doctor: {editingDoctor.name}
+              </h3>
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-6">
-              {/* Photo Upload */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  Doctor Photo
-                </h4>
-                <div className="flex flex-col items-center gap-4">
-                  {photoPreview ? (
-                    <div className="relative">
-                      <img
-                        src={photoPreview}
-                        alt="Doctor preview"
-                        className="w-40 h-40 rounded-lg object-cover border-2 border-blue-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={removePhoto}
-                        className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition-colors"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-40 h-40 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-700">
-                      <Upload size={32} className="text-gray-400" />
-                    </div>
-                  )}
-                  <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
-                    <Upload size={18} />
-                    Choose Photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      className="hidden"
-                    />
-                  </label>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Max file size: 5MB. Supported formats: JPG, PNG, GIF
-                  </p>
-                </div>
-              </div>
-
               {/* Basic Information */}
               <div>
                 <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
@@ -346,13 +225,8 @@ export default function DoctorsCrud() {
                     </label>
                     <input
                       type="text"
-                      value={editingDoctor.User?.name || ""}
-                      onChange={(e) => {
-                        setEditingDoctor((prev) => ({
-                          ...prev,
-                          User: { ...prev.User, name: e.target.value },
-                        }));
-                      }}
+                      value={editingDoctor.name || ""}
+                      onChange={(e) => handleFieldChange("name", e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -363,13 +237,8 @@ export default function DoctorsCrud() {
                     </label>
                     <input
                       type="email"
-                      value={editingDoctor.User?.email || ""}
-                      onChange={(e) => {
-                        setEditingDoctor((prev) => ({
-                          ...prev,
-                          User: { ...prev.User, email: e.target.value },
-                        }));
-                      }}
+                      value={editingDoctor.email || ""}
+                      onChange={(e) => handleFieldChange("email", e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -523,104 +392,123 @@ export default function DoctorsCrud() {
         </div>
       )}
 
-      {/* Table View */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      {/* Doctors List */}
+      <div className="space-y-4">
         {filteredDoctors.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <p className="text-gray-600 dark:text-gray-400">No doctors found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              {/* Table Header */}
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Photo
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Name
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Email
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Department
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Specialization
-                  </th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-white">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+          filteredDoctors.map((doctor) => (
+            <div
+              key={doctor.id}
+              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              {/* Doctor Header */}
+              <div
+                className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                onClick={() =>
+                  setExpandedDoctor(
+                    expandedDoctor === doctor.id ? null : doctor.id
+                  )
+                }
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {doctor.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {doctor.specialization} • {doctor.email}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ChevronDown
+                      size={20}
+                      className={`text-gray-600 dark:text-gray-400 transition-transform ${
+                        expandedDoctor === doctor.id ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
 
-              {/* Table Body */}
-              <tbody>
-                {filteredDoctors.map((doctor, index) => (
-                  <tr
-                    key={doctor.id}
-                    className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-                      index % 2 === 0
-                        ? "bg-white dark:bg-gray-800"
-                        : "bg-gray-50 dark:bg-gray-700/30"
-                    }`}
-                  >
-                    <td className="px-6 py-4 text-sm">
-                      {doctor.image ? (
-                        <img
-                          src={
-                            doctor.image.startsWith("http")
-                              ? doctor.image
-                              : `${API_URL}${doctor.image}`
-                          }
-                          alt={doctor.User?.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                          <span className="text-xs text-gray-600 dark:text-gray-300">No photo</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">
-                      {doctor.User?.name || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      {doctor.User?.email || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      {getDepartmentName(doctor.department_id)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      {doctor.specialization || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(doctor)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                          title="Edit doctor"
-                        >
-                          <Edit2 size={16} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(doctor.id)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                          title="Delete doctor"
-                        >
-                          <Trash2 size={16} />
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              {/* Expanded Details */}
+              {expandedDoctor === doctor.id && (
+                <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-700/50 space-y-4">
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Email
+                      </p>
+                      <p className="text-gray-900 dark:text-white">
+                        {doctor.email}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Phone
+                      </p>
+                      <p className="text-gray-900 dark:text-white">
+                        {doctor.phone || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Specialization
+                      </p>
+                      <p className="text-gray-900 dark:text-white">
+                        {doctor.specialization}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Degree
+                      </p>
+                      <p className="text-gray-900 dark:text-white">
+                        {doctor.degree || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Experience
+                      </p>
+                      <p className="text-gray-900 dark:text-white">
+                        {doctor.experience_years || "N/A"} years
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Consultation Fee
+                      </p>
+                      <p className="text-gray-900 dark:text-white">
+                        €{doctor.consultation_fee || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 justify-end pt-4 border-t border-gray-200 dark:border-gray-600">
+                    <button
+                      onClick={() => handleEdit(doctor)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Edit2 size={16} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(doctor.id)}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
     </div>

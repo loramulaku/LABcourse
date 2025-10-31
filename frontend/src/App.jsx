@@ -128,6 +128,12 @@ const ContactMessages = React.lazy(
 const Inbox = React.lazy(
   () => import("./dashboard/pages/Inbox.jsx"),
 );
+const DepartmentManagement = React.lazy(
+  () => import("./dashboard/pages/DepartmentManagement.jsx"),
+);
+const AddDoctor = React.lazy(
+  () => import("./dashboard/pages/AddDoctor.jsx"),
+);
 const LabLayout = React.lazy(() => import("./lab/layout/LabLayout.jsx"));
 const LabHistory = React.lazy(() => import("./lab/pages/LabHistory.jsx"));
 const LabCalendar = React.lazy(() => import("./lab/pages/LabCalendar.jsx"));
@@ -338,6 +344,8 @@ const App = () => {
               }
             >
               <Route path="profile" element={<AdminProfile />} />
+              <Route path="departments" element={<DepartmentManagement />} />
+              <Route path="add-doctor" element={<AddDoctor />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="analyses-calendar" element={<AnalysesCalendar />} />
               <Route
