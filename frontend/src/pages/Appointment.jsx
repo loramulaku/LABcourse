@@ -212,32 +212,55 @@ const Appointment = () => {
 
         <div className="flex-1 border border-[#ADADAD] rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0">
           <p className="flex items-center gap-2 text-3xl font-medium text-gray-700">
-            {docInfo.name}{" "}
+            {docInfo.User?.name || docInfo.name}{" "}
             <img className="w-5" src={assets.verified_icon} alt="" />
           </p>
           <div className="flex items-center gap-2 mt-1 text-gray-600">
             <p>
-              {[docInfo.degree, docInfo.speciality].filter(Boolean).join(" - ")}
+              {[docInfo.degree, docInfo.specialization || docInfo.speciality].filter(Boolean).join(" - ")}
             </p>
-            {docInfo.experience && (
+            {(docInfo.experience_years || docInfo.experience) && (
               <button className="py-0.5 px-2 border text-xs rounded-full">
-                {docInfo.experience}
+                {docInfo.experience_years || docInfo.experience} years
               </button>
             )}
           </div>
 
-          <div>
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="font-medium text-gray-700">📧 Email:</span>
+              <span>{docInfo.User?.email || docInfo.email || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="font-medium text-gray-700">📞 Phone:</span>
+              <span>{docInfo.phone || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="font-medium text-gray-700">🏥 Department:</span>
+              <span>{docInfo.department?.name || 'General'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="font-medium text-gray-700">🎓 Degree:</span>
+              <span>{docInfo.degree || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="font-medium text-gray-700">📜 License:</span>
+              <span>{docInfo.license_number || 'N/A'}</span>
+            </div>
+          </div>
+
+          <div className="mt-4">
             <p className="flex items-center gap-1 text-sm font-medium text-[#262626] mt-3">
               About <img className="w-3" src={assets.info_icon} alt="" />
             </p>
             <p className="text-sm text-gray-600 max-w-[700px] mt-1">
-              {docInfo.about}
+              {docInfo.about || 'Experienced medical professional dedicated to providing quality healthcare.'}
             </p>
           </div>
 
           <p className="text-gray-600 font-medium mt-4">
             Appointment fee:{" "}
-            <span className="text-gray-800">{docInfo.fees}</span>
+            <span className="text-gray-800">€{docInfo.consultation_fee || docInfo.fees || '50'}</span>
           </p>
         </div>
       </div>

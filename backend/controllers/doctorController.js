@@ -1,4 +1,4 @@
-const { Doctor, User, Appointment, sequelize } = require('../models');
+const { Doctor, User, Appointment, Department, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 const doctorController = {
@@ -11,6 +11,12 @@ const doctorController = {
             model: User,
             attributes: ['id', 'name', 'email', 'account_status'],
             where: { account_status: 'active' },
+          },
+          {
+            model: Department,
+            as: 'department',
+            attributes: ['id', 'name', 'description'],
+            required: false,
           },
         ],
         order: [['created_at', 'DESC']],
@@ -34,6 +40,12 @@ const doctorController = {
             attributes: ['id', 'name', 'email'],
             where: { account_status: 'active' },
           },
+          {
+            model: Department,
+            as: 'department',
+            attributes: ['id', 'name'],
+            required: false,
+          },
         ],
         order: [['first_name', 'ASC']],
       });
@@ -55,6 +67,12 @@ const doctorController = {
           {
             model: User,
             attributes: ['id', 'name', 'email', 'account_status'],
+          },
+          {
+            model: Department,
+            as: 'department',
+            attributes: ['id', 'name', 'description', 'location'],
+            required: false,
           },
         ],
       });
@@ -118,7 +136,7 @@ const doctorController = {
         about,
         available,
         license_number,
-        department,
+        department_id,
         first_name,
         last_name,
       } = req.body;
@@ -175,18 +193,26 @@ const doctorController = {
         fees: fees || consultation_fee || null,
         address_line1: address_line1 || '',
         address_line2: address_line2 || '',
-        department: department || '',
+        department_id: department_id ? parseInt(department_id) : null,
         available: available !== undefined ? available : true,
       }, { transaction });
 
       await transaction.commit();
 
-      // Return doctor with user info
+      // Return doctor with user info and department
       const createdDoctor = await Doctor.findByPk(doctor.id, {
-        include: [{
-          model: User,
-          attributes: ['id', 'name', 'email', 'role', 'account_status'],
-        }],
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'name', 'email', 'role', 'account_status'],
+          },
+          {
+            model: Department,
+            as: 'department',
+            attributes: ['id', 'name', 'description'],
+            required: false,
+          },
+        ],
       });
 
       res.status(201).json({
@@ -246,6 +272,21 @@ const doctorController = {
         updates.avatar_path = `/uploads/${req.file.filename}`;
       }
 
+      // Parse department_id if provided
+      if (updates.department_id !== undefined) {
+        updates.department_id = updates.department_id ? parseInt(updates.department_id) : null;
+      }
+
+      // Parse numeric fields
+      if (updates.experience_years) {
+        updates.experience_years = parseInt(updates.experience_years);
+      }
+      if (updates.consultation_fee) {
+        updates.consultation_fee = parseFloat(updates.consultation_fee);
+      }
+
+      console.log('Updating doctor with:', updates);
+
       // Update doctor profile
       await doctor.update(updates, { transaction });
 
@@ -261,12 +302,20 @@ const doctorController = {
 
       await transaction.commit();
 
-      // Fetch updated doctor with user info
+      // Fetch updated doctor with user info and department
       const updatedDoctor = await Doctor.findByPk(doctorId, {
-        include: [{
-          model: User,
-          attributes: ['id', 'name', 'email', 'role', 'account_status'],
-        }],
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'name', 'email', 'role', 'account_status'],
+          },
+          {
+            model: Department,
+            as: 'department',
+            attributes: ['id', 'name', 'description'],
+            required: false,
+          },
+        ],
       });
 
       res.json({
