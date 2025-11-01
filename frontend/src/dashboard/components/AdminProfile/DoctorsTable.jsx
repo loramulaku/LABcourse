@@ -9,7 +9,7 @@ export default function DoctorsTable() {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
-      const data = await apiFetch("/api/admin-profiles/doctors", {
+      const data = await apiFetch("/api/admin-profile/doctors", {
         method: "GET",
       });
       // Ensure data is an array
@@ -37,7 +37,7 @@ export default function DoctorsTable() {
     }
 
     try {
-      await apiFetch(`/api/admin-profiles/doctors/${doctorId}`, {
+      await apiFetch(`/api/admin-profile/doctors/${doctorId}`, {
         method: "DELETE",
       });
       setMessage("Doctor deleted successfully!");

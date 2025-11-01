@@ -8,9 +8,14 @@ export default function EditDoctor() {
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedSpecializations, setSelectedSpecializations] = useState([]);
+  const [photoFile, setPhotoFile] = useState(null);
 
   useEffect(() => {
     fetchDoctor();
+    fetchDepartments();
   }, [id]);
 
   const fetchDoctor = async () => {
@@ -26,6 +31,13 @@ export default function EditDoctor() {
       if (response.ok) {
         const data = await response.json();
         setDoctor(data);
+        // Initialize department and specializations
+        const deptId = data.department_id || data.department?.id || null;
+        setSelectedDepartment(deptId);
+        const specs = Array.isArray(data.specializations)
+          ? data.specializations
+          : (data.specialization ? [data.specialization] : []);
+        setSelectedSpecializations(specs);
       } else {
         console.error("Error fetching doctor details");
         alert("Error fetching doctor details");
@@ -38,6 +50,24 @@ export default function EditDoctor() {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/departments`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setDepartments(data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+    }
+  };
+
   const handleFieldChange = (field, value) => {
     setDoctor(prev => ({
       ...prev,
@@ -45,19 +75,62 @@ export default function EditDoctor() {
     }));
   };
 
+  const getAvailableSpecializations = () => {
+    if (!selectedDepartment) return [];
+    const dept = departments.find((d) => d.id === selectedDepartment);
+    return dept?.specializations || [];
+  };
+
+  const handleDepartmentChange = (deptId) => {
+    setSelectedDepartment(deptId);
+    handleFieldChange('department_id', deptId);
+    setSelectedSpecializations([]);
+  };
+
+  const toggleSpecialization = (spec) => {
+    setSelectedSpecializations((prev) => {
+      const exists = prev.includes(spec);
+      const next = exists ? prev.filter((s) => s !== spec) : [...prev, spec];
+      // maintain legacy single specialization for compatibility
+      handleFieldChange('specialization', next[0] || "");
+      return next;
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     try {
+      const fd = new FormData();
+      // Include all doctor fields that are primitive values
+      Object.keys(doctor || {}).forEach((key) => {
+        const val = doctor[key];
+        if (val === undefined || val === null) return;
+        // Arrays/objects will be handled explicitly
+        if (typeof val === 'object') return;
+        fd.append(key, val);
+      });
+
+      // Append department and specializations
+      if (selectedDepartment !== null && selectedDepartment !== undefined) {
+        fd.set('department_id', selectedDepartment);
+      }
+      fd.append('specializations', JSON.stringify(selectedSpecializations));
+      fd.set('specialization', selectedSpecializations[0] || "");
+
+      // Append photo if selected
+      if (photoFile) {
+        fd.append('image', photoFile);
+      }
+
       const response = await fetch(`${API_URL}/api/doctors/${id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         credentials: "include",
-        body: JSON.stringify(doctor),
+        body: fd,
       });
 
       if (response.ok) {
@@ -178,34 +251,38 @@ export default function EditDoctor() {
             </h4>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Specialization</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Department</label>
               <select
-                value={doctor.specialization || ""}
-                onChange={(e) => handleFieldChange('specialization', e.target.value)}
+                value={selectedDepartment || ""}
+                onChange={(e) => handleDepartmentChange(e.target.value ? parseInt(e.target.value) : null)}
                 className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               >
-                <option value="">Select Speciality</option>
-                <option value="General physician">General physician</option>
-                <option value="Gynecologist">Gynecologist</option>
-                <option value="Dermatologist">Dermatologist</option>
-                <option value="Pediatricians">Pediatricians</option>
-                <option value="Neurologist">Neurologist</option>
-                <option value="Gastroenterologist">Gastroenterologist</option>
-                <option value="Cardiologist">Cardiologist</option>
-                <option value="Orthopedist">Orthopedist</option>
-                <option value="Psychiatrist">Psychiatrist</option>
-                <option value="Oncologist">Oncologist</option>
+                <option value="">Select Department</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))}
               </select>
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Department</label>
-              <input
-                type="text"
-                value={doctor.department || ""}
-                onChange={(e) => handleFieldChange('department', e.target.value)}
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Specializations</label>
+              {!selectedDepartment ? (
+                <div className="text-sm text-gray-500 dark:text-gray-400">Select Department First</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                  {getAvailableSpecializations().map((spec) => (
+                    <label key={spec} className="flex items-center gap-3 text-gray-900 dark:text-white">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                        checked={selectedSpecializations.includes(spec)}
+                        onChange={() => toggleSpecialization(spec)}
+                      />
+                      <span className="text-sm">{spec}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
             
             <div>
@@ -383,6 +460,20 @@ export default function EditDoctor() {
                 className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
+          </div>
+
+          {/* Photo Upload */}
+          <div>
+            <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2 mb-4">Profile Photo</h4>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+              className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+            {photoFile && (
+              <p className="text-sm text-gray-500 mt-2">Selected: {photoFile.name}</p>
+            )}
           </div>
 
           {/* About */}

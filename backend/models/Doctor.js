@@ -32,6 +32,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(255),
       defaultValue: '',
     },
+    specializations: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+      comment: 'Array of specializations for this doctor',
+    },
     department_id: {
       type: DataTypes.INTEGER,
       allowNull: true,

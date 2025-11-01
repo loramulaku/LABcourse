@@ -86,6 +86,7 @@ const connectDatabase = async () => {
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const doctorRoutes = require("./routes/doctorRoutes");
+const doctorDashboardRoutes = require("./routes/doctorDashboardRoutes");
 const labRoutes = require("./routes/laboratoryRoutes");
 const lecturerRoutes = require("./routes/lecturerRoutes");
 const { router: notificationRoutes } = require("./routes/notificationRoutes");
@@ -103,6 +104,7 @@ const departmentRoutes = require("./routes/departmentRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/doctor", doctorDashboardRoutes); // Doctor dashboard routes
 app.use("/api/laboratories", labRoutes); // Changed from /api/labs to match frontend
 app.use("/api/labs", labRoutes); // Keep legacy route for backward compatibility
 app.use("/api/lecturers", lecturerRoutes);

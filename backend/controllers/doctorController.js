@@ -19,7 +19,7 @@ const doctorController = {
             required: false,
           },
         ],
-        order: [['created_at', 'DESC']],
+        order: [['id', 'DESC']],
       });
 
       res.json(doctors);
@@ -127,8 +127,10 @@ const doctorController = {
         phone,
         // Doctor fields
         specialization,
+        specializations,
         degree,
         experience_years,
+        experience,
         fees,
         consultation_fee,
         address_line1,
@@ -140,6 +142,21 @@ const doctorController = {
         first_name,
         last_name,
       } = req.body;
+
+      // Normalize specializations input (can arrive as JSON string or array)
+      let specializationsArr = [];
+      if (specializations) {
+        if (Array.isArray(specializations)) {
+          specializationsArr = specializations;
+        } else {
+          try {
+            const parsed = JSON.parse(specializations);
+            if (Array.isArray(parsed)) specializationsArr = parsed;
+          } catch (e) {
+            // ignore parse errors, fallback handled below
+          }
+        }
+      }
 
       // Validate required fields
       if (!name || !email || !password) {
@@ -184,10 +201,12 @@ const doctorController = {
         first_name: first_name || name.split(' ')[0] || '',
         last_name: last_name || name.split(' ').slice(1).join(' ') || '',
         phone: phone || '',
-        specialization: specialization || '',
+        specialization: specialization || specializationsArr[0] || '',
+        specializations: specializationsArr,
         degree: degree || '',
         license_number: license_number || '',
         experience_years: experience_years ? parseInt(experience_years) : 0,
+        experience: experience || '',
         about: about || '',
         consultation_fee: consultation_fee || fees || null,
         fees: fees || consultation_fee || null,
@@ -283,6 +302,22 @@ const doctorController = {
       }
       if (updates.consultation_fee) {
         updates.consultation_fee = parseFloat(updates.consultation_fee);
+      }
+
+      // Parse specializations if provided (can be JSON string or array)
+      if (updates.specializations !== undefined) {
+        if (typeof updates.specializations === 'string') {
+          try {
+            const parsed = JSON.parse(updates.specializations);
+            if (Array.isArray(parsed)) updates.specializations = parsed;
+          } catch (e) {
+            // leave as-is if not JSON
+          }
+        }
+        // Backward compatibility: set single specialization from first of array if not explicitly provided
+        if (!updates.specialization && Array.isArray(updates.specializations) && updates.specializations.length > 0) {
+          updates.specialization = updates.specializations[0];
+        }
       }
 
       console.log('Updating doctor with:', updates);

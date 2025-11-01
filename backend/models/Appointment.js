@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM('PENDING', 'CONFIRMED', 'DECLINED', 'CANCELLED'),
+      type: DataTypes.ENUM('PENDING', 'APPROVED', 'CONFIRMED', 'COMPLETED', 'DECLINED', 'CANCELLED'),
       defaultValue: 'PENDING',
     },
     stripe_session_id: {
@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     payment_status: {
-      type: DataTypes.ENUM('unpaid', 'paid', 'refunded'),
+      type: DataTypes.ENUM('unpaid', 'paid', 'refunded', 'expired'),
       defaultValue: 'unpaid',
     },
     amount: {
@@ -50,6 +50,42 @@ module.exports = (sequelize, DataTypes) => {
     currency: {
       type: DataTypes.STRING(3),
       defaultValue: 'EUR',
+    },
+    payment_link: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
+    payment_deadline: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    approved_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    rejected_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    rejection_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    paid_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    cancelled_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    completed_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    confirmed_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   }, {
     tableName: 'appointments',

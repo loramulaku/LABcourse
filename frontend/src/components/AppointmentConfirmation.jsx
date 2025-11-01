@@ -65,6 +65,8 @@ const AppointmentConfirmation = ({
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
+        console.error("Appointment creation error:", errorData);
+        
         if (errorData.error === "TIME_SLOT_BOOKED") {
           toast.error(
             "That time slot was just booked. Please select another time.",
@@ -72,8 +74,11 @@ const AppointmentConfirmation = ({
           onBack();
         } else if (res.status === 401) {
           toast.error("Session expired. Please log in again.");
+        } else if (errorData.error) {
+          // Show the actual error message from backend
+          toast.error(errorData.error);
         } else {
-          toast.error(errorData.error || "Failed to create appointment");
+          toast.error("Failed to create appointment. Please try again.");
         }
         return;
       }
@@ -81,7 +86,30 @@ const AppointmentConfirmation = ({
       const data = await res.json();
       console.log("Appointment response:", data);
 
-      if (data.url) {
+      // NEW FLOW: Doctor approval required
+      if (data.success && data.status === "PENDING" && data.doctor_approval_required) {
+        toast.success(
+          "Appointment request submitted successfully! Waiting for doctor approval.",
+          { autoClose: 5000 }
+        );
+        console.log("Appointment request created, awaiting doctor approval");
+        
+        // Show info about next steps
+        setTimeout(() => {
+          toast.info(
+            "You will receive a notification once the doctor reviews your request.",
+            { autoClose: 7000 }
+          );
+        }, 1000);
+        
+        // Redirect to appointments page after showing messages
+        setTimeout(() => {
+          window.location.href = "/my-appointments";
+        }, 2500);
+        onSuccess();
+      }
+      // OLD FLOW: Direct payment (for backwards compatibility)
+      else if (data.url) {
         // Redirect to Stripe checkout
         console.log("Redirecting to Stripe checkout:", data.url);
         toast.info("Redirecting to payment...");
@@ -103,7 +131,7 @@ const AppointmentConfirmation = ({
         onSuccess();
       } else {
         console.error("Unexpected response:", data);
-        toast.error("No checkout URL received from server.");
+        toast.error("Unexpected server response. Please contact support.");
       }
     } catch (err) {
       console.error("Booking error:", err);
@@ -122,11 +150,21 @@ const AppointmentConfirmation = ({
     });
   };
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("en-US", {
+  const formatTime = (timeString) => {
+    // If timeString is like "10:30 am", parse it properly
+    if (typeof timeString === 'string') {
+      return timeString;
+    }
+    // If it's a Date object
+    return timeString.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Get doctor name from various possible sources
+  const getDoctorName = () => {
+    return doctor.User?.name || doctor.name || doctor.first_name + ' ' + doctor.last_name || 'Doctor';
   };
 
   return (
@@ -148,20 +186,20 @@ const AppointmentConfirmation = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Doctor</p>
-            <p className="font-medium text-gray-800">{doctor.name}</p>
-            <p className="text-sm text-gray-600">{doctor.speciality}</p>
+            <p className="font-medium text-gray-800">{getDoctorName()}</p>
+            <p className="text-sm text-gray-600">{doctor.specialization || doctor.speciality || 'Specialist'}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Date & Time</p>
             <p className="font-medium text-gray-800">
               {formatDate(selectedDate)}
             </p>
-            <p className="text-sm text-gray-600">{formatTime(selectedDate)}</p>
+            <p className="text-sm text-gray-600">{formatTime(selectedTime)}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Fee</p>
             <p className="font-medium text-gray-800">
-              €{doctor.fees || "20.00"}
+              €{doctor.consultation_fee || doctor.fees || "60.00"}
             </p>
           </div>
         </div>
@@ -248,7 +286,7 @@ const AppointmentConfirmation = ({
                 <span>Processing...</span>
               </div>
             ) : (
-              `Book Appointment - €${doctor.fees || "20.00"}`
+              `Book Appointment - €${doctor.consultation_fee || doctor.fees || "60.00"}`
             )}
           </button>
         </div>

@@ -183,7 +183,7 @@ const Appointment = () => {
         <AppointmentConfirmation
           doctor={docInfo}
           selectedDate={selectedDateTime}
-          selectedTime={selectedDateTime}
+          selectedTime={slotTime}
           onBack={handleBackToTimeSelection}
           onSuccess={handleBookingSuccess}
         />
@@ -244,19 +244,35 @@ const Appointment = () => {
               <span>{docInfo.degree || 'N/A'}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium text-gray-700">📜 License:</span>
-              <span>{docInfo.license_number || 'N/A'}</span>
+              <span className="font-medium text-gray-700">💼 Experience:</span>
+              <span>{docInfo.experience_years ? `${docInfo.experience_years} years` : 'N/A'}</span>
             </div>
           </div>
 
-          <div className="mt-4">
-            <p className="flex items-center gap-1 text-sm font-medium text-[#262626] mt-3">
-              About <img className="w-3" src={assets.info_icon} alt="" />
-            </p>
-            <p className="text-sm text-gray-600 max-w-[700px] mt-1">
-              {docInfo.about || 'Experienced medical professional dedicated to providing quality healthcare.'}
-            </p>
-          </div>
+          {/* About Section */}
+          {docInfo.about && (
+            <div className="mt-6 p-4 rounded-lg">
+              <p className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
+                <img className="w-4" src={assets.info_icon} alt="" />
+                About Dr. {docInfo.User?.name || docInfo.first_name}
+              </p>
+              <p className="text-sm text-black leading-relaxed">
+                {docInfo.about}
+              </p>
+            </div>
+          )}
+
+          {/* Professional Experience */}
+          {docInfo.experience && (
+            <div className="mt-4 p-4 rounded-lg">
+              <p className="text-sm font-semibold text-black mb-2">
+                💼 Professional Experience
+              </p>
+              <p className="text-sm text-black leading-relaxed whitespace-pre-line">
+                {docInfo.experience}
+              </p>
+            </div>
+          )}
 
           <p className="text-gray-600 font-medium mt-4">
             Appointment fee:{" "}

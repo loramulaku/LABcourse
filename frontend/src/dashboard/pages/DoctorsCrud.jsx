@@ -12,6 +12,7 @@ export default function DoctorsCrud() {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
+  const [selectedSpecializations, setSelectedSpecializations] = useState([]);
 
   useEffect(() => {
     fetchDoctors();
@@ -33,9 +34,11 @@ export default function DoctorsCrud() {
         setDoctors(data);
       } else {
         console.error("Error fetching doctors");
+        toast.error("Error fetching doctors");
       }
     } catch (err) {
       console.error("Error fetching doctors:", err);
+      toast.error("Error fetching doctors");
     } finally {
       setLoading(false);
     }
@@ -81,6 +84,10 @@ export default function DoctorsCrud() {
         const fullDoctorData = await response.json();
         setEditingDoctor(fullDoctorData);
         setSelectedDepartment(fullDoctorData.department_id || null);
+        const specs = Array.isArray(fullDoctorData.specializations)
+          ? fullDoctorData.specializations
+          : (fullDoctorData.specialization ? [fullDoctorData.specialization] : []);
+        setSelectedSpecializations(specs);
         // Set photo preview if doctor has an image
         if (fullDoctorData.image) {
           const imageUrl = fullDoctorData.image.startsWith("http")
@@ -88,67 +95,12 @@ export default function DoctorsCrud() {
             : `${API_URL}${fullDoctorData.image}`;
           setPhotoPreview(imageUrl);
         }
-        setPhotoFile(null);
       } else {
-        toast.error("Error fetching doctor details");
+        console.error("Error fetching doctor details");
       }
     } catch (err) {
       console.error("Error fetching doctor details:", err);
       toast.error("Error fetching doctor details");
-    }
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size must be less than 5MB");
-        return;
-      }
-
-      setPhotoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removePhoto = () => {
-    setPhotoFile(null);
-    setPhotoPreview(null);
-  };
-
-  const handleDelete = async (doctorId) => {
-    if (!window.confirm("Are you sure you want to delete this doctor?")) return;
-
-    try {
-      const response = await fetch(`${API_URL}/api/doctors/${doctorId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        toast.success("Doctor deleted successfully");
-        fetchDoctors();
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || "Error deleting doctor");
-      }
-    } catch (err) {
-      console.error("Error deleting doctor:", err);
-      toast.error("Error deleting doctor");
     }
   };
 
@@ -166,12 +118,15 @@ export default function DoctorsCrud() {
       
       // Add doctor fields
       formDataToSend.append("phone", editingDoctor.phone);
-      formDataToSend.append("specialization", editingDoctor.specialization);
+      // Legacy single specialization + new array
+      formDataToSend.append("specializations", JSON.stringify(selectedSpecializations));
+      formDataToSend.append("specialization", selectedSpecializations[0] || "");
       formDataToSend.append("department_id", editingDoctor.department_id);
       formDataToSend.append("degree", editingDoctor.degree);
       formDataToSend.append("license_number", editingDoctor.license_number);
       formDataToSend.append("experience_years", editingDoctor.experience_years);
       formDataToSend.append("consultation_fee", editingDoctor.consultation_fee);
+      
       formDataToSend.append("available", editingDoctor.available ?? true);
       
       // Add user fields
@@ -209,6 +164,54 @@ export default function DoctorsCrud() {
     }
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image file");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoPreview(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+  };
+
+  const handleDelete = async (doctorId) => {
+    if (!window.confirm("Are you sure you want to delete this doctor?")) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/doctors/${doctorId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        toast.success("Doctor deleted successfully");
+        fetchDoctors();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Error deleting doctor");
+      }
+    } catch (err) {
+      console.error("Error deleting doctor:", err);
+      toast.error("Error deleting doctor");
+    }
+  };
+
   const handleFieldChange = (field, value) => {
     setEditingDoctor((prev) => ({
       ...prev,
@@ -222,12 +225,22 @@ export default function DoctorsCrud() {
       ...prev,
       department_id: deptId,
     }));
+    setSelectedSpecializations([]);
   };
 
   const getAvailableSpecializations = () => {
     if (!selectedDepartment) return [];
     const dept = departments.find((d) => d.id === selectedDepartment);
     return dept?.specializations || [];
+  };
+
+  const toggleSpecialization = (spec) => {
+    setSelectedSpecializations((prev) => {
+      const exists = prev.includes(spec);
+      const next = exists ? prev.filter((s) => s !== spec) : [...prev, spec];
+      setEditingDoctor((p) => ({ ...p, specialization: next[0] || "" }));
+      return next;
+    });
   };
 
   const filteredDoctors = doctors.filter(
@@ -419,27 +432,25 @@ export default function DoctorsCrud() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Specialization
+                      Specializations
                     </label>
-                    <select
-                      value={editingDoctor.specialization || ""}
-                      onChange={(e) =>
-                        handleFieldChange("specialization", e.target.value)
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={!selectedDepartment}
-                    >
-                      <option value="">
-                        {!selectedDepartment
-                          ? "Select Department First"
-                          : "Select Specialization"}
-                      </option>
-                      {getAvailableSpecializations().map((spec) => (
-                        <option key={spec} value={spec}>
-                          {spec}
-                        </option>
-                      ))}
-                    </select>
+                    {!selectedDepartment ? (
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Select Department First</div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                        {getAvailableSpecializations().map((spec) => (
+                          <label key={spec} className="flex items-center gap-3 text-gray-900 dark:text-white">
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                              checked={selectedSpecializations.includes(spec)}
+                              onChange={() => toggleSpecialization(spec)}
+                            />
+                            <span className="text-sm">{spec}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -498,6 +509,21 @@ export default function DoctorsCrud() {
                     />
                   </div>
 
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Experience Details
+                    </label>
+                    <textarea
+                      value={editingDoctor.experience || ""}
+                      onChange={(e) =>
+                        handleFieldChange("experience", e.target.value)
+                      }
+                      rows="3"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Describe doctor's professional experience"
+                    />
+                  </div>
+
                   {/* Availability Checkbox */}
                   <div className="md:col-span-2">
                     <label className="flex items-center gap-3 cursor-pointer">
@@ -520,6 +546,158 @@ export default function DoctorsCrud() {
                     </label>
                   </div>
                 </div>
+              </div>
+
+              {/* Address Information */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  Address Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Address Line 1
+                    </label>
+                    <input
+                      type="text"
+                      value={editingDoctor.address_line1 || ""}
+                      onChange={(e) =>
+                        handleFieldChange("address_line1", e.target.value)
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Address Line 2
+                    </label>
+                    <input
+                      type="text"
+                      value={editingDoctor.address_line2 || ""}
+                      onChange={(e) =>
+                        handleFieldChange("address_line2", e.target.value)
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      value={editingDoctor.country || ""}
+                      onChange={(e) => handleFieldChange("country", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      City/State
+                    </label>
+                    <input
+                      type="text"
+                      value={editingDoctor.city_state || ""}
+                      onChange={(e) =>
+                        handleFieldChange("city_state", e.target.value)
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      value={editingDoctor.postal_code || ""}
+                      onChange={(e) =>
+                        handleFieldChange("postal_code", e.target.value)
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Media & Contact */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  Social Media & Contact
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Facebook
+                    </label>
+                    <input
+                      type="url"
+                      value={editingDoctor.facebook || ""}
+                      onChange={(e) => handleFieldChange("facebook", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Facebook URL"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      X (Twitter)
+                    </label>
+                    <input
+                      type="url"
+                      value={editingDoctor.x || ""}
+                      onChange={(e) => handleFieldChange("x", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="X (Twitter) URL"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      LinkedIn
+                    </label>
+                    <input
+                      type="url"
+                      value={editingDoctor.linkedin || ""}
+                      onChange={(e) => handleFieldChange("linkedin", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="LinkedIn URL"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Instagram
+                    </label>
+                    <input
+                      type="url"
+                      value={editingDoctor.instagram || ""}
+                      onChange={(e) =>
+                        handleFieldChange("instagram", e.target.value)
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Instagram URL"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* About Doctor */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  About Doctor
+                </h4>
+                <textarea
+                  value={editingDoctor.about || ""}
+                  onChange={(e) => handleFieldChange("about", e.target.value)}
+                  rows="4"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Professional bio and additional information about the doctor"
+                />
               </div>
 
               {/* Buttons */}
@@ -617,7 +795,9 @@ export default function DoctorsCrud() {
                       {getDepartmentName(doctor.department_id)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      {doctor.specialization || "N/A"}
+                      {Array.isArray(doctor.specializations) && doctor.specializations.length > 0
+                        ? doctor.specializations.join(', ')
+                        : (doctor.specialization || "N/A")}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">

@@ -38,57 +38,32 @@ const DoctorAppointments = () => {
     }
   };
 
-  const updateAppointmentStatus = async (appointmentId, newStatus) => {
+  const updateAppointmentStatus = async (appointmentId, newStatus, notes = '') => {
     try {
       const response = await fetch(
-        `${API_URL}/api/doctor/appointments/${appointmentId}/status`,
+        `${API_URL}/api/doctor/appointment/${appointmentId}/status`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${getAccessToken()}`,
           },
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({ status: newStatus, notes }),
           credentials: "include",
         }
       );
 
       if (response.ok) {
-        toast.success("Appointment status updated successfully");
+        const data = await response.json();
+        toast.success(data.message || "Appointment status updated successfully");
         fetchAppointments(); // Refresh data
       } else {
-        toast.error("Failed to update appointment status");
+        const error = await response.json();
+        toast.error(error.error || "Failed to update appointment status");
       }
     } catch (error) {
       console.error("Error updating appointment status:", error);
       toast.error("Error updating appointment status");
-    }
-  };
-
-  const rescheduleAppointment = async (appointmentId, newDateTime) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/api/doctor/appointments/${appointmentId}/reschedule`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-          body: JSON.stringify({ scheduled_for: newDateTime }),
-          credentials: "include",
-        }
-      );
-
-      if (response.ok) {
-        toast.success("Appointment rescheduled successfully");
-        fetchAppointments(); // Refresh data
-      } else {
-        toast.error("Failed to reschedule appointment");
-      }
-    } catch (error) {
-      console.error("Error rescheduling appointment:", error);
-      toast.error("Error rescheduling appointment");
     }
   };
 
@@ -104,27 +79,46 @@ const DoctorAppointments = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "confirmed":
-        return "bg-green-100 text-green-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
-      case "no_show":
-        return "bg-gray-100 text-gray-800";
+    const normalizedStatus = status?.toUpperCase();
+    switch (normalizedStatus) {
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400";
+      case "APPROVED":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
+      case "CONFIRMED":
+        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+      case "COMPLETED":
+        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
+      case "DECLINED":
+        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
     }
+  };
+  
+  const getNextStatuses = (currentStatus) => {
+    const normalizedStatus = currentStatus?.toUpperCase();
+    const statusTransitions = {
+      'PENDING': ['APPROVED', 'DECLINED'],
+      'APPROVED': ['CONFIRMED', 'CANCELLED'],
+      'CONFIRMED': ['COMPLETED', 'CANCELLED'],
+      'COMPLETED': [],
+      'CANCELLED': [],
+      'DECLINED': []
+    };
+    return statusTransitions[normalizedStatus] || [];
   };
 
   const filteredAppointments = appointments.filter((appointment) => {
-    const matchesStatus = activeTab === "all" || appointment.status === activeTab;
+    const normalizedStatus = appointment.status?.toUpperCase();
+    const normalizedTab = activeTab?.toUpperCase();
+    const matchesStatus = activeTab === "all" || normalizedStatus === normalizedTab;
     const matchesSearch = 
       appointment.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.patient_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.notes?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesStatus && matchesSearch;
@@ -191,11 +185,12 @@ const DoctorAppointments = () => {
               <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto no-scrollbar">
                 {[
                   { key: "all", label: "All Appointments" },
-                  { key: "pending", label: "Pending" },
-                  { key: "confirmed", label: "Confirmed" },
-                  { key: "completed", label: "Completed" },
-                  { key: "cancelled", label: "Cancelled" },
-                  { key: "no_show", label: "No Show" },
+                  { key: "PENDING", label: "Pending" },
+                  { key: "APPROVED", label: "Approved" },
+                  { key: "CONFIRMED", label: "Confirmed" },
+                  { key: "COMPLETED", label: "Completed" },
+                  { key: "CANCELLED", label: "Cancelled" },
+                  { key: "DECLINED", label: "Declined" },
                 ].map((tab) => (
                   <button
                     key={tab.key}
@@ -274,73 +269,55 @@ const DoctorAppointments = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}
-                          >
-                            {appointment.status}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}
+                            >
+                              {appointment.status}
+                            </span>
+                            {getNextStatuses(appointment.status).length > 0 && (
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value && window.confirm(`Change status to ${e.target.value}?`)) {
+                                    updateAppointmentStatus(appointment.id, e.target.value);
+                                  }
+                                  e.target.value = '';
+                                }}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white hover:border-blue-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                defaultValue=""
+                              >
+                                <option value="">Change...</option>
+                                {getNextStatuses(appointment.status).map(status => (
+                                  <option key={status} value={status}>
+                                    → {status}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 max-w-xs truncate">
-                            {appointment.notes || "No notes"}
+                          <div className="text-sm text-gray-900 max-w-xs">
+                            <div className="font-medium mb-1">{appointment.reason || "No reason"}</div>
+                            {appointment.notes && (
+                              <div className="text-gray-500 text-xs truncate">{appointment.notes}</div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
+                          <div className="flex flex-col space-y-1">
                             <button
-                              onClick={() => navigate(`/doctor/patient-profile/${appointment.patient_id}`)}
-                              className="text-blue-600 hover:text-blue-900"
+                              onClick={() => navigate(`/doctor/appointment/${appointment.id}`)}
+                              className="text-blue-600 hover:text-blue-900 text-left"
                             >
-                              View Patient
+                              View Details
                             </button>
-                            {appointment.status === "pending" && (
-                              <>
-                                <button
-                                  onClick={() => updateAppointmentStatus(appointment.id, "confirmed")}
-                                  className="text-green-600 hover:text-green-900"
-                                >
-                                  Confirm
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    const newDateTime = prompt("Enter new date and time (YYYY-MM-DD HH:MM):");
-                                    if (newDateTime) {
-                                      rescheduleAppointment(appointment.id, newDateTime);
-                                    }
-                                  }}
-                                  className="text-yellow-600 hover:text-yellow-900"
-                                >
-                                  Reschedule
-                                </button>
-                              </>
-                            )}
-                            {appointment.status === "confirmed" && (
-                              <>
-                                <button
-                                  onClick={() => updateAppointmentStatus(appointment.id, "completed")}
-                                  className="text-green-600 hover:text-green-900"
-                                >
-                                  Complete
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    const newDateTime = prompt("Enter new date and time (YYYY-MM-DD HH:MM):");
-                                    if (newDateTime) {
-                                      rescheduleAppointment(appointment.id, newDateTime);
-                                    }
-                                  }}
-                                  className="text-yellow-600 hover:text-yellow-900"
-                                >
-                                  Reschedule
-                                </button>
-                              </>
-                            )}
-                            {(appointment.status === "pending" || appointment.status === "confirmed") && (
+                            {appointment.payment_status === 'unpaid' && appointment.status === 'PENDING' && (
                               <button
-                                onClick={() => updateAppointmentStatus(appointment.id, "cancelled")}
-                                className="text-red-600 hover:text-red-900"
+                                onClick={() => navigate(`/doctor/appointment/${appointment.id}`)}
+                                className="text-green-600 hover:text-green-900 text-left"
                               >
-                                Cancel
+                                Approve & Send Payment
                               </button>
                             )}
                           </div>

@@ -29,10 +29,12 @@ export default function AddDoctor() {
     city_state: "",
     postal_code: "",
     facebook: "",
-    twitter: "",
+    x: "",
+    linkedin: "",
     instagram: "",
     department_id: null,
   });
+  const [selectedSpecializations, setSelectedSpecializations] = useState([]);
 
   useEffect(() => {
     fetchDepartments();
@@ -72,12 +74,23 @@ export default function AddDoctor() {
       ...prev,
       department_id: deptId,
     }));
+    setSelectedSpecializations([]);
   };
 
   const getAvailableSpecializations = () => {
     if (!selectedDepartment) return [];
     const dept = departments.find((d) => d.id === selectedDepartment);
     return dept?.specializations || [];
+  };
+
+  const toggleSpecialization = (spec) => {
+    setSelectedSpecializations((prev) => {
+      const exists = prev.includes(spec);
+      const next = exists ? prev.filter((s) => s !== spec) : [...prev, spec];
+      // maintain legacy single specialization for compatibility
+      setFormData((p) => ({ ...p, specialization: next[0] || "" }));
+      return next;
+    });
   };
 
   const handlePhotoChange = (e) => {
@@ -122,8 +135,12 @@ export default function AddDoctor() {
       return;
     }
 
-    if (!formData.specialization) {
-      toast.error("Please select a specialization");
+    if (!selectedDepartment) {
+      toast.error("Please select a department");
+      return;
+    }
+    if (selectedSpecializations.length === 0) {
+      toast.error("Please select at least one specialization");
       return;
     }
 
@@ -137,6 +154,10 @@ export default function AddDoctor() {
       Object.keys(formData).forEach((key) => {
         formDataToSend.append(key, formData[key]);
       });
+
+      // Add multi specializations (as JSON) and legacy single specialization
+      formDataToSend.append("specializations", JSON.stringify(selectedSpecializations));
+      formDataToSend.set("specialization", selectedSpecializations[0] || "");
 
       // Add photo if selected
       if (photoFile) {
@@ -322,28 +343,25 @@ export default function AddDoctor() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Specialization *
+                  Specializations *
                 </label>
-                <select
-                  value={formData.specialization}
-                  onChange={(e) =>
-                    handleFieldChange("specialization", e.target.value)
-                  }
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  disabled={!selectedDepartment}
-                >
-                  <option value="">
-                    {!selectedDepartment
-                      ? "Select Department First"
-                      : "Select Specialization"}
-                  </option>
-                  {getAvailableSpecializations().map((spec) => (
-                    <option key={spec} value={spec}>
-                      {spec}
-                    </option>
-                  ))}
-                </select>
+                {!selectedDepartment ? (
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Select Department First</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                    {getAvailableSpecializations().map((spec) => (
+                      <label key={spec} className="flex items-center gap-3 text-gray-900 dark:text-white">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                          checked={selectedSpecializations.includes(spec)}
+                          onChange={() => toggleSpecialization(spec)}
+                        />
+                        <span className="text-sm">{spec}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -537,12 +555,24 @@ export default function AddDoctor() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Twitter
+                  X (Twitter)
                 </label>
                 <input
                   type="url"
-                  value={formData.twitter}
-                  onChange={(e) => handleFieldChange("twitter", e.target.value)}
+                  value={formData.x}
+                  onChange={(e) => handleFieldChange("x", e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  LinkedIn
+                </label>
+                <input
+                  type="url"
+                  value={formData.linkedin}
+                  onChange={(e) => handleFieldChange("linkedin", e.target.value)}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

@@ -1,14 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
+import { useSearchParams } from "react-router-dom";
 import { API_URL, getAccessToken } from "../api";
 
 const MyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const highlightedRef = useRef(null);
 
   useEffect(() => {
     fetchAppointments();
   }, []);
+
+  useEffect(() => {
+    // Scroll to highlighted appointment if specified in URL
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && highlightedRef.current) {
+      setTimeout(() => {
+        highlightedRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 500);
+    }
+  }, [appointments, searchParams]);
 
   const fetchAppointments = async () => {
     try {
@@ -49,14 +65,45 @@ const MyAppointments = () => {
     });
   };
 
+  const handlePayNow = (appointment) => {
+    if (appointment.payment_link) {
+      // Redirect to Stripe payment link
+      window.location.href = appointment.payment_link;
+    } else {
+      toast.error("Payment link not available. Please contact support.");
+    }
+  };
+
+  const getTimeRemaining = (deadline) => {
+    if (!deadline) return null;
+    
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const diff = deadlineDate - now;
+    
+    if (diff <= 0) return "Expired";
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 24) {
+      const days = Math.floor(hours / 24);
+      return `${days} day${days > 1 ? 's' : ''} left`;
+    }
+    return `${hours}h ${minutes}m left`;
+  };
+
   const getStatusColor = (status) => {
-    switch (status) {
+    switch (status?.toUpperCase()) {
       case "CONFIRMED":
         return "bg-green-100 text-green-800";
+      case "APPROVED":
+        return "bg-blue-100 text-blue-800";
       case "PENDING":
         return "bg-yellow-100 text-yellow-800";
+      case "COMPLETED":
+        return "bg-indigo-100 text-indigo-800";
       case "CANCELLED":
-        return "bg-red-100 text-red-800";
       case "DECLINED":
         return "bg-red-100 text-red-800";
       default:
@@ -163,10 +210,18 @@ const MyAppointments = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {appointments.map((appointment) => (
+            {appointments.map((appointment) => {
+              const isHighlighted = searchParams.get('highlight') === String(appointment.id);
+              const isApproved = appointment.status?.toUpperCase() === 'APPROVED';
+              const timeLeft = isApproved ? getTimeRemaining(appointment.payment_deadline) : null;
+              
+              return (
               <div
                 key={appointment.id}
-                className="bg-white shadow rounded-lg p-6"
+                ref={isHighlighted ? highlightedRef : null}
+                className={`bg-white shadow rounded-lg p-6 transition-all duration-300 ${
+                  isHighlighted ? 'ring-4 ring-blue-500 ring-opacity-50 animate-pulse' : ''
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -179,6 +234,11 @@ const MyAppointments = () => {
                       >
                         {appointment.status}
                       </span>
+                      {isApproved && timeLeft && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                          ⏱️ {timeLeft}
+                        </span>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -246,10 +306,60 @@ const MyAppointments = () => {
                         </p>
                       </div>
                     )}
+
+                    {/* Payment Section for APPROVED appointments */}
+                    {isApproved && (
+                      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-2">
+                              <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <h4 className="text-lg font-semibold text-blue-900">
+                                Appointment Approved!
+                              </h4>
+                            </div>
+                            <p className="text-sm text-blue-800 mb-3">
+                              Your appointment has been approved by the doctor. Please complete the payment within <strong>{timeLeft}</strong> to confirm your appointment.
+                            </p>
+                            {appointment.payment_deadline && (
+                              <p className="text-xs text-blue-600 mb-4">
+                                Payment deadline: {formatDate(appointment.payment_deadline)}
+                              </p>
+                            )}
+                            <button
+                              onClick={() => handlePayNow(appointment)}
+                              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                            >
+                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                              </svg>
+                              Pay Now - €{appointment.amount}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Pending approval message */}
+                    {appointment.status?.toUpperCase() === 'PENDING' && (
+                      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p className="text-sm text-yellow-800">
+                            Waiting for doctor approval. You'll be notified once the doctor reviews your request.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

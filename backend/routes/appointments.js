@@ -2,6 +2,8 @@ const express = require("express");
 const Stripe = require("stripe");
 const { authenticateToken } = require("../middleware/auth");
 const db = require("../db");
+const { Appointment, Doctor, User } = require("../models");
+const { Op } = require("sequelize");
 
 const router = express.Router();
 
@@ -28,11 +30,18 @@ try {
 
 // Create appointment and Stripe checkout session
 router.post("/create-checkout-session", authenticateToken, async (req, res) => {
+  console.log("🚀 ==================== NEW APPOINTMENT REQUEST ====================");
+  console.log("⏰ Time:", new Date().toISOString());
+  
+  // Safety check
+  if (!req.user) {
+    console.error("❌ No user found in request - authentication failed");
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+  
   try {
-    console.log("Appointment creation request received:", {
-      body: req.body,
-      user: req.user,
-    });
+    console.log("📝 Request body:", JSON.stringify(req.body, null, 2));
+    console.log("👤 User:", req.user ? req.user.id : "NOT AUTHENTICATED");
 
     const {
       doctor_id,
@@ -45,8 +54,18 @@ router.post("/create-checkout-session", authenticateToken, async (req, res) => {
     } = req.body;
     const userId = req.user.id;
 
+    console.log("📋 Parsed data:", {
+      doctor_id,
+      scheduled_for,
+      reason,
+      userId,
+      phone,
+      notes
+    });
+
     // Validate required fields
     if (!doctor_id || !scheduled_for || !reason) {
+      console.error("❌ Missing required fields:", { doctor_id, scheduled_for, reason });
       return res
         .status(400)
         .json({
@@ -63,164 +82,142 @@ router.post("/create-checkout-session", authenticateToken, async (req, res) => {
     // Validate scheduled_for is a valid date
     const scheduledDate = new Date(scheduled_for);
     if (isNaN(scheduledDate.getTime())) {
+      console.error("Invalid date format received:", scheduled_for);
       return res
         .status(400)
-        .json({ error: "Invalid scheduled_for date format" });
+        .json({ error: "Invalid date format. Please select a valid date and time." });
     }
 
-    // Check if the appointment is in the future
-    if (scheduledDate <= new Date()) {
+    // Check if the appointment is in the future (with a small buffer)
+    const now = new Date();
+    const bufferMinutes = 5; // Allow 5 minutes buffer
+    const minDate = new Date(now.getTime() + bufferMinutes * 60000);
+    
+    if (scheduledDate <= minDate) {
+      console.log("Appointment time validation failed:", {
+        received: scheduledDate.toISOString(),
+        receivedLocal: scheduledDate.toLocaleString(),
+        now: now.toISOString(),
+        minRequired: minDate.toISOString(),
+        difference: (scheduledDate - now) / 60000 + " minutes"
+      });
       return res
         .status(400)
         .json({
-          error: "Appointment must be scheduled for a future date and time",
+          error: "Appointment must be scheduled at least 5 minutes in the future. Please select a later time slot.",
         });
     }
 
-    // Ensure time slot availability (exact)
-    const mysqlDateTime = new Date(scheduled_for)
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ");
+    // Format datetime for MySQL (keep local timezone)
+    // Don't convert to UTC - keep the time as-is
+    const scheduledDateTime = new Date(scheduled_for);
+    const year = scheduledDateTime.getFullYear();
+    const month = String(scheduledDateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(scheduledDateTime.getDate()).padStart(2, '0');
+    const hours = String(scheduledDateTime.getHours()).padStart(2, '0');
+    const minutes = String(scheduledDateTime.getMinutes()).padStart(2, '0');
+    const seconds = String(scheduledDateTime.getSeconds()).padStart(2, '0');
+    const mysqlDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
-    // Check if user exists
-    const [userCheck] = await db
-      .promise()
-      .query(`SELECT id FROM users WHERE id=?`, [userId]);
-    if (userCheck.length === 0) {
+    // Check if user exists using ORM
+    console.log("🔍 Checking user...");
+    const user = await User.findByPk(userId);
+    if (!user) {
+      console.error("❌ User not found:", userId);
       return res.status(404).json({ error: "User not found" });
     }
+    console.log("✅ User found:", user.id);
 
-    // Check if doctor exists
-    const [doctorCheck] = await db
-      .promise()
-      .query(`SELECT id FROM doctors WHERE id=? AND available=1`, [doctor_id]);
-    if (doctorCheck.length === 0) {
+    // Check if doctor exists and get consultation fee using ORM
+    console.log("🔍 Checking doctor:", doctor_id);
+    const doctor = await Doctor.findByPk(doctor_id, {
+      attributes: ['id', 'consultation_fee', 'fees', 'available']
+    });
+    
+    if (!doctor) {
+      console.error("❌ Doctor not found:", doctor_id);
       return res
         .status(404)
-        .json({ error: "Doctor not found or not available" });
+        .json({ error: "Doctor not found" });
     }
+    console.log("✅ Doctor found:", doctor.id, "Fee:", doctor.consultation_fee || doctor.fees);
+    
+    // Optional: Check if doctor is available (if field exists)
+    if (doctor.available === false) {
+      console.log("⚠️  Doctor unavailable");
+      return res
+        .status(400)
+        .json({ error: "Doctor is not currently accepting appointments" });
+    }
+    
+    const consultationFee = doctor.consultation_fee || doctor.fees || 60.0;
+    const amountInCents = Math.round(consultationFee * 100); // Convert to cents for Stripe
 
-    // Check for time slot conflicts
-    const [conflict] = await db
-      .promise()
-      .query(
-        `SELECT COUNT(*) as count FROM appointments WHERE doctor_id=? AND scheduled_for=? AND status <> 'CANCELLED'`,
-        [doctor_id, mysqlDateTime],
-      );
-    if (conflict[0].count > 0) {
+    // Check for time slot conflicts using ORM
+    console.log("🔍 Checking time slot conflicts for:", mysqlDateTime);
+    const existingAppointment = await Appointment.findOne({
+      where: {
+        doctor_id: doctor_id,
+        scheduled_for: mysqlDateTime,
+        status: {
+          [Op.ne]: 'CANCELLED'
+        }
+      }
+    });
+    
+    if (existingAppointment) {
+      console.log("❌ Time slot already booked");
       return res.status(400).json({ error: "TIME_SLOT_BOOKED" });
     }
+    console.log("✅ Time slot available");
 
-    // Create pending appointment row
-    const [ins] = await db
-      .promise()
-      .query(
-        `INSERT INTO appointments (user_id, doctor_id, scheduled_for, reason, phone, notes, amount) VALUES (?,?,?,?,?,?,?)`,
-        [
-          userId,
-          doctor_id,
-          mysqlDateTime,
-          reason,
-          phone || null,
-          notes || null,
-          20.0,
-        ],
-      );
-    const appointmentId = ins.insertId;
+    // Create pending appointment using ORM
+    console.log("💾 Creating appointment...");
+    const appointment = await Appointment.create({
+      user_id: userId,
+      doctor_id: doctor_id,
+      scheduled_for: mysqlDateTime,
+      reason: reason,
+      phone: phone || null,
+      notes: notes || null,
+      amount: consultationFee,
+      status: 'PENDING',
+      payment_status: 'unpaid'
+    });
+    console.log("✅ Appointment created:", appointment.id);
+    
+    const appointmentId = appointment.id;
+    console.log(`Appointment request created with ID ${appointmentId}, status: PENDING, awaiting doctor approval`);
 
-    // Check if Stripe is configured
-    if (!stripe) {
-      console.log("Stripe not configured, confirming appointment directly");
-      // If Stripe is not configured, just confirm the appointment directly
-      await db
-        .promise()
-        .query(
-          `UPDATE appointments SET status='CONFIRMED', payment_status='paid' WHERE id=?`,
-          [appointmentId],
-        );
-      return res.json({
-        message: "Appointment booked successfully (payment not configured)",
-        appointment_id: appointmentId,
-        status: "confirmed",
-        payment_required: false,
-      });
-    }
-
-    try {
-      // Create Stripe Checkout session
-      console.log("Creating Stripe checkout session...");
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency,
-              unit_amount: Number(price_cents),
-              product_data: {
-                name: "Doctor Appointment",
-                description: `Doctor #${doctor_id} at ${mysqlDateTime}`,
-              },
-            },
-            quantity: 1,
-          },
-        ],
-        metadata: {
-          appointment_id: String(appointmentId),
-          user_id: String(userId),
-          doctor_id: String(doctor_id),
-          scheduled_for: mysqlDateTime,
-        },
-        success_url: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-cancelled`,
-      });
-
-      // Save session id
-      await db
-        .promise()
-        .query(`UPDATE appointments SET stripe_session_id=? WHERE id=?`, [
-          session.id,
-          appointmentId,
-        ]);
-
-      console.log("Stripe session created successfully:", session.id);
-      res.json({
-        url: session.url,
-        session_id: session.id,
-        appointment_id: appointmentId,
-      });
-    } catch (stripeError) {
-      console.error("Stripe error:", stripeError);
-      // If Stripe fails, still confirm the appointment
-      await db
-        .promise()
-        .query(
-          `UPDATE appointments SET status='CONFIRMED', payment_status='paid' WHERE id=?`,
-          [appointmentId],
-        );
-      return res.json({
-        message: "Appointment booked successfully (payment not configured)",
-        appointment_id: appointmentId,
-        status: "confirmed",
-        payment_required: false,
-      });
-    }
+    // NEW FLOW: Just return success, doctor needs to approve first
+    // Payment will happen AFTER doctor approval
+    res.json({
+      success: true,
+      message: "Appointment request submitted successfully. Waiting for doctor approval.",
+      appointment_id: appointmentId,
+      status: "PENDING",
+      doctor_approval_required: true,
+      scheduled_for: mysqlDateTime,
+      amount: consultationFee
+    });
   } catch (err) {
-    console.error("Appointment booking error:", err);
-    console.error("Error details:", {
-      message: err.message,
-      stack: err.stack,
+    console.error("🔥 ==================== APPOINTMENT ERROR ====================");
+    console.error("❌ Error Type:", err.name);
+    console.error("❌ Error Message:", err.message);
+    console.error("❌ Error Stack:", err.stack);
+    console.error("📍 Request Data:", {
       doctor_id: req.body?.doctor_id,
       scheduled_for: req.body?.scheduled_for,
       userId: req.user?.id,
+      reason: req.body?.reason,
     });
-    res
-      .status(500)
-      .json({
-        error: "Failed to create checkout session",
-        details: err.message,
-      });
+    console.error("🔥 ================================================================");
+    
+    res.status(500).json({
+      error: "Failed to create appointment",
+      message: err.message,
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
@@ -249,13 +246,26 @@ router.post(
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
         const appointmentId = session.metadata?.appointment_id;
+        const paidAmount = session.metadata?.amount || (session.amount_total / 100);
+        
         if (appointmentId) {
-          await db
-            .promise()
-            .query(
-              `UPDATE appointments SET status='CONFIRMED', payment_status='paid' WHERE id=?`,
-              [appointmentId],
-            );
+          console.log(`Payment confirmed for appointment ${appointmentId}, amount: €${paidAmount}`);
+          
+          // Get current appointment to check status
+          const appointment = await Appointment.findByPk(appointmentId);
+          
+          if (appointment) {
+            // Update appointment: APPROVED or PENDING -> CONFIRMED + PAID
+            await appointment.update({
+              status: 'CONFIRMED',
+              payment_status: 'paid',
+              amount: paidAmount,
+              paid_at: new Date()
+            });
+            
+            console.log(`Appointment ${appointmentId} payment completed. Status: ${appointment.status} -> CONFIRMED`);
+            // TODO: Send notification to doctor and patient
+          }
         }
       }
       res.json({ received: true });
@@ -269,28 +279,38 @@ router.post(
 // Get my appointments (as patient)
 router.get("/my", authenticateToken, async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
-      `SELECT 
-         a.*, 
-         d.speciality, 
-         u.name as doctor_name,
-         (
-           SELECT t.therapy_text 
-           FROM therapies t 
-           WHERE t.appointment_id = a.id 
-           ORDER BY t.created_at DESC 
-           LIMIT 1
-         ) AS therapy_text
-       FROM appointments a 
-       JOIN doctors d ON a.doctor_id = d.id 
-       JOIN users u ON d.user_id = u.id 
-       WHERE a.user_id=? 
-       ORDER BY a.scheduled_for DESC`,
-      [req.user.id],
-    );
-    res.json(rows);
+    // Get appointments using ORM with eager loading
+    const appointments = await Appointment.findAll({
+      where: { user_id: req.user.id },
+      include: [
+        {
+          model: Doctor,
+          attributes: ['id', 'specialization', 'image', 'consultation_fee'],
+          include: [
+            {
+              model: User,
+              attributes: ['name', 'email']
+            }
+          ]
+        }
+      ],
+      order: [['scheduled_for', 'DESC']]
+    });
+    
+    // Format response to match expected structure
+    const formattedAppointments = appointments.map(apt => ({
+      ...apt.toJSON(),
+      doctor_name: apt.Doctor?.User?.name,
+      doctor_email: apt.Doctor?.User?.email,
+      doctor_image: apt.Doctor?.image,
+      specialization: apt.Doctor?.specialization,
+      therapy_text: null // Therapies table doesn't exist yet
+    }));
+    
+    res.json(formattedAppointments);
   } catch (e) {
-    res.status(500).json({ error: "Failed to fetch appointments" });
+    console.error("Error fetching my appointments:", e);
+    res.status(500).json({ error: "Failed to fetch appointments", details: e.message });
   }
 });
 
@@ -303,42 +323,65 @@ router.get("/doctor/refused", authenticateToken, async (req, res) => {
         .json({ error: "Only doctors can access this resource" });
     }
 
-    // Find doctor id by current user id
-    const [docRows] = await db
-      .promise()
-      .query(`SELECT id FROM doctors WHERE user_id = ? LIMIT 1`, [req.user.id]);
-    if (docRows.length === 0) {
+    // Find doctor using ORM
+    const doctorProfile = await Doctor.findOne({
+      where: { user_id: req.user.id },
+      attributes: ['id']
+    });
+    
+    if (!doctorProfile) {
       return res
         .status(404)
         .json({ error: "Doctor profile not found for this user" });
     }
-    const doctorId = docRows[0].id;
+    const doctorId = doctorProfile.id;
 
-    const [rows] = await db.promise().query(
-      `SELECT 
-         a.id AS appointment_id,
-         a.user_id AS patient_id,
-         a.scheduled_for,
-         a.reason,
-         a.status,
-         a.notes,
-         u.name AS patient_name,
-         u.email AS patient_email,
-         COALESCE(up.phone, '') AS patient_phone,
-         (
-           SELECT COUNT(*) FROM appointments a2
-           WHERE a2.user_id = a.user_id AND a2.doctor_id = a.doctor_id 
-             AND a2.status IN ('CANCELLED','DECLINED')
-         ) AS refusal_count
-       FROM appointments a
-       JOIN users u ON u.id = a.user_id
-       LEFT JOIN user_profiles up ON up.user_id = u.id
-       WHERE a.doctor_id = ? AND a.status IN ('CANCELLED','DECLINED')
-       ORDER BY a.scheduled_for DESC`,
-      [doctorId],
-    );
+    // Get refused/cancelled appointments using ORM
+    const appointments = await Appointment.findAll({
+      where: {
+        doctor_id: doctorId,
+        status: {
+          [Op.in]: ['CANCELLED', 'DECLINED']
+        }
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'email']
+        }
+      ],
+      order: [['scheduled_for', 'DESC']],
+      raw: false
+    });
+    
+    // Format response to match expected structure
+    const formattedRows = await Promise.all(appointments.map(async (apt) => {
+      // Get refusal count for this patient-doctor combination
+      const refusalCount = await Appointment.count({
+        where: {
+          user_id: apt.user_id,
+          doctor_id: apt.doctor_id,
+          status: {
+            [Op.in]: ['CANCELLED', 'DECLINED']
+          }
+        }
+      });
+      
+      return {
+        appointment_id: apt.id,
+        patient_id: apt.user_id,
+        scheduled_for: apt.scheduled_for,
+        reason: apt.reason,
+        status: apt.status,
+        notes: apt.notes,
+        patient_name: apt.User?.name,
+        patient_email: apt.User?.email,
+        patient_phone: '', // UserProfile not in models yet
+        refusal_count: refusalCount
+      };
+    }));
 
-    res.json(rows);
+    res.json(formattedRows);
   } catch (e) {
     console.error("Failed to fetch refused appointments for doctor:", e);
     res.status(500).json({ error: "Failed to fetch refused appointments" });
@@ -362,29 +405,30 @@ router.post("/:id/therapy", authenticateToken, async (req, res) => {
       return res.status(400).json({ error: "therapy_text is required" });
     }
 
-    // Resolve doctor id for current user
-    const [docRows] = await db
-      .promise()
-      .query(`SELECT id FROM doctors WHERE user_id = ? LIMIT 1`, [req.user.id]);
-    if (docRows.length === 0) {
+    // Resolve doctor id for current user using ORM
+    const doctorProfile = await Doctor.findOne({
+      where: { user_id: req.user.id },
+      attributes: ['id']
+    });
+    
+    if (!doctorProfile) {
       return res
         .status(404)
         .json({ error: "Doctor profile not found for this user" });
     }
-    const doctorId = docRows[0].id;
+    const doctorId = doctorProfile.id;
 
-    // Verify appointment exists and belongs to this doctor
-    const [apptRows] = await db
-      .promise()
-      .query(
-        `SELECT id, user_id, doctor_id FROM appointments WHERE id = ? LIMIT 1`,
-        [appointmentId],
-      );
-    if (apptRows.length === 0) {
+    // Verify appointment exists and belongs to this doctor using ORM
+    const appointment = await Appointment.findOne({
+      where: { id: appointmentId },
+      attributes: ['id', 'user_id', 'doctor_id']
+    });
+    
+    if (!appointment) {
       return res.status(404).json({ error: "Appointment not found" });
     }
-    const appt = apptRows[0];
-    if (Number(appt.doctor_id) !== Number(doctorId)) {
+    
+    if (Number(appointment.doctor_id) !== Number(doctorId)) {
       return res
         .status(403)
         .json({ error: "You can only add therapy to your own appointments" });
@@ -402,6 +446,233 @@ router.post("/:id/therapy", authenticateToken, async (req, res) => {
   } catch (e) {
     console.error("Failed to submit therapy:", e);
     res.status(500).json({ error: "Failed to submit therapy" });
+  }
+});
+
+// Verify payment status
+router.get("/verify-payment/:session_id", authenticateToken, async (req, res) => {
+  try {
+    const { session_id } = req.params;
+    
+    if (!stripe) {
+      return res.status(400).json({ error: "Stripe not configured" });
+    }
+    
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const appointmentId = session.metadata?.appointment_id;
+    
+    if (!appointmentId) {
+      return res.status(404).json({ error: "No appointment associated with this session" });
+    }
+    
+    // Get appointment using ORM
+    const appointment = await Appointment.findByPk(appointmentId);
+    
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+    
+    // Update appointment if payment succeeded but status not updated yet using ORM
+    if (session.payment_status === 'paid' && appointment.payment_status !== 'paid') {
+      const paidAmount = session.metadata?.amount || (session.amount_total / 100);
+      await appointment.update({
+        status: 'CONFIRMED',
+        payment_status: 'paid',
+        amount: paidAmount
+      });
+      
+      return res.json({
+        success: true,
+        status: 'CONFIRMED',
+        payment_status: 'paid',
+        appointment_id: appointmentId,
+        amount: paidAmount
+      });
+    }
+    
+    res.json({
+      success: session.payment_status === 'paid',
+      status: appointment.status,
+      payment_status: appointment.payment_status,
+      appointment_id: appointmentId,
+      amount: appointment.amount
+    });
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ error: 'Failed to verify payment' });
+  }
+});
+
+// Handle cancelled payments
+router.post("/cancel-payment/:appointment_id", authenticateToken, async (req, res) => {
+  try {
+    const { appointment_id } = req.params;
+    
+    // Check if appointment exists and belongs to user using ORM
+    const appointment = await Appointment.findOne({
+      where: {
+        id: appointment_id,
+        user_id: req.user.id
+      }
+    });
+    
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+    
+    // Only cancel if payment is unpaid and status is pending using ORM
+    if (appointment.payment_status === 'unpaid' && appointment.status === 'PENDING') {
+      await appointment.update({
+        status: 'CANCELLED'
+      });
+      
+      return res.json({ 
+        success: true, 
+        message: 'Appointment cancelled due to payment cancellation' 
+      });
+    }
+    
+    res.json({ 
+      success: false, 
+      message: 'Appointment cannot be cancelled',
+      status: appointment.status,
+      payment_status: appointment.payment_status
+    });
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    res.status(500).json({ error: 'Failed to cancel appointment' });
+  }
+});
+
+// Auto-cancel expired approved appointments (cron job endpoint)
+router.post("/cancel-expired", authenticateToken, async (req, res) => {
+  try {
+    // Only allow admin or system to run this
+    if (req.user.role !== 'admin' && req.user.role !== 'system') {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const now = new Date();
+
+    // Find all APPROVED appointments where payment_deadline has passed
+    const expiredAppointments = await Appointment.findAll({
+      where: {
+        status: 'APPROVED',
+        payment_status: 'unpaid',
+        payment_deadline: {
+          [Op.lt]: now // Deadline is in the past
+        }
+      }
+    });
+
+    if (expiredAppointments.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No expired appointments to cancel',
+        cancelled_count: 0
+      });
+    }
+
+    // Cancel all expired appointments
+    const cancelledIds = [];
+    for (const appointment of expiredAppointments) {
+      await appointment.update({
+        status: 'CANCELLED',
+        payment_status: 'expired',
+        cancelled_at: now
+      });
+      cancelledIds.push(appointment.id);
+      console.log(`Auto-cancelled appointment ${appointment.id} - payment deadline expired`);
+      // TODO: Send notification to patient and doctor
+    }
+
+    res.json({
+      success: true,
+      message: `Cancelled ${expiredAppointments.length} expired appointment(s)`,
+      cancelled_count: expiredAppointments.length,
+      cancelled_ids: cancelledIds
+    });
+  } catch (error) {
+    console.error('Error auto-cancelling expired appointments:', error);
+    res.status(500).json({ error: 'Failed to cancel expired appointments' });
+  }
+});
+
+// Cron job endpoint - can be called without authentication (but should be secured by IP/secret)
+router.post("/cron/cancel-expired", async (req, res) => {
+  try {
+    // Check for cron secret
+    const cronSecret = req.headers['x-cron-secret'] || req.query.secret;
+    if (cronSecret !== process.env.CRON_SECRET) {
+      return res.status(401).json({ error: 'Invalid cron secret' });
+    }
+
+    const now = new Date();
+
+    // Find all APPROVED appointments where payment_deadline has passed
+    const expiredAppointments = await Appointment.findAll({
+      where: {
+        status: 'APPROVED',
+        payment_status: 'unpaid',
+        payment_deadline: {
+          [Op.lt]: now
+        }
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: Doctor,
+          attributes: ['id'],
+          include: [
+            {
+              model: User,
+              attributes: ['id', 'name', 'email']
+            }
+          ]
+        }
+      ]
+    });
+
+    if (expiredAppointments.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No expired appointments found',
+        cancelled_count: 0
+      });
+    }
+
+    // Cancel all expired appointments
+    const results = [];
+    for (const appointment of expiredAppointments) {
+      await appointment.update({
+        status: 'CANCELLED',
+        payment_status: 'expired',
+        cancelled_at: now
+      });
+      
+      results.push({
+        appointment_id: appointment.id,
+        patient_email: appointment.User?.email,
+        doctor_email: appointment.Doctor?.User?.email,
+        scheduled_for: appointment.scheduled_for
+      });
+      
+      console.log(`[CRON] Auto-cancelled appointment ${appointment.id} - payment deadline expired`);
+      // TODO: Send notification emails to patient and doctor
+    }
+
+    res.json({
+      success: true,
+      message: `Auto-cancelled ${expiredAppointments.length} expired appointment(s)`,
+      cancelled_count: expiredAppointments.length,
+      results: results
+    });
+  } catch (error) {
+    console.error('[CRON] Error auto-cancelling expired appointments:', error);
+    res.status(500).json({ error: 'Failed to cancel expired appointments', details: error.message });
   }
 });
 

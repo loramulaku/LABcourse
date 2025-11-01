@@ -24,8 +24,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     notification_type: {
-      type: DataTypes.ENUM('result_ready', 'appointment_confirmed', 'appointment_cancelled', 'general_message', 'system_alert'),
+      type: DataTypes.ENUM('result_ready', 'appointment_approved', 'appointment_confirmed', 'appointment_cancelled', 'appointment_declined', 'general_message', 'system_alert'),
       defaultValue: 'general_message',
+    },
+    appointment_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'Related appointment ID for appointment notifications',
     },
     is_read: {
       type: DataTypes.BOOLEAN,
