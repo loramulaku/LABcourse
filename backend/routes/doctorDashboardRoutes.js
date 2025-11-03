@@ -6,8 +6,16 @@ const Stripe = require("stripe");
 
 // Initialize Stripe
 let stripe = null;
-if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith("sk_")) {
-  stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+try {
+  if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith("sk_")) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    console.log("✅ Stripe initialized successfully in doctor routes");
+  } else {
+    console.log("⚠️  Stripe not configured - payment links will not work");
+  }
+} catch (error) {
+  console.error("❌ Stripe initialization failed:", error.message);
+  stripe = null;
 }
 
 const router = express.Router();
@@ -541,6 +549,11 @@ router.post("/appointment/:id/approve", authenticateToken, isDoctor, async (req,
     const amountInCents = Math.round(appointment.amount * 100);
     const currency = "eur";
 
+    console.log(`🔧 Creating payment link for appointment ${id}`);
+    console.log(`   Amount: €${appointment.amount} (${amountInCents} cents)`);
+    console.log(`   Patient: ${appointment.User?.email}`);
+    console.log(`   Stripe configured: ${!!stripe}`);
+
     try {
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
@@ -583,7 +596,11 @@ router.post("/appointment/:id/approve", authenticateToken, isDoctor, async (req,
         approved_at: new Date()
       });
 
-      console.log(`Appointment ${id} approved by doctor ${doctorId}. Payment link generated, expires in 24h.`);
+      console.log(`✅ Appointment ${id} approved by doctor ${doctorId}`);
+      console.log(`   Payment link: ${session.url}`);
+      console.log(`   Session ID: ${session.id}`);
+      console.log(`   Deadline: ${paymentDeadline.toISOString()}`);
+      console.log(`   Link expires in: 24 hours`);
 
       // Send notification to patient
       try {
@@ -736,6 +753,51 @@ router.get("/appointments/pending", authenticateToken, isDoctor, async (req, res
   } catch (error) {
     console.error("Error fetching pending appointments:", error);
     res.status(500).json({ error: "Failed to fetch pending appointments" });
+  }
+});
+
+// Debug endpoint: Check appointment payment link status
+router.get("/appointment/:id/payment-status", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const appointment = await Appointment.findByPk(id, {
+      attributes: [
+        'id', 
+        'status', 
+        'payment_link', 
+        'payment_deadline', 
+        'stripe_session_id',
+        'payment_status',
+        'amount',
+        'approved_at'
+      ]
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+
+    res.json({
+      appointment_id: appointment.id,
+      status: appointment.status,
+      payment_status: appointment.payment_status,
+      amount: appointment.amount,
+      has_payment_link: !!appointment.payment_link,
+      payment_link: appointment.payment_link,
+      payment_deadline: appointment.payment_deadline,
+      stripe_session_id: appointment.stripe_session_id,
+      approved_at: appointment.approved_at,
+      diagnosis: {
+        payment_link_missing: !appointment.payment_link,
+        needs_reapproval: appointment.status === 'APPROVED' && !appointment.payment_link,
+        ready_for_payment: appointment.status === 'APPROVED' && !!appointment.payment_link
+      }
+    });
+
+  } catch (error) {
+    console.error("Error checking payment status:", error);
+    res.status(500).json({ error: "Failed to check payment status" });
   }
 });
 

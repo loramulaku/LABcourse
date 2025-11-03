@@ -6,6 +6,7 @@ import { API_URL, getAccessToken } from "../api";
 const MyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(null);
   const [searchParams] = useSearchParams();
   const highlightedRef = useRef(null);
 
@@ -65,12 +66,39 @@ const MyAppointments = () => {
     });
   };
 
-  const handlePayNow = (appointment) => {
-    if (appointment.payment_link) {
-      // Redirect to Stripe payment link
-      window.location.href = appointment.payment_link;
-    } else {
-      toast.error("Payment link not available. Please contact support.");
+  const handlePayNow = async (appointment) => {
+    // Prevent multiple clicks
+    if (paymentLoading === appointment.id) {
+      return;
+    }
+
+    setPaymentLoading(appointment.id);
+
+    try {
+      // Check if payment link exists in the appointment data
+      if (appointment.payment_link) {
+        // Redirect to Stripe payment link
+        window.location.href = appointment.payment_link;
+      } else {
+        // Payment link not found - need to regenerate
+        console.error('Payment link missing for appointment:', appointment.id);
+        
+        toast.error(
+          "Payment link is missing. Please ask the doctor to re-approve your appointment.",
+          {
+            autoClose: 5000,
+            toastId: `payment-error-${appointment.id}` // Prevent duplicate toasts
+          }
+        );
+        
+        setPaymentLoading(null);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error("An error occurred. Please try again.", {
+        toastId: `payment-error-${appointment.id}`
+      });
+      setPaymentLoading(null);
     }
   };
 
@@ -330,12 +358,29 @@ const MyAppointments = () => {
                             )}
                             <button
                               onClick={() => handlePayNow(appointment)}
-                              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                              disabled={paymentLoading === appointment.id}
+                              className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white transition-all duration-200 ${
+                                paymentLoading === appointment.id
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                              }`}
                             >
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                              </svg>
-                              Pay Now - €{appointment.amount}
+                              {paymentLoading === appointment.id ? (
+                                <>
+                                  <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                  </svg>
+                                  Pay Now - €{appointment.amount}
+                                </>
+                              )}
                             </button>
                           </div>
                         </div>

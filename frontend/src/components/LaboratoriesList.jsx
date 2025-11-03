@@ -126,19 +126,18 @@ const LaboratoriesList = () => {
             </div>
           </div>
         ))}
-      </div>
 
-      {laboratories.length === 0 && (
-        <div className="text-center py-20 col-span-full">
-          <div className="text-gray-300 text-8xl mb-6">🔬</div>
-          <h2 className="text-2xl font-semibold text-gray-600 mb-3">
-            No Laboratories Available
-          </h2>
-          <p className="text-gray-500 max-w-md mx-auto">
-            There are currently no laboratories registered in the system. Please check back later.
-          </p>
-        </div>
-      )}
+        {laboratories.length === 0 && (
+          <div className="text-center py-20 col-span-full">
+            <div className="text-gray-300 text-8xl mb-6">🔬</div>
+            <h2 className="text-2xl font-semibold text-gray-600 mb-3">
+              No Laboratories Available
+            </h2>
+            <p className="text-gray-500 max-w-md mx-auto">
+              There are currently no laboratories registered in the system. Please check back later.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Footer Section */}

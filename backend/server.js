@@ -99,6 +99,7 @@ const therapyRoutes = require("./routes/therapyRoutes");
 const trainRoutes = require("./routes/trainRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
+const patientAnalysesRoutes = require("./routes/patientAnalysesRoutes");
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -118,6 +119,7 @@ app.use("/api/therapy", therapyRoutes);
 app.use("/api/train", trainRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/departments", departmentRoutes);
+app.use("/api/patient-analyses", patientAnalysesRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
