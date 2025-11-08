@@ -16,7 +16,8 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-fs
+// Load all model files
+const modelFiles = fs
   .readdirSync(__dirname)
   .filter(file => {
     return (
@@ -25,20 +26,34 @@ fs
       file.slice(-3) === '.js' &&
       file.indexOf('.test.js') === -1
     );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
   });
 
+// Initialize models
+console.log('Loading models from files:', modelFiles);
+modelFiles.forEach(file => {
+  const modelDef = require(path.join(__dirname, file));
+  const model = modelDef(sequelize, Sequelize.DataTypes);
+  db[model.name] = model;
+  console.log('Loaded model:', model.name);
+});
+
+// Set up associations between models
+console.log('Setting up model associations...');
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
+    console.log(`Set up associations for model: ${modelName}`);
   }
 });
 
+// Add sequelize instance and Sequelize class to db object
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+// Make models accessible under both db.ModelName and db.models.ModelName
+db.models = db;
+
+console.log('Models initialized:', Object.keys(db).filter(key => db[key].name));
 
 module.exports = db;
 

@@ -9,6 +9,8 @@
     "migrate:undo": "npx sequelize-cli db:migrate:undo",
     "seed": "npx sequelize-cli db:seed:all",
     "seed:undo": "npx sequelize-cli db:seed:undo:all",
+    "seed:sample": "node scripts/seedBillingSample.js",
+    "test:integration": "node scripts/integrationAuthTest.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Invoices - LABcourse</title>
+    <style>
+      body { font-family: system-ui, Arial; max-width: 960px; margin: 24px auto; padding: 0 16px; }
+      header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+      .token-row { margin: 12px 0; }
+      input[type=text] { width:70%; padding:8px; }
+      button { padding:8px 12px; margin-left:6px; }
+      .bill { border:1px solid #ddd; padding:12px; margin:12px 0; border-radius:6px; }
+      .items { margin-top:8px; border-top:1px dashed #eee; padding-top:8px; }
+      .item { display:flex; justify-content:space-between; padding:6px 0; }
+      .meta { color:#555; font-size:0.9rem }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Invoices</h1>
+      <div>
+        <small class="meta">Backend must be running on <code>http://localhost:5000</code></small>
+      </div>
+    </header>
+
+    <p>Paste an admin <strong>access token</strong> below and click <em>Load invoices</em>. You can obtain an access token by logging in (see README_TESTING).</p>
+
+    <div class="token-row">
+      <input id="token" type="text" placeholder="Paste access token here" />
+      <button id="load">Load invoices</button>
+      <button id="clear">Clear</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="list"></div>
+
+    <script>
+      const loadBtn = document.getElementById('load');
+      const clearBtn = document.getElementById('clear');
+      const tokenInput = document.getElementById('token');
+      const status = document.getElementById('status');
+      const list = document.getElementById('list');
+
+      function renderBill(bill) {
+        const el = document.createElement('div');
+        el.className = 'bill';
+        el.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <div>
+              <strong>Invoice #${bill.id}</strong>
+              <div class="meta">Patient: ${bill.patientName || (bill.patient && bill.patient.name) || bill.patientId} • Created: ${new Date(bill.createdAt).toLocaleString()}</div>
+            </div>
+            <div style="text-align:right">
+              <div><strong>${bill.totalAmount}</strong></div>
+              <div class="meta">Status: ${bill.isPaid ? 'Paid' : 'Unpaid'}</div>
+            </div>
+          </div>
+          <div class="items">
+            ${bill.items && bill.items.length ? bill.items.map(i => `<div class="item"><div>${i.description} x${i.quantity}</div><div>${i.amount}</div></div>`).join('') : '<div class="meta">No items</div>'}
+          </div>
+          <div style="margin-top:8px; display:flex; gap:8px">
+            <button data-id="${bill.id}" class="mark">Mark as paid</button>
+            <button data-id="${bill.id}" class="print">Print</button>
+          </div>
+        `;
+
+        el.querySelector('.print').addEventListener('click', () => {
+          const w = window.open('', '_blank');
+          w.document.write(`<pre>${JSON.stringify(bill,null,2)}</pre>`);
+          w.print();
+        });
+
+        el.querySelector('.mark').addEventListener('click', async (e) => {
+          const token = tokenInput.value.trim();
+          if (!token) { alert('Provide access token (admin)'); return; }
+          const id = e.target.getAttribute('data-id');
+          try {
+            const resp = await fetch(`http://localhost:5000/api/billing/bills/${id}/mark-paid`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
+            if (!resp.ok) { throw new Error('Status ' + resp.status); }
+            alert('Marked as paid');
+            loadInvoices();
+          } catch (err) {
+            alert('Failed: ' + err.message);
+          }
+        });
+
+        return el;
+      }
+
+      async function loadInvoices() {
+        list.innerHTML = '';
+        status.textContent = 'Loading...';
+        const token = tokenInput.value.trim();
+        try {
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+          const resp = await fetch('http://localhost:5000/api/billing/bills', { headers });
+          if (!resp.ok) {
+            const body = await resp.json().catch(() => ({}));
+            status.textContent = 'Error: ' + (body.error || resp.statusText || resp.status);
+            return;
+          }
+          const data = await resp.json();
+          status.textContent = `Loaded ${data.bills ? data.bills.length : 0} bills`;
+          if (data.bills && data.bills.length) {
+            data.bills.forEach(b => list.appendChild(renderBill(b)));
+          } else {
+            list.innerHTML = '<div class="meta">No bills found.</div>';
+          }
+        } catch (err) {
+          status.textContent = 'Fetch error: ' + err.message;
+        }
+      }
+
+      loadBtn.addEventListener('click', loadInvoices);
+      clearBtn.addEventListener('click', () => { tokenInput.value = ''; list.innerHTML = ''; status.textContent = ''; });
+    </script>
+  </body>
+</html>

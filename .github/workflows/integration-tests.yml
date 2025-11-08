@@ -1,0 +1,74 @@
+name: Integration tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: labcourse_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Wait for MySQL to be ready
+        run: |
+          sudo apt-get update && sudo apt-get install -y default-mysql-client
+          for i in {1..30}; do mysql -h 127.0.0.1 -uroot -proot -e "SELECT 1" && break || sleep 2; done
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Create test env file
+        run: |
+          cd backend
+          cat > .env.ci <<EOF
+          DB_HOST=127.0.0.1
+          DB_USERNAME=root
+          DB_PASSWORD=root
+          DB_NAME=labcourse_test
+          DB_DIALECT=mysql
+          PORT=5000
+          NODE_ENV=test
+          EOF
+
+      - name: Run migrations and seeders
+        run: |
+          cd backend
+          npx sequelize-cli db:migrate --env test || true
+          npx sequelize-cli db:seed:all --seeders-path seeders || true
+
+      - name: Start backend server
+        run: |
+          cd backend
+          nohup node server.js > server.log 2>&1 &
+          sleep 4
+
+      - name: Run integration test script
+        run: |
+          cd backend
+          npm run test:integration
+
+      - name: Upload server log (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: backend/server.log
