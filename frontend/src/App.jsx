@@ -167,6 +167,12 @@ const DoctorProfile = React.lazy(() => import("./doctor/pages/DoctorProfile.jsx"
 const IPDManagement = React.lazy(() => import("./dashboard/pages/IPDManagement.jsx"));
 const MyIPDPatients = React.lazy(() => import("./doctor/pages/MyIPDPatients.jsx"));
 
+// Billing Module Components
+const BillingManagement = React.lazy(() => import("./dashboard/pages/billing/BillingManagement.jsx"));
+const CreateBill = React.lazy(() => import("./dashboard/pages/billing/CreateBill.jsx"));
+const InvoiceDetail = React.lazy(() => import("./dashboard/pages/billing/InvoiceDetail.jsx"));
+const PackageManagement = React.lazy(() => import("./dashboard/pages/billing/PackageManagement.jsx"));
+
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center min-h-[200px]">
@@ -382,7 +388,11 @@ const App = () => {
               <Route path="therapy/calendar" element={<TherapyCalendar />} />
               <Route path="contact-messages" element={<ContactMessages />} />
               <Route path="ipd" element={<IPDManagement />} />
-               <Route path="alerts" element={<Alerts />} />
+               <Route path="billing" element={<BillingManagement />} />
+              <Route path="billing/create" element={<CreateBill />} />
+              <Route path="billing/invoice/:id" element={<InvoiceDetail />} />
+              <Route path="billing/packages" element={<PackageManagement />} />
+              <Route path="alerts" element={<Alerts />} />
               <Route path="avatars" element={<Avatars />} />
               <Route path="badge" element={<Badges />} />
               <Route path="buttons" element={<Buttons />} />

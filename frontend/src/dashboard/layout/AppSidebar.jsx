@@ -71,6 +71,15 @@ const navItems = [
     name: "IPD Management",
     path: "/dashboard/ipd",
   },
+  {
+    icon: <TableIcon />,
+    name: "Billing",
+    subItems: [
+      { name: "All Bills", path: "/dashboard/billing" },
+      { name: "Create Bill", path: "/dashboard/billing/create" },
+      { name: "Packages", path: "/dashboard/billing/packages" },
+    ],
+  },
 ]; 
 
 

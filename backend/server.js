@@ -16,7 +16,7 @@ const app = express();
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(cookieParser());
@@ -103,6 +103,10 @@ const patientAnalysesRoutes = require("./routes/patientAnalysesRoutes");
 // IPD Routes - Layered Architecture
 const ipdAdminRoutesOOP = require("./routes/oop/ipdAdminRoutes");
 const ipdDoctorRoutesOOP = require("./routes/oop/ipdDoctorRoutes");
+const billingRoutes = require("./routes/billingRoutes");
+const packageRoutes = require("./routes/packageRoutes");
+// No development-only debug routes are mounted by default. Remove debug route files
+// to avoid accidental bypass of auth in non-production environments.
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -126,6 +130,12 @@ app.use("/api/patient-analyses", patientAnalysesRoutes);
 // IPD Routes - Layered Architecture
 app.use("/api/ipd/admin", ipdAdminRoutesOOP);
 app.use("/api/ipd/doctor", ipdDoctorRoutesOOP);
+app.use("/api/billing", billingRoutes);
+app.use("/api/packages", packageRoutes);
+// Mount debug route only in development
+// if (debugBillingRoutes) {
+//   app.use('/api/debug/billing', debugBillingRoutes);
+// }
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
