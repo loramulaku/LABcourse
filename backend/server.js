@@ -100,6 +100,9 @@ const trainRoutes = require("./routes/trainRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
 const patientAnalysesRoutes = require("./routes/patientAnalysesRoutes");
+// IPD Routes - Layered Architecture
+const ipdAdminRoutesOOP = require("./routes/oop/ipdAdminRoutes");
+const ipdDoctorRoutesOOP = require("./routes/oop/ipdDoctorRoutes");
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -120,6 +123,9 @@ app.use("/api/train", trainRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/patient-analyses", patientAnalysesRoutes);
+// IPD Routes - Layered Architecture
+app.use("/api/ipd/admin", ipdAdminRoutesOOP);
+app.use("/api/ipd/doctor", ipdDoctorRoutesOOP);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

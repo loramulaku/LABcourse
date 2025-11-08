@@ -801,4 +801,10 @@ router.get("/appointment/:id/payment-status", authenticateToken, async (req, res
   }
 });
 
+// Submit clinical assessment for confirmed appointment
+// Using layered architecture controller
+const IPDDoctorController = require('../controllers/oop/IPDDoctorController');
+const ipdDoctorController = new IPDDoctorController();
+router.post("/appointment/:id/clinical-assessment", authenticateToken, isDoctor, ipdDoctorController.submitClinicalAssessment);
+
 module.exports = router;

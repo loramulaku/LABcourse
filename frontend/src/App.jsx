@@ -163,6 +163,10 @@ const DoctorDocumentFiles = React.lazy(() => import("./doctor/pages/DoctorDocume
 const DoctorAppointmentStats = React.lazy(() => import("./doctor/pages/DoctorAppointmentStats.jsx"));
 const DoctorProfile = React.lazy(() => import("./doctor/pages/DoctorProfile.jsx"));
 
+// IPD Module Components
+const IPDManagement = React.lazy(() => import("./dashboard/pages/IPDManagement.jsx"));
+const MyIPDPatients = React.lazy(() => import("./doctor/pages/MyIPDPatients.jsx"));
+
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center min-h-[200px]">
@@ -377,6 +381,7 @@ const App = () => {
               <Route path="therapy/create" element={<TherapyCreateForm />} />
               <Route path="therapy/calendar" element={<TherapyCalendar />} />
               <Route path="contact-messages" element={<ContactMessages />} />
+              <Route path="ipd" element={<IPDManagement />} />
                <Route path="alerts" element={<Alerts />} />
               <Route path="avatars" element={<Avatars />} />
               <Route path="badge" element={<Badges />} />
@@ -416,6 +421,7 @@ const App = () => {
               <Route path="therapy/create" element={<DoctorTherapyDashboard />} />
               <Route path="therapy" element={<DoctorTherapyDashboard />} />
               <Route path="inbox" element={<Inbox />} />
+              <Route path="my-ipd-patients" element={<MyIPDPatients />} />
             </Route>
 
             {/* =================== LAB DASHBOARD (LAB ROLE) =================== */}

@@ -4,6 +4,7 @@ import { API_URL, getAccessToken } from "../../api";
 import { toast } from "react-toastify";
 import PageMeta from "../../dashboard/components/common/PageMeta";
 import PageBreadcrumb from "../../dashboard/components/common/PageBreadCrumb";
+import ClinicalAssessmentForm from "../components/ClinicalAssessmentForm";
 
 const DoctorAppointments = () => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const DoctorAppointments = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   useEffect(() => {
     fetchAppointments();
@@ -320,6 +323,17 @@ const DoctorAppointments = () => {
                                 Approve & Send Payment
                               </button>
                             )}
+                            {appointment.status === 'CONFIRMED' && !appointment.requires_admission && appointment.requires_admission !== false && (
+                              <button
+                                onClick={() => {
+                                  setSelectedAppointment(appointment);
+                                  setShowAssessmentModal(true);
+                                }}
+                                className="text-purple-600 hover:text-purple-900 text-left font-semibold"
+                              >
+                                📋 Clinical Assessment
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -331,6 +345,19 @@ const DoctorAppointments = () => {
           </div>
         </div>
 
+        {/* Clinical Assessment Modal */}
+        {showAssessmentModal && selectedAppointment && (
+          <ClinicalAssessmentForm
+            appointment={selectedAppointment}
+            onClose={() => {
+              setShowAssessmentModal(false);
+              setSelectedAppointment(null);
+            }}
+            onSuccess={() => {
+              fetchAppointments();
+            }}
+          />
+        )}
       </div>
     </>
   );

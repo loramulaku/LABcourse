@@ -87,6 +87,19 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true,
     },
+    requires_admission: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: null,
+    },
+    therapy_prescribed: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    clinical_assessment: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   }, {
     tableName: 'appointments',
     timestamps: true,

@@ -74,6 +74,11 @@ const navItems = [
     name: "Inbox",
     path: "/doctor/inbox",
   },
+  {
+    icon: <TableIcon />,
+    name: "My IPD Patients",
+    path: "/doctor/my-ipd-patients",
+  },
 ];
 
 const othersItems = [

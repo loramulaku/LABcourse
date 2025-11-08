@@ -66,6 +66,11 @@ const navItems = [
     name: "Contact Messages",
     path: "/dashboard/contact-messages",
   },
+  {
+    icon: <TableIcon />,
+    name: "IPD Management",
+    path: "/dashboard/ipd",
+  },
 ]; 
 
 

@@ -48,7 +48,17 @@ class BaseRepository {
    * @returns {Promise<Object>}
    */
   async create(data, options = {}) {
-    return await this.model.create(data, options);
+    console.log(`💾 [BaseRepository] ${this.model.name} - Creating record:`, JSON.stringify(data, null, 2));
+    try {
+      const result = await this.model.create(data, options);
+      console.log(`✅ [BaseRepository] ${this.model.name} - Record created with ID:`, result.id);
+      console.log(`📊 [BaseRepository] ${this.model.name} - Full result:`, JSON.stringify(result.toJSON(), null, 2));
+      return result;
+    } catch (error) {
+      console.error(`❌ [BaseRepository] ${this.model.name} - Error creating record:`, error.message);
+      console.error(`Stack:`, error.stack);
+      throw error;
+    }
   }
 
   /**
