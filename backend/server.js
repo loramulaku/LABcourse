@@ -105,6 +105,7 @@ const ipdAdminRoutesOOP = require("./routes/oop/ipdAdminRoutes");
 const ipdDoctorRoutesOOP = require("./routes/oop/ipdDoctorRoutes");
 const billingRoutes = require("./routes/billingRoutes");
 const packageRoutes = require("./routes/packageRoutes");
+const opdRoutes = require("./routes/opdRoutes");
 // No development-only debug routes are mounted by default. Remove debug route files
 // to avoid accidental bypass of auth in non-production environments.
 
@@ -132,6 +133,7 @@ app.use("/api/ipd/admin", ipdAdminRoutesOOP);
 app.use("/api/ipd/doctor", ipdDoctorRoutesOOP);
 app.use("/api/billing", billingRoutes);
 app.use("/api/packages", packageRoutes);
+app.use("/api/opd", opdRoutes);
 // Mount debug route only in development
 // if (debugBillingRoutes) {
 //   app.use('/api/debug/billing', debugBillingRoutes);
