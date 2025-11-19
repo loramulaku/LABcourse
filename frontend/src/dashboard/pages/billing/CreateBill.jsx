@@ -16,9 +16,13 @@ const CreateBill = () => {
   const [loading, setLoading] = useState(false);
   const [patients, setPatients] = useState([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
+  const [packages, setPackages] = useState([]);
+  const [loadingPackages, setLoadingPackages] = useState(false);
+  const selectedPackage = packages.find((p) => String(p.id) === String(formData.packageId || '')) || null;
 
   useEffect(() => {
     loadPatients();
+    loadPackages();
   }, []);
 
   const loadPatients = async () => {
@@ -32,6 +36,20 @@ const CreateBill = () => {
       toast.error('Failed to load patients');
     } finally {
       setLoadingPatients(false);
+    }
+  };
+
+  const loadPackages = async () => {
+    try {
+      setLoadingPackages(true);
+      const response = await api.get('/api/packages');
+      const active = Array.isArray(response.data.packages) ? response.data.packages.filter((p) => p.isActive) : [];
+      setPackages(active);
+    } catch (error) {
+      console.error('Error loading packages:', error);
+      toast.error('Failed to load packages');
+    } finally {
+      setLoadingPackages(false);
     }
   };
 
@@ -51,6 +69,16 @@ const CreateBill = () => {
   const removeItem = (index) => {
     const updatedItems = formData.items.filter((_, i) => i !== index);
     setFormData({ ...formData, items: updatedItems });
+  };
+
+  const handlePackageSelect = (pkgId) => {
+    const selected = packages.find((p) => String(p.id) === String(pkgId));
+    if (!selected) {
+      setFormData({ ...formData, packageId: '', items: [{ description: '', amount: '', quantity: 1 }] });
+      return;
+    }
+    const pkgItem = { description: `Package: ${selected.name}`, amount: selected.price, quantity: 1 };
+    setFormData({ ...formData, packageId: selected.id, items: [pkgItem] });
   };
 
   const handleSubmit = async (e) => {
@@ -103,13 +131,15 @@ const CreateBill = () => {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-black">Bill Items</h3>
-              <button
-                type="button"
-                onClick={addItem}
-                className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Add Item
-              </button>
+              {formData.billType !== 'package' && (
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Add Item
+                </button>
+              )}
             </div>
 
             {formData.items.map((item, index) => (
@@ -124,6 +154,7 @@ const CreateBill = () => {
                     onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
                     required
+                    disabled={formData.billType === 'package'}
                   />
                 </div>
                 <div className="w-24">
@@ -137,6 +168,7 @@ const CreateBill = () => {
                     onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
                     required
+                    disabled={formData.billType === 'package'}
                   />
                 </div>
                 <div className="w-32">
@@ -151,9 +183,10 @@ const CreateBill = () => {
                     onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
                     required
+                    disabled={formData.billType === 'package'}
                   />
                 </div>
-                {formData.items.length > 1 && (
+                {formData.billType !== 'package' && formData.items.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeItem(index)}
@@ -174,7 +207,14 @@ const CreateBill = () => {
               </label>
               <select
                 value={formData.billType}
-                onChange={(e) => setFormData({ ...formData, billType: e.target.value })}
+                onChange={(e) => {
+                  const newType = e.target.value;
+                  if (newType !== 'package') {
+                    setFormData({ ...formData, billType: newType, packageId: '', items: formData.items.length ? formData.items : [{ description: '', amount: '', quantity: 1 }] });
+                  } else {
+                    setFormData({ ...formData, billType: newType });
+                  }
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               >
                 <option value="other">Other</option>
@@ -216,6 +256,40 @@ const CreateBill = () => {
               />
             </div>
           </div>
+
+          {/* Package Selection */}
+          {formData.billType === 'package' && (
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">Select Package</label>
+              {loadingPackages ? (
+                <div className="text-black">Loading packages...</div>
+              ) : (
+                <select
+                  value={formData.packageId || ''}
+                  onChange={(e) => handlePackageSelect(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+                  required
+                >
+                  <option value="">-- Select a package --</option>
+                  {packages.map((pkg) => (
+                    <option key={pkg.id} value={pkg.id}>
+                      {pkg.name} (${parseFloat(pkg.price).toFixed(2)})
+                    </option>
+                  ))}
+                </select>
+              )}
+              {selectedPackage && Array.isArray(selectedPackage.includedServices) && selectedPackage.includedServices.length > 0 && (
+                <div className="mt-3 bg-gray-50 rounded p-3">
+                  <h4 className="text-sm font-semibold text-black mb-2">Included Services</h4>
+                  <ul className="list-disc list-inside text-sm text-black">
+                    {selectedPackage.includedServices.map((s, idx) => (
+                      <li key={idx}>{typeof s === 'string' ? s : s?.name || JSON.stringify(s)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Notes */}
           <div>

@@ -9,6 +9,9 @@ router.use(authenticateToken);
 // GET /api/billing/bills - Get all bills
 router.get('/bills', isAdmin, billingController.getBills);
 
+// Unified list: Bills + Invoices
+router.get('/bills-all', isAdmin, billingController.getSystemBills);
+
 // GET /api/billing/bills/:id - Get specific bill
 router.get('/bills/:id', isAdmin, billingController.getBill);
 

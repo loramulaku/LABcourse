@@ -2,7 +2,7 @@ const db = require('../models');
 
 exports.getBills = async (req, res) => {
   try {
-    const bills = await db.Bill.findAll({
+  const bills = await db.Bill.findAll({
       include: [
         { model: db.BillItem, as: 'items' },
           {
@@ -14,12 +14,21 @@ exports.getBills = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    res.json({ 
-      bills: bills.map(bill => ({
-        ...bill.toJSON(),
-  patientName: bill.patient ? bill.patient.name : 'Unknown'
-      }))
-    });
+    const enriched = await Promise.all(bills.map(async (bill) => {
+      const json = bill.toJSON();
+      if (!bill.patient && bill.patientId) {
+        try {
+          const u = await db.User.findByPk(bill.patientId, { attributes: ['id', 'name', 'email'] });
+          if (u) {
+            json.patient = u.toJSON();
+          }
+        } catch (_) {}
+      }
+      json.patientName = json.patient && json.patient.name ? json.patient.name : 'Unknown';
+      return json;
+    }));
+
+    res.json({ bills: enriched });
   } catch (error) {
     console.error('Error fetching bills:', {
       name: error.name,
@@ -217,3 +226,65 @@ exports.getPaymentHistory = async (req, res) => {
 
 // Backwards-compatibility alias: some callers expect getAllBills
 exports.getAllBills = exports.getBills;
+
+// Merge legacy Bills and OOP Invoices for a unified admin list
+exports.getSystemBills = async (req, res) => {
+  try {
+    const [bills, invoices] = await Promise.all([
+      db.Bill.findAll({
+        include: [
+          { model: db.BillItem, as: 'items' },
+          { model: db.User, as: 'patient', attributes: ['id', 'name', 'email'] }
+        ],
+        order: [['createdAt', 'DESC']]
+      }),
+      db.Invoice.findAll({
+        include: [
+          { model: db.InvoiceItem, as: 'items' },
+          { model: db.Payment, as: 'payments' },
+          { model: db.User, as: 'patient', attributes: ['id', 'name', 'email'] }
+        ],
+        order: [['created_at', 'DESC']]
+      })
+    ]);
+
+    const mapBills = bills.map(b => {
+      const json = b.toJSON();
+      const patientName = json.patient?.name || 'Unknown';
+      const paidAmount = parseFloat(json.paidAmount || 0);
+      return {
+        id: json.id,
+        source: 'bill',
+        patientName,
+        createdAt: json.createdAt,
+        totalAmount: parseFloat(json.totalAmount || 0),
+        paidAmount,
+        isPaid: !!json.isPaid,
+        billType: json.billType || 'other'
+      };
+    });
+
+    const mapInvoices = invoices.map(inv => {
+      const json = inv.toJSON();
+      const patientName = json.patient?.name || 'Unknown';
+      const payments = Array.isArray(json.payments) ? json.payments : [];
+      const paidAmount = payments.reduce((sum, p) => sum + (p.status === 'completed' ? parseFloat(p.amount || 0) : 0), 0);
+      const isPaid = json.status === 'paid';
+      return {
+        id: json.id,
+        source: 'invoice',
+        patientName,
+        createdAt: json.created_at,
+        totalAmount: parseFloat(json.total_amount || 0),
+        paidAmount,
+        isPaid,
+        billType: 'invoice'
+      };
+    });
+
+    res.json({ bills: [...mapBills, ...mapInvoices] });
+  } catch (error) {
+    console.error('Error fetching system bills:', error);
+    res.status(500).json({ error: 'Failed to fetch system bills' });
+  }
+};

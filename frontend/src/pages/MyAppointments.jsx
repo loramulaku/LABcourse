@@ -75,22 +75,29 @@ const MyAppointments = () => {
     setPaymentLoading(appointment.id);
 
     try {
-      // Check if payment link exists in the appointment data
       if (appointment.payment_link) {
-        // Redirect to Stripe payment link
         window.location.href = appointment.payment_link;
       } else {
-        // Payment link not found - need to regenerate
-        console.error('Payment link missing for appointment:', appointment.id);
-        
-        toast.error(
-          "Payment link is missing. Please ask the doctor to re-approve your appointment.",
-          {
-            autoClose: 5000,
-            toastId: `payment-error-${appointment.id}` // Prevent duplicate toasts
+        const token = getAccessToken();
+        const resp = await fetch(`${API_URL}/api/appointments/regenerate-payment-link/${appointment.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: 'include',
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.payment_link) {
+            window.location.href = data.payment_link;
+            return;
           }
-        );
-        
+        }
+        toast.error("Payment link is missing. Please try again later or contact support.", {
+          autoClose: 5000,
+          toastId: `payment-error-${appointment.id}`
+        });
         setPaymentLoading(null);
       }
     } catch (error) {
@@ -136,6 +143,32 @@ const MyAppointments = () => {
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleViewReceipt = async (appointment) => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        toast.error("Please log in to view receipts");
+        return;
+      }
+      const resp = await fetch(`${API_URL}/api/appointments/receipt/${appointment.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!resp.ok) {
+        toast.error("Receipt not available for this appointment");
+        return;
+      }
+      const data = await resp.json();
+      if (data.receipt_url) {
+        window.open(data.receipt_url, '_blank');
+      } else {
+        toast.info("Receipt not available yet. Please try again later.");
+      }
+    } catch (e) {
+      console.error('Receipt error:', e);
+      toast.error("Failed to load receipt. Please try again.");
     }
   };
 
@@ -383,6 +416,21 @@ const MyAppointments = () => {
                               )}
                             </button>
                           </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Paid receipt section */}
+                    {appointment.payment_status?.toUpperCase() === 'PAID' && (
+                      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-green-800">Payment completed. You can view your receipt.</p>
+                          <button
+                            onClick={() => handleViewReceipt(appointment)}
+                            className="inline-flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+                          >
+                            View Receipt
+                          </button>
                         </div>
                       </div>
                     )}

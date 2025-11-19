@@ -7,6 +7,9 @@ const BillingManagement = () => {
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadBills();
@@ -14,13 +17,11 @@ const BillingManagement = () => {
 
   const loadBills = async () => {
     try {
-      const response = await api.get('/api/billing/bills');
+      const response = await api.get('/api/billing/bills-all');
       setBills(response.data.bills);
       
       // Calculate total revenue
-      const total = response.data.bills.reduce((acc, bill) => {
-        return acc + (bill.isPaid ? parseFloat(bill.totalAmount || 0) : 0);
-      }, 0);
+      const total = response.data.bills.reduce((acc, bill) => acc + (bill.isPaid ? parseFloat(bill.totalAmount || 0) : 0), 0);
       setTotalRevenue(total);
       
       setLoading(false);
@@ -30,6 +31,18 @@ const BillingManagement = () => {
       setLoading(false);
     }
   };
+
+  const filteredBills = bills.filter((bill) => {
+    const matchesStatus =
+      statusFilter === 'all' || (statusFilter === 'paid' ? bill.isPaid : !bill.isPaid);
+    const matchesType = typeFilter === 'all' || bill.billType === typeFilter;
+    const q = searchQuery.trim().toLowerCase();
+    const matchesQuery =
+      q.length === 0 ||
+      (String(bill.patientName || '').toLowerCase().includes(q) ||
+        String(bill.id).includes(q));
+    return matchesStatus && matchesType && matchesQuery;
+  });
 
   if (loading) {
     return (
@@ -53,6 +66,47 @@ const BillingManagement = () => {
           </Link>
         </div>
 
+        {/* Filters */}
+        <div className="bg-white p-4 rounded-lg shadow flex flex-wrap gap-4 items-end">
+          <div>
+            <label className="block text-sm text-black mb-1">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-black"
+            >
+              <option value="all">All</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-black mb-1">Type</label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-black"
+            >
+              <option value="all">All</option>
+              <option value="consultation">Consultation</option>
+              <option value="treatment">Treatment</option>
+              <option value="lab_test">Lab Test</option>
+              <option value="package">Package</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm text-black mb-1">Search</label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Patient name or Bill ID"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-black"
+            />
+          </div>
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-4 rounded-lg shadow">
@@ -61,12 +115,12 @@ const BillingManagement = () => {
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-black text-sm font-medium">Total Bills</h3>
-            <p className="text-2xl font-bold text-blue-600">{bills.length}</p>
+            <p className="text-2xl font-bold text-blue-600">{filteredBills.length}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-black text-sm font-medium">Pending Bills</h3>
             <p className="text-2xl font-bold text-yellow-600">
-              {bills.filter(bill => !bill.isPaid).length}
+              {filteredBills.filter(bill => !bill.isPaid).length}
             </p>
           </div>
         </div>
@@ -89,14 +143,20 @@ const BillingManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {bills.map((bill) => (
+                {filteredBills.map((bill) => (
                   <tr key={bill.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4 text-black">{bill.id}</td>
                     <td className="py-3 px-4 text-black">{bill.patientName}</td>
                     <td className="py-3 px-4 text-black">
                       {new Date(bill.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="py-3 px-4 text-right text-black font-medium">${parseFloat(bill.totalAmount || 0).toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-black font-medium">
+                      ${parseFloat(bill.totalAmount || 0).toFixed(2)}
+                      <div className="mt-1 text-xs">
+                        <span className="mr-2 px-2 py-0.5 rounded bg-green-50 text-green-700">Paid: ${parseFloat(bill.paidAmount || 0).toFixed(2)}</span>
+                        <span className="px-2 py-0.5 rounded bg-yellow-50 text-yellow-800">Due: ${Math.max(0, parseFloat(bill.totalAmount || 0) - parseFloat(bill.paidAmount || 0)).toFixed(2)}</span>
+                      </div>
+                    </td>
                     <td className="py-3 px-4">
                       <span
                         className={`inline-flex justify-center items-center px-3 py-1 rounded-full text-sm ${

@@ -169,6 +169,15 @@ const PaymentSuccess = () => {
               View My Appointments
             </button>
 
+            {appointmentDetails?.receipt_url && (
+              <button
+                onClick={() => window.open(appointmentDetails.receipt_url, "_blank")}
+                className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                View Receipt
+              </button>
+            )}
+
             <button
               onClick={() => navigate("/")}
               className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"

@@ -20,6 +20,16 @@ module.exports = {
 
     console.log(`📋 Found ${users.length} patients and ${doctors.length} doctors`);
 
+    const wardCountRows = await queryInterface.sequelize.query(
+      `SELECT COUNT(*) as cnt FROM wards`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const wardCount = Array.isArray(wardCountRows) && wardCountRows[0] && (wardCountRows[0].cnt || wardCountRows[0]['COUNT(*)']) || 0;
+    if (Number(wardCount) > 0) {
+      console.log('ℹ️ IPD sample data seems already seeded. Skipping.');
+      return;
+    }
+
     // 1. Create Wards
     const wards = await queryInterface.bulkInsert('wards', [
       {

@@ -260,11 +260,56 @@ router.post(
               status: 'CONFIRMED',
               payment_status: 'paid',
               amount: paidAmount,
-              paid_at: new Date()
+              paid_at: new Date(),
+              stripe_session_id: session.id
             });
             
             console.log(`Appointment ${appointmentId} payment completed. Status: ${appointment.status} -> CONFIRMED`);
             // TODO: Send notification to doctor and patient
+
+            // Create a Bill for this paid appointment if not already created
+            try {
+              const { Bill, BillItem, PaymentHistory, User, Doctor } = require('../models');
+              // Prevent duplicates based on transactionRef
+              const existingPayment = await PaymentHistory.findOne({ where: { transactionRef: session.id } });
+              if (!existingPayment) {
+                const patientId = appointment.user_id;
+                const doctor = await Doctor.findByPk(appointment.doctor_id, { include: [{ model: User, attributes: ['name'] }] });
+                const description = `Consultation${doctor?.User?.name ? ` with ${doctor.User.name}` : ''}`;
+
+                const bill = await Bill.create({
+                  patientId,
+                  totalAmount: paidAmount,
+                  paidAmount: paidAmount,
+                  isPaid: true,
+                  paymentMethod: 'online',
+                  paymentDate: new Date(),
+                  billType: 'consultation',
+                  notes: `Generated from Stripe session ${session.id} for appointment ${appointmentId}`
+                });
+
+                await BillItem.create({
+                  billId: bill.id,
+                  description,
+                  quantity: 1,
+                  amount: paidAmount
+                });
+
+                await PaymentHistory.create({
+                  billId: bill.id,
+                  amount: paidAmount,
+                  paymentMethod: 'online',
+                  transactionRef: session.id,
+                  notes: 'Stripe checkout.session.completed'
+                });
+
+                console.log(`✅ Bill ${bill.id} created for appointment ${appointmentId}`);
+              } else {
+                console.log(`ℹ️ Payment history already exists for session ${session.id}, skipping bill creation.`);
+              }
+            } catch (billErr) {
+              console.error('Error creating bill from Stripe payment:', billErr);
+            }
           }
         }
       }
@@ -275,6 +320,65 @@ router.post(
     }
   },
 );
+
+// Regenerate Stripe payment link for approved appointment (patient)
+router.post("/regenerate-payment-link/:id", authenticateToken, async (req, res) => {
+  try {
+    const appointmentId = Number(req.params.id);
+    if (!stripe) {
+      return res.status(400).json({ error: "Stripe not configured" });
+    }
+    const appointment = await Appointment.findOne({ where: { id: appointmentId, user_id: req.user.id } });
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+    if (appointment.status !== 'APPROVED') {
+      return res.status(400).json({ error: "Appointment is not in APPROVED status" });
+    }
+    const amountInCents = Math.round(Number(appointment.amount) * 100);
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            unit_amount: amountInCents,
+            product_data: {
+              name: "Doctor Appointment",
+              description: `Consultation on ${new Date(appointment.scheduled_for).toLocaleString()} - €${appointment.amount}`,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        appointment_id: String(appointment.id),
+        user_id: String(appointment.user_id),
+        doctor_id: String(appointment.doctor_id),
+        scheduled_for: appointment.scheduled_for,
+        amount: String(appointment.amount),
+      },
+      customer_email: req.user.email,
+      success_url: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-cancelled?appointment_id=${appointment.id}`,
+      expires_at: Math.floor(Date.now() / 1000) + (24 * 60 * 60),
+    });
+
+    const paymentDeadline = new Date();
+    paymentDeadline.setHours(paymentDeadline.getHours() + 24);
+
+    await appointment.update({
+      stripe_session_id: session.id,
+      payment_link: session.url,
+      payment_deadline: paymentDeadline,
+    });
+
+    res.json({ success: true, payment_link: session.url, expires_at: session.expires_at });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to regenerate payment link" });
+  }
+});
 
 // Get my appointments (as patient)
 router.get("/my", authenticateToken, async (req, res) => {
@@ -458,7 +562,7 @@ router.get("/verify-payment/:session_id", authenticateToken, async (req, res) =>
       return res.status(400).json({ error: "Stripe not configured" });
     }
     
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const session = await stripe.checkout.sessions.retrieve(session_id, { expand: ["payment_intent", "invoice"] });
     const appointmentId = session.metadata?.appointment_id;
     
     if (!appointmentId) {
@@ -478,15 +582,69 @@ router.get("/verify-payment/:session_id", authenticateToken, async (req, res) =>
       await appointment.update({
         status: 'CONFIRMED',
         payment_status: 'paid',
-        amount: paidAmount
+        amount: paidAmount,
+        paid_at: new Date(),
+        stripe_session_id: session_id
       });
       
+      try {
+        const { Bill, BillItem, PaymentHistory, User, Doctor } = require('../models');
+        const existingPayment = await PaymentHistory.findOne({ where: { transactionRef: session.id } });
+        if (!existingPayment) {
+          const patientId = appointment.user_id;
+          const doctor = await Doctor.findByPk(appointment.doctor_id, { include: [{ model: User, attributes: ['name'] }] });
+          const description = `Consultation${doctor?.User?.name ? ` with ${doctor.User.name}` : ''}`;
+
+          const bill = await Bill.create({
+            patientId,
+            totalAmount: paidAmount,
+            paidAmount: paidAmount,
+            isPaid: true,
+            paymentMethod: 'online',
+            paymentDate: new Date(),
+            billType: 'consultation',
+            notes: `Generated from Stripe session ${session.id} for appointment ${appointmentId}`
+          });
+
+          await BillItem.create({
+            billId: bill.id,
+            description,
+            quantity: 1,
+            amount: paidAmount
+          });
+
+          await PaymentHistory.create({
+            billId: bill.id,
+            amount: paidAmount,
+            paymentMethod: 'online',
+            transactionRef: session.id,
+            notes: 'Stripe verify-payment completed'
+          });
+        }
+      } catch (billErr) {
+        console.error('Error creating bill during verify-payment:', billErr);
+      }
+
       return res.json({
         success: true,
         status: 'CONFIRMED',
         payment_status: 'paid',
         appointment_id: appointmentId,
-        amount: paidAmount
+        amount: paidAmount,
+        receipt_url: (() => {
+          try {
+            const pi = session.payment_intent;
+            if (pi && pi.charges && Array.isArray(pi.charges.data) && pi.charges.data.length > 0) {
+              const charge = pi.charges.data[0];
+              return charge.receipt_url || null;
+            }
+            const invoice = session.invoice;
+            if (invoice && invoice.hosted_invoice_url) {
+              return invoice.hosted_invoice_url;
+            }
+          } catch (_) {}
+          return null;
+        })()
       });
     }
     
@@ -495,7 +653,21 @@ router.get("/verify-payment/:session_id", authenticateToken, async (req, res) =>
       status: appointment.status,
       payment_status: appointment.payment_status,
       appointment_id: appointmentId,
-      amount: appointment.amount
+      amount: appointment.amount,
+      receipt_url: (() => {
+        try {
+          const pi = session.payment_intent;
+          if (pi && pi.charges && Array.isArray(pi.charges.data) && pi.charges.data.length > 0) {
+            const charge = pi.charges.data[0];
+            return charge.receipt_url || null;
+          }
+          const invoice = session.invoice;
+          if (invoice && invoice.hosted_invoice_url) {
+            return invoice.hosted_invoice_url;
+          }
+        } catch (_) {}
+        return null;
+      })()
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
@@ -673,6 +845,66 @@ router.post("/cron/cancel-expired", async (req, res) => {
   } catch (error) {
     console.error('[CRON] Error auto-cancelling expired appointments:', error);
     res.status(500).json({ error: 'Failed to cancel expired appointments', details: error.message });
+  }
+});
+
+// Get Stripe receipt URL for a paid appointment (patient)
+router.get("/receipt/:id", authenticateToken, async (req, res) => {
+  try {
+    const appointmentId = Number(req.params.id);
+    const appointment = await Appointment.findOne({ where: { id: appointmentId, user_id: req.user.id } });
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+    if (appointment.payment_status !== 'paid') {
+      return res.status(400).json({ error: "Receipt available only for paid appointments" });
+    }
+    if (!stripe) {
+      return res.status(400).json({ error: "Stripe not configured" });
+    }
+    if (!appointment.stripe_session_id) {
+      return res.status(404).json({ error: "Stripe session not found for appointment" });
+    }
+    const session = await stripe.checkout.sessions.retrieve(appointment.stripe_session_id, { expand: ["payment_intent", "invoice"] });
+    let receiptUrl = null;
+    try {
+      // Try via expanded PaymentIntent charge
+      let piId = null;
+      if (typeof session.payment_intent === 'string') {
+        piId = session.payment_intent;
+      } else if (session.payment_intent && session.payment_intent.id) {
+        piId = session.payment_intent.id;
+      }
+
+      if (piId) {
+        const pi = await stripe.paymentIntents.retrieve(piId, { expand: ['latest_charge'] });
+        if (pi.latest_charge) {
+          if (typeof pi.latest_charge === 'string') {
+            const ch = await stripe.charges.retrieve(pi.latest_charge);
+            receiptUrl = ch?.receipt_url || receiptUrl;
+          } else {
+            receiptUrl = pi.latest_charge?.receipt_url || receiptUrl;
+          }
+        }
+
+        if (!receiptUrl) {
+          const charges = await stripe.charges.list({ payment_intent: piId, limit: 1 });
+          if (charges && Array.isArray(charges.data) && charges.data.length > 0) {
+            receiptUrl = charges.data[0]?.receipt_url || receiptUrl;
+          }
+        }
+      }
+
+      // Fallback: hosted invoice
+      const invoice = session.invoice;
+      if (!receiptUrl && invoice && invoice.hosted_invoice_url) {
+        receiptUrl = invoice.hosted_invoice_url;
+      }
+    } catch (_) {}
+    res.json({ receipt_url: receiptUrl });
+  } catch (error) {
+    console.error('Error fetching receipt:', error);
+    res.status(500).json({ error: 'Failed to fetch receipt' });
   }
 });
 
