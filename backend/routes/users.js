@@ -1,56 +1,28 @@
-// routes/users.js
-const express = require("express");
-const db = require("../db");
-const { authenticateToken, isAdmin } = require("../middleware/auth");
+const express = require('express');
+const { authenticateToken, isAdmin } = require('../middleware/auth');
+const userController = require('../controllers/userController');
 
 const router = express.Router();
 
-// GET /api/users/me → merr të dhënat e userit aktual
-router.get("/me", authenticateToken, (req, res) => {
-  const query = "SELECT id, name, email, role FROM users WHERE id = ?";
+// Get current user info
+router.get('/me', authenticateToken, userController.getUserById);
 
-  db.query(query, [req.user.id], (err, results) => {
-    if (err) {
-      console.error("❌ Gabim gjatë query:", err);
-      return res.status(500).json({ error: "Gabim me DB" });
-    }
+// Get all users (admin only)
+router.get('/', authenticateToken, isAdmin, userController.getAllUsers);
 
-    if (results.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
+// Get user by ID (admin only)
+router.get('/:id', authenticateToken, isAdmin, userController.getUserById);
 
-    res.json(results[0]);
-  });
-});
+// Get users by role (admin only)
+router.get('/role/:role', authenticateToken, isAdmin, userController.getUsersByRole);
 
-// GET /api/users → merr të gjithë userat me profile
-router.get("/", authenticateToken, isAdmin, (req, res) => {
-  const query = `
-    SELECT 
-      u.id,
-      u.name,
-      u.email,
-      u.role,
-      u.created_at,
-      p.phone,
-      p.address_line1,
-      p.address_line2,
-      p.gender,
-      p.dob,
-      p.profile_image
-    FROM users u
-    LEFT JOIN user_profiles p ON u.id = p.user_id
-    ORDER BY u.created_at DESC
-  `;
+// Update user (admin only)
+router.put('/:id', authenticateToken, isAdmin, userController.updateUser);
 
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("❌ Gabim gjatë query:", err);
-      return res.status(500).json({ error: "Gabim me DB" });
-    }
+// Update user status (admin only)
+router.patch('/:id/status', authenticateToken, isAdmin, userController.updateUserStatus);
 
-    res.json(results);
-  });
-});
+// Delete user (admin only)
+router.delete('/:id', authenticateToken, isAdmin, userController.deleteUser);
 
 module.exports = router;

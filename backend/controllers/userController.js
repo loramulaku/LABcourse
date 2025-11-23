@@ -22,10 +22,12 @@ const userController = {
     }
   },
 
-  // Get user by ID
+  // Get user by ID (or current user if /me route)
   async getUserById(req, res) {
     try {
-      const userId = req.params.id;
+      // Support both /me and /:id routes
+      const userId = req.params.id || req.user.id;
+      
       const user = await User.findByPk(userId, {
         attributes: { exclude: ['password'] },
         include: [

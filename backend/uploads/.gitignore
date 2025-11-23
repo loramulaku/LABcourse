@@ -1,0 +1,19 @@
+# Ignore all uploaded files
+*
+!.gitignore
+
+# But keep the folder structure
+!avatars/
+!avatars/.gitkeep
+!contact-attachments/
+!contact-attachments/.gitkeep
+!reports/
+!reports/.gitkeep
+!profiles/
+!profiles/.gitkeep
+!doctors/
+!doctors/.gitkeep
+!temp/
+!temp/.gitkeep
+!analysis-results/
+!analysis-results/.gitkeep

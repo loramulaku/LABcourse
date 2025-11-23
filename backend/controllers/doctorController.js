@@ -22,7 +22,35 @@ const doctorController = {
         order: [['id', 'DESC']],
       });
 
-      res.json(doctors);
+      // Transform data to be frontend-friendly (flatten nested objects)
+      const transformedDoctors = doctors.map(doctor => {
+        const doctorData = doctor.toJSON();
+        
+        // Normalize profile image path (ensure it starts with /)
+        let profileImage = doctorData.profile_image || doctorData.profile_picture || null;
+        if (profileImage && !profileImage.startsWith('/')) {
+          profileImage = '/' + profileImage;
+        }
+        
+        return {
+          ...doctorData,
+          // Flatten User object for easy access
+          name: doctorData.User?.name || `${doctorData.first_name || ''} ${doctorData.last_name || ''}`.trim(),
+          email: doctorData.User?.email || '',
+          account_status: doctorData.User?.account_status || '',
+          // Normalize profile image path
+          profile_image: profileImage,
+          // Flatten department object
+          departmentId: doctorData.department?.id || null,
+          departmentName: doctorData.department?.name || 'N/A',
+          departmentDescription: doctorData.department?.description || '',
+          // Keep originals for backwards compatibility
+          User: doctorData.User,
+          department: doctorData.department
+        };
+      });
+
+      res.json(transformedDoctors);
     } catch (error) {
       console.error('Error fetching doctors:', error);
       res.status(500).json({ error: 'Failed to fetch doctors' });
@@ -50,7 +78,26 @@ const doctorController = {
         order: [['first_name', 'ASC']],
       });
 
-      res.json(doctors);
+      // Transform data to be frontend-friendly
+      const transformedDoctors = doctors.map(doctor => {
+        const doctorData = doctor.toJSON();
+        
+        // Normalize profile image path
+        let profileImage = doctorData.profile_image || doctorData.profile_picture || null;
+        if (profileImage && !profileImage.startsWith('/')) {
+          profileImage = '/' + profileImage;
+        }
+        
+        return {
+          ...doctorData,
+          profile_image: profileImage,
+          departmentId: doctorData.department?.id || null,
+          departmentName: doctorData.department?.name || 'N/A',
+          department: doctorData.department
+        };
+      });
+
+      res.json(transformedDoctors);
     } catch (error) {
       console.error('Error fetching available doctors:', error);
       res.status(500).json({ error: 'Failed to fetch available doctors' });
@@ -81,7 +128,26 @@ const doctorController = {
         return res.status(404).json({ error: 'Doctor not found' });
       }
 
-      res.json(doctor);
+      // Transform data to be frontend-friendly
+      const doctorData = doctor.toJSON();
+      
+      // Normalize profile image path
+      let profileImage = doctorData.profile_image || doctorData.profile_picture || null;
+      if (profileImage && !profileImage.startsWith('/')) {
+        profileImage = '/' + profileImage;
+      }
+      
+      const transformedDoctor = {
+        ...doctorData,
+        profile_image: profileImage,
+        departmentId: doctorData.department?.id || null,
+        departmentName: doctorData.department?.name || 'N/A',
+        departmentDescription: doctorData.department?.description || '',
+        departmentLocation: doctorData.department?.location || '',
+        department: doctorData.department
+      };
+
+      res.json(transformedDoctor);
     } catch (error) {
       console.error('Error fetching doctor:', error);
       res.status(500).json({ error: 'Failed to fetch doctor' });

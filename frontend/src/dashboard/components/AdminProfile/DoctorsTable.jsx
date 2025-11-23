@@ -142,7 +142,7 @@ export default function DoctorsTable() {
                     {doctor.email}
                   </td>
                   <td className="py-4 px-4 text-muted-foreground">
-                    {doctor.department || "-"}
+                    {doctor.departmentName || doctor.department?.name || "-"}
                   </td>
                   <td className="py-4 px-4 text-muted-foreground">
                     {doctor.license_number || "-"}

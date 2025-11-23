@@ -58,6 +58,9 @@ app.use("/uploads", (req, res, next) => {
   next();
 }, express.static(path.join(__dirname, "uploads")));
 
+// Serve profile images from profiles subfolder with same CORS setup (backwards compatibility)
+app.use("/uploads", express.static(path.join(__dirname, "uploads/profiles")));
+
 // Initialize Stripe
 if (process.env.STRIPE_SECRET_KEY) {
   console.log("✅ Stripe initialized successfully");
@@ -88,7 +91,6 @@ const userRoutes = require("./routes/users");
 const doctorRoutes = require("./routes/doctorRoutes");
 const doctorDashboardRoutes = require("./routes/doctorDashboardRoutes");
 const labRoutes = require("./routes/laboratoryRoutes");
-const lecturerRoutes = require("./routes/lecturerRoutes");
 const { router: notificationRoutes } = require("./routes/notificationRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const profileRoutes = require("./routes/profile");
@@ -96,8 +98,11 @@ const adminProfileRoutes = require("./routes/adminProfile");
 const appointmentRoutes = require("./routes/appointments");
 const doctorApplicationRoutes = require("./routes/doctorApplications");
 const therapyRoutes = require("./routes/therapyRoutes");
-const trainRoutes = require("./routes/trainRoutes");
+// Debug: Clear require cache for contactRoutes
+delete require.cache[require.resolve("./routes/contactRoutes")];
 const contactRoutes = require("./routes/contactRoutes");
+console.log("📋 contactRoutes loaded:", typeof contactRoutes, contactRoutes);
+
 const departmentRoutes = require("./routes/departmentRoutes");
 const patientAnalysesRoutes = require("./routes/patientAnalysesRoutes");
 // IPD Routes - Layered Architecture
@@ -116,15 +121,15 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/doctor", doctorDashboardRoutes); // Doctor dashboard routes
 app.use("/api/laboratories", labRoutes); // Changed from /api/labs to match frontend
 app.use("/api/labs", labRoutes); // Keep legacy route for backward compatibility
-app.use("/api/lecturers", lecturerRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin-profile", adminProfileRoutes);
+// Alias for frontend compatibility (handles plural form)
+app.use("/api/admin-profiles", adminProfileRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/doctor-applications", doctorApplicationRoutes);
 app.use("/api/therapy", therapyRoutes);
-app.use("/api/train", trainRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/patient-analyses", patientAnalysesRoutes);

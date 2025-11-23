@@ -1,71 +1,25 @@
 const express = require('express');
-const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
-const { AnalysisRequest } = require('../models');
+const patientAnalysisController = require('../controllers/patientAnalysisController');
 
-// Get patient's analyses
-router.get('/my-analyses', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.id;
+const router = express.Router();
 
-    console.log(`📊 Fetching analyses for user: ${userId}`);
+// Get patient's analyses (root route for backwards compatibility)
+router.get('/', authenticateToken, patientAnalysisController.getMyAnalyses);
 
-    const analyses = await AnalysisRequest.findAll({
-      where: { patient_id: userId },
-      order: [['created_at', 'DESC']],
-      attributes: [
-        'id',
-        'patient_id',
-        'laboratory_id',
-        'analysis_type',
-        'status',
-        'priority',
-        'scheduled_for',
-        'notes',
-        'results',
-        'results_file_path',
-        'created_at',
-        'updated_at'
-      ]
-    });
-
-    console.log(`✅ Found ${analyses.length} analyses for user ${userId}`);
-
-    res.json(analyses);
-  } catch (error) {
-    console.error('❌ Error fetching patient analyses:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch analyses',
-      message: error.message 
-    });
-  }
-});
+// Get patient's analyses (explicit path)
+router.get('/my-analyses', authenticateToken, patientAnalysisController.getMyAnalyses);
 
 // Get specific analysis by ID
-router.get('/:id', authenticateToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user.id;
+router.get('/:id', authenticateToken, patientAnalysisController.getAnalysisById);
 
-    const analysis = await AnalysisRequest.findOne({
-      where: { 
-        id: id,
-        patient_id: userId 
-      }
-    });
+// Create new analysis request
+router.post('/', authenticateToken, patientAnalysisController.createAnalysisRequest);
 
-    if (!analysis) {
-      return res.status(404).json({ error: 'Analysis not found' });
-    }
+// Update analysis request
+router.put('/:id', authenticateToken, patientAnalysisController.updateAnalysisRequest);
 
-    res.json(analysis);
-  } catch (error) {
-    console.error('❌ Error fetching analysis:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch analysis',
-      message: error.message 
-    });
-  }
-});
+// Cancel analysis request
+router.patch('/:id/cancel', authenticateToken, patientAnalysisController.cancelAnalysisRequest);
 
 module.exports = router;
