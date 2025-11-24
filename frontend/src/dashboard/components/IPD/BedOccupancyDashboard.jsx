@@ -25,7 +25,9 @@ export default function BedOccupancyDashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        setStats(data.data);
+        // Backend returns: { success: true, data: { data: stats } }
+        const statsData = data.data?.data || data.data;
+        setStats(statsData);
       } else {
         toast.error('Failed to fetch occupancy stats');
       }

@@ -7,11 +7,14 @@ const router = express.Router();
 // Create appointment and Stripe checkout session
 router.post('/create-checkout-session', authenticateToken, appointmentController.createCheckoutSession);
 
-// Webhook to confirm payment
-router.post('/webhook', express.raw({ type: 'application/json' }), appointmentController.webhookHandler);
+// Note: Webhook is registered in server.js BEFORE express.json() middleware
+// This is required for Stripe signature verification with raw body
 
 // Regenerate Stripe payment link for approved appointment (patient)
 router.post('/regenerate-payment-link/:id', authenticateToken, appointmentController.regeneratePaymentLink);
+
+// Verify payment after Stripe checkout
+router.get('/verify-payment/:sessionId', authenticateToken, appointmentController.verifyPayment);
 
 // Get my appointments (as patient)
 router.get('/my', authenticateToken, appointmentController.getMyAppointments);

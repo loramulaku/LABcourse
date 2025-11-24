@@ -499,13 +499,19 @@ exports.approveAppointment = async (req, res) => {
       });
     }
 
-    // Create Stripe payment link
+    // Create FRESH Stripe payment link
     const amountInCents = Math.round(appointment.amount * 100);
     const currency = "eur";
 
-    console.log(`🔧 Creating payment link for appointment ${id}`);
+    console.log(`🔧 Creating NEW payment link for appointment ${id}`);
     console.log(`   Amount: €${appointment.amount} (${amountInCents} cents)`);
     console.log(`   Patient: ${appointment.User?.email}`);
+    
+    // If there's an existing session, we'll create a new one
+    // Stripe sessions expire after 24 hours or after completion
+    if (appointment.stripe_session_id) {
+      console.log(`   ⚠️  Existing session found: ${appointment.stripe_session_id}, creating new one...`);
+    }
 
     try {
       const session = await stripe.checkout.sessions.create({

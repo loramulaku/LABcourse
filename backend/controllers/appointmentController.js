@@ -212,7 +212,7 @@ const appointmentController = {
     
     try {
       if (!endpointSecret) throw new Error('Missing STRIPE_WEBHOOK_SECRET');
-      event = Stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -301,6 +301,8 @@ const appointmentController = {
   async regeneratePaymentLink(req, res) {
     try {
       const appointmentId = Number(req.params.id);
+      console.log(`🔄 Regenerating payment link for appointment ${appointmentId}`);
+      
       if (!stripe) {
         return res.status(400).json({ error: 'Stripe not configured' });
       }
@@ -310,10 +312,21 @@ const appointmentController = {
       });
       
       if (!appointment) {
+        console.log(`❌ Appointment ${appointmentId} not found`);
         return res.status(404).json({ error: 'Appointment not found' });
       }
       
+      // Check if already paid
+      if (appointment.payment_status === 'paid' || appointment.status === 'CONFIRMED') {
+        console.log(`✅ Appointment ${appointmentId} already paid`);
+        return res.status(400).json({ 
+          error: 'Appointment already paid', 
+          already_paid: true 
+        });
+      }
+      
       if (appointment.status !== 'APPROVED') {
+        console.log(`⚠️  Appointment ${appointmentId} status is ${appointment.status}, not APPROVED`);
         return res.status(400).json({ error: 'Appointment is not in APPROVED status' });
       }
       
@@ -354,14 +367,78 @@ const appointmentController = {
         payment_deadline: paymentDeadline,
       });
 
+      console.log(`✅ New payment link generated for appointment ${appointmentId}`);
+      console.log(`   Session ID: ${session.id}`);
+      console.log(`   Expires: ${new Date(session.expires_at * 1000).toLocaleString()}`);
+
       res.json({ 
         success: true, 
         payment_link: session.url, 
-        expires_at: session.expires_at 
+        expires_at: session.expires_at,
+        session_id: session.id
       });
     } catch (error) {
       console.error('Error regenerating payment link:', error);
       res.status(500).json({ error: 'Failed to regenerate payment link' });
+    }
+  },
+
+  // Verify payment after Stripe checkout
+  async verifyPayment(req, res) {
+    try {
+      const { sessionId } = req.params;
+      
+      if (!stripe) {
+        return res.status(400).json({ error: 'Stripe not configured' });
+      }
+
+      // Retrieve the session from Stripe
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ error: 'Payment session not found' });
+      }
+
+      const appointmentId = session.metadata?.appointment_id;
+      
+      if (!appointmentId) {
+        return res.status(400).json({ error: 'No appointment associated with this payment' });
+      }
+
+      // Get appointment details
+      const appointment = await Appointment.findByPk(appointmentId, {
+        include: [{
+          model: Doctor,
+          attributes: ['id', 'specialization'],
+          include: [{
+            model: User,
+            attributes: ['name']
+          }]
+        }]
+      });
+
+      if (!appointment) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+
+      // Check if user owns this appointment
+      if (appointment.user_id !== req.user.id) {
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+
+      res.json({
+        success: true,
+        appointment_id: appointment.id,
+        payment_status: appointment.payment_status,
+        status: appointment.status,
+        amount: appointment.amount,
+        scheduled_for: appointment.scheduled_for,
+        doctor_name: appointment.Doctor?.User?.name,
+        receipt_url: session.receipt_url
+      });
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      res.status(500).json({ error: 'Failed to verify payment' });
     }
   },
 

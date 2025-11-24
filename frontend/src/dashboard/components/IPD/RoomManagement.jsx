@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../../../api';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function RoomManagement() {
@@ -10,6 +10,7 @@ export default function RoomManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const [selectedWard, setSelectedWard] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     ward_id: '',
     room_number: '',
@@ -32,7 +33,9 @@ export default function RoomManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        setWards(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const wardsArray = data.data?.data || data.data || [];
+        setWards(wardsArray);
       }
     } catch (error) {
       console.error('Error fetching wards:', error);
@@ -53,7 +56,9 @@ export default function RoomManagement() {
 
       if (response.ok) {
         const data = await response.json();
-        setRooms(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const roomsArray = data.data?.data || data.data || [];
+        setRooms(roomsArray);
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
@@ -125,6 +130,17 @@ export default function RoomManagement() {
   const wardsList = Array.isArray(wards) ? wards : [];
   const roomsList = Array.isArray(rooms) ? rooms : [];
 
+  // Filter rooms based on search query
+  const filteredRooms = roomsList.filter((room) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      room.room_number?.toLowerCase().includes(query) ||
+      room.ward?.name?.toLowerCase().includes(query) ||
+      room.room_type?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -161,13 +177,41 @@ export default function RoomManagement() {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <input
+          type="text"
+          placeholder="Search by room number, ward name, or room type..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
+      ) : filteredRooms.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl p-8">
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery ? `No rooms found matching "${searchQuery}"` : 'No rooms found. Please add rooms.'}
+            </p>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {roomsList.map((room) => (
+          {filteredRooms.map((room) => (
             <div key={room.id} className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
               <div className="flex justify-between items-start mb-2">
                 <div>

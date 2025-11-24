@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../../../api';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function WardManagement() {
@@ -8,6 +8,7 @@ export default function WardManagement() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingWard, setEditingWard] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -162,6 +163,16 @@ export default function WardManagement() {
 
   const wardsList = Array.isArray(wards) ? wards : [];
 
+  // Filter wards based on search query
+  const filteredWards = wardsList.filter((ward) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      ward.name?.toLowerCase().includes(query) ||
+      ward.description?.toLowerCase().includes(query)
+    );
+  });
+
   console.log('🎨 [Frontend] Rendering WardManagement component');
   console.log('📊 [Frontend] Current wards state:', wards);
   console.log('📋 [Frontend] Wards list length:', wardsList.length);
@@ -186,9 +197,38 @@ export default function WardManagement() {
         </button>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <input
+          type="text"
+          placeholder="Search by ward name or description..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
       {/* Ward List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {wardsList.map((ward) => (
+      {filteredWards.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl p-8">
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery ? `No wards found matching "${searchQuery}"` : 'No wards found. Please add wards.'}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredWards.map((ward) => (
           <div key={ward.id} className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -262,7 +302,8 @@ export default function WardManagement() {
             )}
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {wardsList.length === 0 && (
         <div className="text-center py-12">

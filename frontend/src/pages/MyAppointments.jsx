@@ -75,31 +75,50 @@ const MyAppointments = () => {
     setPaymentLoading(appointment.id);
 
     try {
-      if (appointment.payment_link) {
-        window.location.href = appointment.payment_link;
-      } else {
-        const token = getAccessToken();
-        const resp = await fetch(`${API_URL}/api/appointments/regenerate-payment-link/${appointment.id}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: 'include',
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data.payment_link) {
-            window.location.href = data.payment_link;
-            return;
-          }
+      // ALWAYS generate a fresh payment link to avoid expired session errors
+      const token = getAccessToken();
+      const resp = await fetch(`${API_URL}/api/appointments/regenerate-payment-link/${appointment.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.payment_link) {
+          // Redirect to fresh Stripe checkout session
+          window.location.href = data.payment_link;
+          return;
         }
-        toast.error("Payment link is missing. Please try again later or contact support.", {
+      } else {
+        const errorData = await resp.json().catch(() => ({}));
+        
+        if (errorData.already_paid) {
+          toast.info("This appointment has already been paid!", {
+            autoClose: 3000,
+            toastId: `already-paid-${appointment.id}`
+          });
+          // Refresh the page to update the appointment status
+          setTimeout(() => window.location.reload(), 2000);
+          return;
+        }
+        
+        toast.error(errorData.error || "Failed to generate payment link. Please try again later or contact support.", {
           autoClose: 5000,
           toastId: `payment-error-${appointment.id}`
         });
         setPaymentLoading(null);
+        return;
       }
+      
+      toast.error("Failed to generate payment link. Please try again later or contact support.", {
+        autoClose: 5000,
+        toastId: `payment-error-${appointment.id}`
+      });
+      setPaymentLoading(null);
     } catch (error) {
       console.error('Payment error:', error);
       toast.error("An error occurred. Please try again.", {

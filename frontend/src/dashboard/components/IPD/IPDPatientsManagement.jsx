@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../../../api';
-import { Eye, MapPin, X } from 'lucide-react';
+import { Eye, MapPin, X, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function IPDPatientsManagement() {
@@ -8,6 +8,7 @@ export default function IPDPatientsManagement() {
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [wards, setWards] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -33,7 +34,9 @@ export default function IPDPatientsManagement() {
 
       if (response.ok) {
         const data = await response.json();
-        setPatients(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const patientsArray = data.data?.data || data.data || [];
+        setPatients(patientsArray);
       }
     } catch (error) {
       console.error('Error fetching IPD patients:', error);
@@ -51,7 +54,9 @@ export default function IPDPatientsManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        setWards(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const wardsArray = data.data?.data || data.data || [];
+        setWards(wardsArray);
       }
     } catch (error) {
       console.error('Error fetching wards:', error);
@@ -66,7 +71,9 @@ export default function IPDPatientsManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        setRooms(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const roomsArray = data.data?.data || data.data || [];
+        setRooms(roomsArray);
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
@@ -81,7 +88,9 @@ export default function IPDPatientsManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        setBeds(data.data.filter(bed => bed.status === 'Available') || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const bedsArray = data.data?.data || data.data || [];
+        setBeds(bedsArray.filter(bed => bed.status === 'Available'));
       }
     } catch (error) {
       console.error('Error fetching beds:', error);
@@ -159,6 +168,21 @@ export default function IPDPatientsManagement() {
 
   const patientsList = Array.isArray(patients) ? patients : [];
 
+  // Filter patients based on search query
+  const filteredPatients = patientsList.filter((patient) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      patient.patient?.name?.toLowerCase().includes(query) ||
+      patient.patient?.email?.toLowerCase().includes(query) ||
+      patient.doctor?.name?.toLowerCase().includes(query) ||
+      patient.ward?.name?.toLowerCase().includes(query) ||
+      patient.room?.room_number?.toLowerCase().includes(query) ||
+      patient.bed?.bed_number?.toLowerCase().includes(query) ||
+      patient.primary_diagnosis?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -168,18 +192,40 @@ export default function IPDPatientsManagement() {
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">Manage all admitted patients</p>
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
-        >
-          <option value="">All Statuses</option>
-          <option value="Admitted">Admitted</option>
-          <option value="UnderCare">Under Care</option>
-          <option value="TransferRequested">Transfer Requested</option>
-          <option value="DischargeRequested">Discharge Requested</option>
-          <option value="Discharged">Discharged</option>
-        </select>
+        <div className="flex gap-3 flex-wrap">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+          >
+            <option value="">All Statuses</option>
+            <option value="Admitted">Admitted</option>
+            <option value="UnderCare">Under Care</option>
+            <option value="TransferRequested">Transfer Requested</option>
+            <option value="DischargeRequested">Discharge Requested</option>
+            <option value="Discharged">Discharged</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <input
+          type="text"
+          placeholder="Search by patient name, doctor, ward, room, bed, or diagnosis..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       <div className="overflow-x-auto bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl shadow-lg">
@@ -195,7 +241,14 @@ export default function IPDPatientsManagement() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {patientsList.map((patient) => (
+            {filteredPatients.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                  {searchQuery ? `No patients found matching "${searchQuery}"` : 'No patients found'}
+                </td>
+              </tr>
+            ) : (
+              filteredPatients.map((patient) => (
               <tr key={patient.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -249,7 +302,8 @@ export default function IPDPatientsManagement() {
                   )}
                 </td>
               </tr>
-            ))}
+            ))
+            )}
           </tbody>
         </table>
       </div>

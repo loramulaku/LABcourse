@@ -20,6 +20,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(cookieParser());
+
+// IMPORTANT: Stripe webhook must be registered BEFORE express.json() middleware
+// This is because Stripe requires raw body for webhook signature verification
+app.post('/api/appointments/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const appointmentController = require('./controllers/appointmentController');
+  return appointmentController.webhookHandler(req, res);
+});
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 

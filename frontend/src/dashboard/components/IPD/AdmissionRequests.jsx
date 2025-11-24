@@ -30,7 +30,9 @@ export default function AdmissionRequests() {
 
       if (response.ok) {
         const data = await response.json();
-        setRequests(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const requestsArray = data.data?.data || data.data || [];
+        setRequests(requestsArray);
       }
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -48,7 +50,9 @@ export default function AdmissionRequests() {
       });
       if (response.ok) {
         const data = await response.json();
-        setWards(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const wardsArray = data.data?.data || data.data || [];
+        setWards(wardsArray);
       }
     } catch (error) {
       console.error('Error fetching wards:', error);
@@ -63,7 +67,9 @@ export default function AdmissionRequests() {
       });
       if (response.ok) {
         const data = await response.json();
-        setRooms(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const roomsArray = data.data?.data || data.data || [];
+        setRooms(roomsArray);
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
@@ -78,7 +84,9 @@ export default function AdmissionRequests() {
       });
       if (response.ok) {
         const data = await response.json();
-        setBeds(data.data.filter(bed => bed.status === 'Available') || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const bedsArray = data.data?.data || data.data || [];
+        setBeds(bedsArray.filter(bed => bed.status === 'Available'));
       }
     } catch (error) {
       console.error('Error fetching beds:', error);

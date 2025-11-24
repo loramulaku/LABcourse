@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../../../api';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function BedManagement() {
@@ -12,6 +12,7 @@ export default function BedManagement() {
   const [editingBed, setEditingBed] = useState(null);
   const [selectedWard, setSelectedWard] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     room_id: '',
     bed_number: '',
@@ -49,7 +50,9 @@ export default function BedManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        setWards(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const wardsArray = data.data?.data || data.data || [];
+        setWards(wardsArray);
       }
     } catch (error) {
       console.error('Error fetching wards:', error);
@@ -64,7 +67,9 @@ export default function BedManagement() {
       });
       if (response.ok) {
         const data = await response.json();
-        setRooms(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const roomsArray = data.data?.data || data.data || [];
+        setRooms(roomsArray);
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
@@ -85,7 +90,9 @@ export default function BedManagement() {
 
       if (response.ok) {
         const data = await response.json();
-        setBeds(data.data || []);
+        // Backend returns: { success: true, data: { data: [...], count: X } }
+        const bedsArray = data.data?.data || data.data || [];
+        setBeds(bedsArray);
       }
     } catch (error) {
       console.error('Error fetching beds:', error);
@@ -158,6 +165,19 @@ export default function BedManagement() {
   const roomsList = Array.isArray(rooms) ? rooms : [];
   const bedsList = Array.isArray(beds) ? beds : [];
 
+  // Filter beds based on search query
+  const filteredBeds = bedsList.filter((bed) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      bed.bed_number?.toLowerCase().includes(query) ||
+      bed.room?.room_number?.toLowerCase().includes(query) ||
+      bed.room?.ward?.name?.toLowerCase().includes(query) ||
+      bed.status?.toLowerCase().includes(query) ||
+      bed.room?.room_type?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -211,15 +231,35 @@ export default function BedManagement() {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <input
+          type="text"
+          placeholder="Search by bed number, room, ward, status, or room type..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      ) : bedsList.length === 0 ? (
+      ) : filteredBeds.length === 0 ? (
         <div className="text-center py-12">
           <div className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl p-8">
             <p className="text-gray-500 dark:text-gray-400">
-              No beds found. {selectedWard ? 'Please select a ward and room, then add beds.' : 'Please add wards and rooms first.'}
+              {searchQuery ? `No beds found matching "${searchQuery}"` : bedsList.length === 0 ? (selectedWard ? 'Please select a ward and room, then add beds.' : 'Please add wards and rooms first.') : 'No beds found.'}
             </p>
           </div>
         </div>
@@ -238,11 +278,11 @@ export default function BedManagement() {
                     Room {roomsList.find(r => r.id === parseInt(selectedRoom))?.room_number}
                   </span>
                   <span className="mx-2 text-gray-400">→</span>
-                  <span className="text-gray-600 dark:text-gray-400">{bedsList.length} bed(s)</span>
+                  <span className="text-gray-600 dark:text-gray-400">{filteredBeds.length} bed(s)</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {bedsList.map((bed) => (
+                {filteredBeds.map((bed) => (
                   <div key={bed.id} className={`border-2 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 ${statusColors[bed.status] || 'bg-gray-100'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -279,7 +319,7 @@ export default function BedManagement() {
             </>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {bedsList.map((bed) => (
+              {filteredBeds.map((bed) => (
                 <div key={bed.id} className={`border-2 rounded-lg p-4 ${statusColors[bed.status] || 'bg-gray-100'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <div>
