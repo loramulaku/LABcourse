@@ -33,13 +33,18 @@ class BaseService {
    * Validate required fields
    * @param {Object} data - Data to validate
    * @param {Array} requiredFields - Array of required field names
-   * @throws {Error} If validation fails
+   * @throws {ValidationError} If validation fails
    */
   validateRequired(data, requiredFields) {
-    const missing = requiredFields.filter(field => !data[field]);
+    // Check for null, undefined, or empty strings - but allow false, 0, etc.
+    const missing = requiredFields.filter(field => {
+      const value = data[field];
+      return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+    });
     
     if (missing.length > 0) {
-      throw new Error(`Missing required fields: ${missing.join(', ')}`);
+      const { ValidationError } = require('./errors');
+      throw new ValidationError(`Missing required fields: ${missing.join(', ')}`);
     }
   }
 

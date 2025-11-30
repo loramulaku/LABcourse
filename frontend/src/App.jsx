@@ -154,6 +154,7 @@ const TailwindTest = React.lazy(() => import("./components/TailwindTest"));
 const DoctorLayout = React.lazy(() => import("./doctor/layout/DoctorLayout.jsx"));
 const DoctorDashboard = React.lazy(() => import("./doctor/pages/DoctorDashboard.jsx"));
 const DoctorAppointments = React.lazy(() => import("./doctor/pages/DoctorAppointments.jsx"));
+const AppointmentDetails = React.lazy(() => import("./doctor/pages/AppointmentDetails.jsx"));
 const DoctorCalendar = React.lazy(() => import("./doctor/pages/DoctorCalendar.jsx"));
 const DoctorPatients = React.lazy(() => import("./doctor/pages/DoctorPatients.jsx"));
 const DoctorPatientProfile = React.lazy(() => import("./doctor/pages/DoctorPatientProfile.jsx"));
@@ -419,6 +420,7 @@ const App = () => {
               <Route path="dashboard" element={<DoctorDashboard />} />
               <Route path="profile" element={<DoctorProfile />} />
               <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="appointment/:id" element={<AppointmentDetails />} />
               <Route path="calendar" element={<DoctorCalendar />} />
               <Route path="appointment-stats" element={<DoctorAppointmentStats />} />
               <Route path="patients" element={<DoctorPatients />} />

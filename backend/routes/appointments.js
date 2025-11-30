@@ -19,6 +19,9 @@ router.get('/verify-payment/:sessionId', authenticateToken, appointmentControlle
 // Get my appointments (as patient)
 router.get('/my', authenticateToken, appointmentController.getMyAppointments);
 
+// Get appointment receipt/invoice (must be before /:id to avoid route conflict)
+router.get('/receipt/:id', authenticateToken, appointmentController.getAppointmentReceipt);
+
 // Get all appointments
 router.get('/', appointmentController.getAllAppointments);
 

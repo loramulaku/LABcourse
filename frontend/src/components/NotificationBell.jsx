@@ -20,9 +20,20 @@ export default function NotificationBell() {
       const data = await apiFetch(
         `${API_URL}/api/notifications/my-notifications`,
       );
-      setNotifications(data || []);
+      
+      // Backend returns { notifications: [], unreadCount: X }
+      if (data && Array.isArray(data.notifications)) {
+        setNotifications(data.notifications);
+        if (data.unreadCount !== undefined) {
+          setUnreadCount(data.unreadCount);
+        }
+      } else {
+        console.warn("Unexpected API response format:", data);
+        setNotifications([]);
+      }
     } catch (error) {
       console.error("Failed to load notifications:", error);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
@@ -31,9 +42,11 @@ export default function NotificationBell() {
   const loadUnreadCount = async () => {
     try {
       const data = await apiFetch(`${API_URL}/api/notifications/unread-count`);
-      setUnreadCount(data.count || 0);
+      // Backend returns { unreadCount: X }
+      setUnreadCount(data.unreadCount || 0);
     } catch (error) {
       console.error("Failed to load unread count:", error);
+      setUnreadCount(0);
     }
   };
 
@@ -47,11 +60,12 @@ export default function NotificationBell() {
       );
 
       // Update local state
-      setNotifications((prev) =>
-        prev.map((n) =>
+      setNotifications((prev) => {
+        if (!Array.isArray(prev)) return [];
+        return prev.map((n) =>
           n.id === notificationId ? { ...n, is_read: true } : n,
-        ),
-      );
+        );
+      });
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
@@ -64,7 +78,10 @@ export default function NotificationBell() {
         method: "POST",
       });
 
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setNotifications((prev) => {
+        if (!Array.isArray(prev)) return [];
+        return prev.map((n) => ({ ...n, is_read: true }));
+      });
       setUnreadCount(0);
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
@@ -151,7 +168,7 @@ export default function NotificationBell() {
                 <div className="p-4 text-center text-gray-500">
                   Loading notifications...
                 </div>
-              ) : notifications.length === 0 ? (
+              ) : !Array.isArray(notifications) || notifications.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">
                   No notifications yet
                 </div>
@@ -214,7 +231,7 @@ export default function NotificationBell() {
               )}
             </div>
 
-            {notifications.length > 10 && (
+            {Array.isArray(notifications) && notifications.length > 10 && (
               <div className="p-3 border-t border-gray-200">
                 <button
                   onClick={() => {

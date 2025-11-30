@@ -4,7 +4,8 @@ const AdmissionRequestRepository = require('../repositories/AdmissionRequestRepo
 const DailyDoctorNoteRepository = require('../repositories/DailyDoctorNoteRepository');
 const WardRepository = require('../repositories/WardRepository');
 const { Appointment } = require('../models');
-const { NotFoundError, BadRequestError, ConflictError } = require('../core/errors');
+const { NotFoundError, BadRequestError, ConflictError, ValidationError } = require('../core/errors');
+const notificationService = require('./NotificationService');
 
 /**
  * IPDDoctorService - Handles doctor-specific IPD business logic
@@ -71,7 +72,9 @@ class IPDDoctorService extends BaseService {
    */
   async getAvailableWards() {
     this.log('Fetching available wards');
-    return await this.wardRepo.findActive();
+    const wards = await this.wardRepo.findActive();
+    // Ensure we always return an array
+    return Array.isArray(wards) ? wards : [];
   }
 
   /**
@@ -149,62 +152,323 @@ class IPDDoctorService extends BaseService {
    */
 
   /**
-   * Submit clinical assessment and conditionally create admission request
+   * Submit clinical assessment with comprehensive data storage, locking, and notifications
    * @param {number} appointmentId - Appointment ID
    * @param {number} doctorId - Doctor ID
    * @param {Object} assessmentData - Assessment data
    * @returns {Promise<Object>}
    */
   async submitClinicalAssessment(appointmentId, doctorId, assessmentData) {
-    this.validateRequired(assessmentData, ['clinical_assessment', 'requires_admission']);
-    this.log(`Submitting clinical assessment for appointment ${appointmentId}`);
+    const requestId = `CA-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    console.log(`\n📝 ==================== CLINICAL ASSESSMENT [${requestId}] ====================`);
+    console.log(`⏰ Time: ${new Date().toISOString()}`);
+    console.log(`🆔 Appointment ID: ${appointmentId}`);
+    console.log(`👨‍⚕️ Doctor ID: ${doctorId}`);
 
-    // Find appointment
+    // Validate required fields
+    this.validateRequired(assessmentData, ['clinical_notes', 'requires_admission']);
+    
+    if (assessmentData.requires_admission === false && !assessmentData.therapy_prescribed) {
+      throw new ValidationError('Therapy prescription is required when admission is not needed');
+    }
+
+    if (assessmentData.requires_admission === true && !assessmentData.diagnosis) {
+      throw new ValidationError('Diagnosis is required for admission');
+    }
+
+    console.log(`🔍 Fetching appointment...`);
+
+    // Find appointment - only allow CONFIRMED or APPROVED
+    // Assessment submission should happen BEFORE marking as COMPLETED
     const appointment = await Appointment.findOne({
       where: {
         id: appointmentId,
         doctor_id: doctorId,
-        status: 'CONFIRMED',
+        status: {
+          [require('sequelize').Op.in]: ['CONFIRMED', 'APPROVED']
+        },
       },
     });
 
     if (!appointment) {
-      throw new NotFoundError('Confirmed appointment');
+      // Check if appointment exists but is already COMPLETED
+      const completedAppointment = await Appointment.findOne({
+        where: {
+          id: appointmentId,
+          doctor_id: doctorId,
+          status: 'COMPLETED'
+        }
+      });
+      
+      if (completedAppointment) {
+        console.error(`❌ Appointment already COMPLETED - cannot submit new assessment`);
+        throw new ValidationError('This appointment is already completed. Clinical assessment can only be submitted for CONFIRMED or APPROVED appointments.');
+      }
+      
+      console.error(`❌ Appointment not found or not in valid status`);
+      throw new NotFoundError('Appointment not found or you are not authorized. Only CONFIRMED or APPROVED appointments can have assessments submitted.');
     }
 
-    // Update appointment with assessment
-    await appointment.update({
+    console.log(`✅ Appointment found:`);
+    console.log(`   Patient ID: ${appointment.user_id}`);
+    console.log(`   Status: ${appointment.status} (valid for assessment)`);
+    console.log(`   Payment: ${appointment.payment_status}`);
+
+    // Check if assessment already exists (prevent duplicate)
+    const { ClinicalAssessment, Doctor, User } = require('../models');
+    
+    const existingAssessment = await ClinicalAssessment.findOne({
+      where: { appointment_id: appointmentId }
+    });
+
+    if (existingAssessment && existingAssessment.is_locked) {
+      console.error(`❌ Assessment is locked - cannot edit`);
+      throw new ValidationError('This assessment is locked and cannot be modified');
+    }
+
+    if (existingAssessment && !existingAssessment.is_locked) {
+      console.log(`⚠️  Updating existing unlocked assessment (ID: ${existingAssessment.id})`);
+    }
+
+    // Get doctor's user_id for audit trail
+    const doctorProfile = await Doctor.findByPk(doctorId, { 
+      attributes: ['user_id'],
+      include: [{ model: User, attributes: ['name'] }]
+    });
+    const doctorUserId = doctorProfile?.user_id || null;
+    const doctorName = doctorProfile?.User?.name || 'Doctor';
+
+    console.log(`👨‍⚕️ Doctor: ${doctorName} (User ID: ${doctorUserId})`);
+
+    // Create or update comprehensive clinical assessment
+    console.log(`💾 Saving comprehensive clinical assessment...`);
+    
+    const now = new Date();
+    const assessmentRecord = existingAssessment || ClinicalAssessment.build({});
+    
+    // Build comprehensive assessment data
+    const assessmentFields = {
+      appointment_id: appointmentId,
+      doctor_id: doctorId,
+      patient_id: appointment.user_id,
+      clinical_notes: assessmentData.clinical_notes || assessmentData.clinical_assessment,
+      diagnosis: assessmentData.diagnosis || null,
+      chief_complaint: assessmentData.chief_complaint || appointment.reason,
+      vitals: assessmentData.vitals || null,
+      physical_examination: assessmentData.physical_examination || null,
       requires_admission: assessmentData.requires_admission,
       therapy_prescribed: assessmentData.requires_admission ? null : assessmentData.therapy_prescribed,
-      clinical_assessment: assessmentData.clinical_assessment,
-    });
+      treatment_plan: assessmentData.treatment_plan || null,
+      follow_up_instructions: assessmentData.follow_up_instructions || null,
+      follow_up_date: assessmentData.follow_up_date || null,
+      admission_details: assessmentData.requires_admission ? assessmentData.admission_details : null,
+      lab_tests_ordered: assessmentData.lab_tests_ordered || null,
+      imaging_ordered: assessmentData.imaging_ordered || null,
+      status: 'submitted',
+      is_locked: true, // Lock immediately after submission
+      locked_at: now,
+      locked_by: doctorUserId,
+      submitted_at: now,
+      submitted_by: doctorUserId,
+      last_modified_by: doctorUserId,
+      version: existingAssessment ? existingAssessment.version + 1 : 1,
+      internal_notes: assessmentData.internal_notes || null,
+    };
+
+    if (existingAssessment) {
+      await existingAssessment.update(assessmentFields);
+      console.log(`✅ Assessment updated (version ${existingAssessment.version})`);
+    } else {
+      await ClinicalAssessment.create(assessmentFields);
+      console.log(`✅ New assessment created`);
+    }
+
+    // Update appointment: mark as COMPLETED with timestamp (if not already)
+    console.log(`🔄 Updating appointment...`);
+    const updateData = {
+      requires_admission: assessmentData.requires_admission,
+      therapy_prescribed: assessmentData.requires_admission ? null : assessmentData.therapy_prescribed,
+      clinical_assessment: assessmentData.clinical_notes || assessmentData.clinical_assessment,
+    };
+
+    // Only update status and completed_at if not already COMPLETED
+    if (appointment.status !== 'COMPLETED') {
+      updateData.status = 'COMPLETED';
+      updateData.completed_at = now;
+      console.log(`   Setting status to COMPLETED`);
+    } else {
+      console.log(`   Status already COMPLETED - preserving existing completed_at`);
+    }
+
+    await appointment.update(updateData);
+    console.log(`✅ Appointment updated`);
+
+    let admissionRequest = null;
 
     // If requires admission, create admission request
     if (assessmentData.requires_admission && assessmentData.admission_details) {
-      const admissionRequest = await this.createAdmissionRequest(
-        {
-          appointment_id: appointmentId,
-          patient_id: appointment.user_id,
-          ...assessmentData.admission_details,
-        },
-        doctorId
-      );
-
-      this.log(`Clinical assessment saved and admission request created`);
-
-      return {
-        appointment,
-        admission_request: admissionRequest,
-        message: 'Clinical assessment saved and admission request created',
-      };
+      console.log(`🏥 Creating admission request...`);
+      try {
+        admissionRequest = await this.createAdmissionRequest(
+          {
+            appointment_id: appointmentId,
+            patient_id: appointment.user_id,
+            ...assessmentData.admission_details,
+          },
+          doctorId
+        );
+        console.log(`✅ Admission request created: ${admissionRequest.id}`);
+      } catch (admissionError) {
+        console.error(`❌ Error creating admission request:`, admissionError.message);
+        // Continue even if admission request fails
+      }
     }
 
-    // Therapy only
-    this.log(`Clinical assessment saved - therapy prescribed`);
+    // Send notifications
+    console.log(`🔔 Sending notifications...`);
+    
+    try {
+      // Notification to patient
+      const patientMessage = assessmentData.requires_admission
+        ? `Your appointment with ${doctorName} has been completed. Based on the clinical assessment, you require hospital admission. An admission request has been submitted for approval. You can view the complete assessment details in your appointment history.`
+        : `Your appointment with ${doctorName} has been completed. ${doctorName} has prescribed therapy for you. You can view your prescribed therapy and follow-up instructions in your appointment details.`;
+
+      await notificationService.createNotificationHelper({
+        userId: appointment.user_id,
+        sentByUserId: doctorUserId,
+        title: assessmentData.requires_admission 
+          ? '🏥 Clinical Assessment Complete - Admission Required'
+          : '✅ Clinical Assessment Complete - Therapy Prescribed',
+        message: patientMessage,
+        type: 'appointment_completed',
+        appointmentId: appointmentId,
+        optionalLink: `/my-appointments/${appointmentId}/assessment`,
+      });
+
+      console.log(`✅ Patient notification sent`);
+
+      // Notify reception/admin staff
+      const adminUsers = await User.findAll({
+        where: { role: { [require('sequelize').Op.in]: ['admin', 'reception'] } },
+        attributes: ['id', 'name']
+      });
+
+      for (const admin of adminUsers) {
+        await notificationService.createNotificationHelper({
+          userId: admin.id,
+          sentByUserId: doctorUserId,
+          title: '📝 Appointment Completed',
+          message: `Dr. ${doctorName} has completed appointment #${appointmentId}. Patient ${assessmentData.requires_admission ? 'requires admission' : 'discharged with therapy'}.`,
+          type: 'appointment_completed',
+          appointmentId: appointmentId,
+          optionalLink: `/admin/appointments/${appointmentId}`,
+        });
+      }
+
+      console.log(`✅ Staff notifications sent to ${adminUsers.length} users`);
+
+    } catch (notifError) {
+      console.error(`⚠️  Failed to send notifications:`, notifError.message);
+      // Continue even if notifications fail
+    }
+
+    console.log(`🎉 Clinical assessment submission complete`);
+    console.log(`📝 ==================== END ASSESSMENT [${requestId}] ====================\n`);
 
     return {
+      success: true,
       appointment,
-      message: 'Clinical assessment saved - therapy prescribed',
+      assessment: await ClinicalAssessment.findOne({ where: { appointment_id: appointmentId } }),
+      admission_request: admissionRequest,
+      message: assessmentData.requires_admission 
+        ? 'Clinical assessment saved and admission request created. Appointment marked as completed.'
+        : 'Clinical assessment saved with therapy prescription. Appointment marked as completed.',
+    };
+  }
+
+  /**
+   * Get clinical assessment for an appointment (for viewing)
+   * @param {number} appointmentId - Appointment ID
+   * @param {number} userId - User ID requesting the assessment
+   * @param {string} userRole - User role (doctor, patient, admin)
+   * @returns {Promise<Object>}
+   */
+  async getClinicalAssessment(appointmentId, userId, userRole) {
+    console.log(`\n🔍 Fetching clinical assessment for appointment ${appointmentId}`);
+    
+    const { ClinicalAssessment, Appointment, Doctor, User } = require('../models');
+    
+    // Fetch assessment with related data
+    const assessment = await ClinicalAssessment.findOne({
+      where: { appointment_id: appointmentId },
+      include: [
+        {
+          model: Appointment,
+          as: 'appointment',
+          attributes: ['id', 'user_id', 'doctor_id', 'scheduled_for', 'status', 'reason']
+        },
+        {
+          model: Doctor,
+          as: 'doctor',
+          include: [{ model: User, attributes: ['name', 'email'] }]
+        },
+        {
+          model: User,
+          as: 'patient',
+          attributes: ['id', 'name', 'email', 'phone']
+        },
+        {
+          model: User,
+          as: 'submitter',
+          attributes: ['name', 'email']
+        }
+      ]
+    });
+
+    if (!assessment) {
+      throw new NotFoundError('Clinical assessment');
+    }
+
+    // Authorization check
+    const appointment = assessment.appointment;
+    const isPatient = appointment.user_id === userId;
+    const isDoctor = await Doctor.findOne({ where: { user_id: userId } })
+      .then(doc => doc && doc.id === appointment.doctor_id);
+    const isAdmin = userRole === 'admin' || userRole === 'reception';
+
+    if (!isPatient && !isDoctor && !isAdmin) {
+      throw new ValidationError('You do not have permission to view this assessment');
+    }
+
+    console.log(`✅ Assessment found and authorized`);
+    
+    return assessment;
+  }
+
+  /**
+   * Check if clinical assessment exists and is locked for an appointment
+   * @param {number} appointmentId - Appointment ID
+   * @returns {Promise<Object>} - { exists: boolean, isLocked: boolean, assessment: Object }
+   */
+  async checkAssessmentStatus(appointmentId) {
+    const { ClinicalAssessment } = require('../models');
+    
+    const assessment = await ClinicalAssessment.findOne({
+      where: { appointment_id: appointmentId },
+      attributes: ['id', 'status', 'is_locked', 'submitted_at', 'locked_at']
+    });
+
+    if (!assessment) {
+      return { exists: false, isLocked: false, assessment: null };
+    }
+
+    return {
+      exists: true,
+      isLocked: assessment.is_locked,
+      status: assessment.status,
+      submittedAt: assessment.submitted_at,
+      lockedAt: assessment.locked_at,
+      assessment: assessment
     };
   }
 

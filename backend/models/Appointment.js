@@ -40,8 +40,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     payment_status: {
-      type: DataTypes.ENUM('unpaid', 'paid', 'refunded', 'expired'),
+      type: DataTypes.ENUM('unpaid', 'paid', 'refunded', 'expired', 'failed'),
       defaultValue: 'unpaid',
+    },
+    payment_failure_reason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
     },
     amount: {
       type: DataTypes.DECIMAL(10, 2),

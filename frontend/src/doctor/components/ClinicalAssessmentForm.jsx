@@ -5,9 +5,12 @@ import { toast } from 'react-toastify';
 
 const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    clinical_assessment: '',
+    clinical_notes: '',
+    diagnosis: '',
     requires_admission: null,
     therapy_prescribed: '',
+    treatment_plan: '',
+    follow_up_instructions: '',
   });
 
   const [admissionDetails, setAdmissionDetails] = useState({
@@ -17,6 +20,9 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
     recommended_room_type: '',
     urgency: 'Normal',
   });
+
+  const [isLocked, setIsLocked] = useState(false);
+  const [checkingLock, setCheckingLock] = useState(true);
 
   const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -33,7 +39,12 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
       });
       if (response.ok) {
         const data = await response.json();
-        setWards(data.data || []);
+        // Response structure: { success: true, data: { data: wards[], count: n } }
+        const wardsArray = data.data?.data || data.data || [];
+        setWards(Array.isArray(wardsArray) ? wardsArray : []);
+      } else {
+        console.error('Failed to fetch wards:', response.status);
+        setWards([]);
       }
     } catch (error) {
       console.error('Error fetching wards:', error);
@@ -41,6 +52,32 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
       setLoadingWards(false);
     }
   }, []);
+
+  // Check if assessment is locked
+  const checkLockStatus = useCallback(async () => {
+    try {
+      setCheckingLock(true);
+      const response = await fetch(
+        `${API_URL}/api/ipd/doctor/assessment/${appointment.id}/status`,
+        {
+          headers: { Authorization: `Bearer ${getAccessToken()}` },
+          credentials: 'include',
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setIsLocked(data.isLocked || false);
+      }
+    } catch (error) {
+      console.error('Error checking lock status:', error);
+    } finally {
+      setCheckingLock(false);
+    }
+  }, [appointment.id]);
+
+  useEffect(() => {
+    checkLockStatus();
+  }, [checkLockStatus]);
 
   useEffect(() => {
     if (formData.requires_admission === true) {
@@ -52,37 +89,44 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
     e.preventDefault();
 
     // Validation
-    if (!formData.clinical_assessment.trim()) {
-      toast.error('Clinical assessment is required');
+    if (!formData.clinical_notes || !formData.clinical_notes.trim()) {
+      toast.error('Clinical notes are required');
       return;
     }
 
-    if (formData.requires_admission === null) {
-      toast.error('Please select if patient requires admission');
+    if (formData.requires_admission === null || formData.requires_admission === undefined) {
+      toast.error('Please select admission decision (Yes or No)');
       return;
     }
 
-    if (formData.requires_admission === false && !formData.therapy_prescribed.trim()) {
+    if (formData.requires_admission === false && !formData.therapy_prescribed) {
       toast.error('Therapy prescription is required when admission is not needed');
       return;
     }
 
-    if (formData.requires_admission === true) {
-      if (!admissionDetails.diagnosis.trim()) {
-        toast.error('Diagnosis is required for admission');
-        return;
-      }
+    if (formData.requires_admission === true && !formData.diagnosis) {
+      toast.error('Diagnosis is required for admission');
+      return;
     }
 
     try {
       setLoading(true);
 
       const payload = {
-        requires_admission: formData.requires_admission,
-        therapy_prescribed: formData.requires_admission ? null : formData.therapy_prescribed,
-        clinical_assessment: formData.clinical_assessment,
-        admission_details: formData.requires_admission ? admissionDetails : null,
+        clinical_notes: formData.clinical_notes.trim(),
+        diagnosis: formData.requires_admission ? (formData.diagnosis || admissionDetails.diagnosis) : null,
+        requires_admission: Boolean(formData.requires_admission), // Ensure boolean
+        therapy_prescribed: formData.requires_admission ? null : (formData.therapy_prescribed || null),
+        treatment_plan: formData.treatment_plan ? formData.treatment_plan.trim() : null,
+        follow_up_instructions: formData.follow_up_instructions ? formData.follow_up_instructions.trim() : null,
+        admission_details: formData.requires_admission ? {
+          ...admissionDetails,
+          diagnosis: formData.diagnosis || admissionDetails.diagnosis,
+          treatment_plan: formData.treatment_plan || admissionDetails.treatment_plan,
+        } : null,
       };
+
+      console.log('📤 Submitting assessment payload:', payload);
 
       const response = await fetch(
         `${API_URL}/api/doctor/appointment/${appointment.id}/clinical-assessment`,
@@ -104,11 +148,22 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
         onClose();
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to submit assessment');
+        console.error('Submission error:', error);
+        
+        // Handle validation errors with specific messages
+        if (response.status === 422 || response.status === 400) {
+          const errorMessage = error.error?.message || error.message || error.error || 'Validation failed';
+          toast.error(errorMessage, {
+            autoClose: 5000,
+            position: 'top-center'
+          });
+        } else {
+          toast.error(error.error?.message || error.message || error.error || 'Failed to submit assessment');
+        }
       }
     } catch (error) {
       console.error('Error submitting assessment:', error);
-      toast.error('Error submitting assessment');
+      toast.error('Network error - please check your connection and try again');
     } finally {
       setLoading(false);
     }
@@ -136,21 +191,58 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
           </div>
         </div>
 
+        {/* Locked State Banner */}
+        {isLocked && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 px-6 py-4">
+            <div className="flex items-center">
+              <AlertCircle className="w-5 h-5 text-yellow-600 mr-3" />
+              <div>
+                <p className="text-sm font-medium text-yellow-800">
+                  Assessment Locked
+                </p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  This assessment has been submitted and locked. It cannot be edited.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {checkingLock && (
+          <div className="px-6 py-4 text-center text-gray-600">
+            <p>Checking assessment status...</p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-          {/* Clinical Assessment */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Clinical Assessment <span className="text-red-600">*</span>
+          {/* Required Fields Notice */}
+          <div className="bg-amber-50 border-l-4 border-amber-400 px-4 py-3">
+            <p className="text-sm text-amber-800">
+              <span className="font-semibold">Required fields:</span> Clinical Notes, Admission Decision, and Therapy (if no admission) or Diagnosis (if admission required)
+            </p>
+          </div>
+
+          {/* Clinical Notes */}
+          <div className="bg-white border-2 border-blue-200 rounded-lg p-4">
+            <label className="block text-base font-semibold text-gray-900 mb-2">
+              📝 Clinical Notes <span className="text-red-600">* REQUIRED</span>
             </label>
+            <p className="text-xs text-gray-600 mb-3">
+              Document your clinical findings, observations, and assessment
+            </p>
             <textarea
-              value={formData.clinical_assessment}
-              onChange={(e) => setFormData({ ...formData, clinical_assessment: e.target.value })}
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your clinical assessment, observations, and diagnosis..."
+              value={formData.clinical_notes}
+              onChange={(e) => setFormData({ ...formData, clinical_notes: e.target.value })}
+              rows={5}
+              disabled={isLocked || checkingLock || loading}
+              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
+              placeholder="Example: Patient presents with chief complaint of... Physical examination reveals... Assessment shows..."
               required
-              disabled={loading}
             />
+            {!formData.clinical_notes && (
+              <p className="text-xs text-red-600 mt-2 font-medium">⚠️ This field is required before submission</p>
+            )}
           </div>
 
           {/* Admission Decision */}
@@ -277,11 +369,15 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
                       disabled={loading}
                     >
                       <option value="">Select Ward (Optional)</option>
-                      {wards.map((ward) => (
-                        <option key={ward.id} value={ward.id}>
-                          {ward.name}
-                        </option>
-                      ))}
+                      {Array.isArray(wards) && wards.length > 0 ? (
+                        wards.map((ward) => (
+                          <option key={ward.id} value={ward.id}>
+                            {ward.name || `Ward ${ward.id}`}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No wards available</option>
+                      )}
                     </select>
                   )}
                 </div>
@@ -362,9 +458,9 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading || formData.requires_admission === null}
+              disabled={loading || formData.requires_admission === null || isLocked || checkingLock}
             >
-              {loading ? 'Submitting...' : 'Submit Assessment'}
+              {loading ? 'Submitting...' : isLocked ? 'Assessment Locked' : 'Submit Assessment'}
             </button>
           </div>
         </form>

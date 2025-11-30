@@ -1,20 +1,9 @@
 const { Appointment, Doctor, User, Notification } = require("../models");
 const { Op } = require("sequelize");
-const Stripe = require("stripe");
+const paymentService = require("../services/PaymentService");
 
-// Initialize Stripe
-let stripe = null;
-try {
-  if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith("sk_")) {
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    console.log("✅ Stripe initialized successfully in doctor dashboard controller");
-  } else {
-    console.log("⚠️  Stripe not configured - payment links will not work");
-  }
-} catch (error) {
-  console.error("❌ Stripe initialization failed:", error.message);
-  stripe = null;
-}
+// Stripe is now handled by PaymentService
+// This keeps the controller thin and maintains clean MVC architecture
 
 // Helper function to get doctor ID from user
 const getDoctorId = async (userId) => {
@@ -480,7 +469,7 @@ exports.approveAppointment = async (req, res) => {
     }
 
     // Check if Stripe is configured
-    if (!stripe) {
+    if (!paymentService.isConfigured()) {
       // If no Stripe, just mark as confirmed and paid
       await appointment.update({
         status: 'CONFIRMED',
@@ -499,65 +488,46 @@ exports.approveAppointment = async (req, res) => {
       });
     }
 
-    // Create FRESH Stripe payment link
-    const amountInCents = Math.round(appointment.amount * 100);
-    const currency = "eur";
-
+    // Create FRESH Stripe payment link using PaymentService
     console.log(`🔧 Creating NEW payment link for appointment ${id}`);
-    console.log(`   Amount: €${appointment.amount} (${amountInCents} cents)`);
+    console.log(`   Amount: €${appointment.amount}`);
     console.log(`   Patient: ${appointment.User?.email}`);
     
-    // If there's an existing session, we'll create a new one
-    // Stripe sessions expire after 24 hours or after completion
     if (appointment.stripe_session_id) {
       console.log(`   ⚠️  Existing session found: ${appointment.stripe_session_id}, creating new one...`);
     }
 
     try {
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency,
-              unit_amount: amountInCents,
-              product_data: {
-                name: "Doctor Appointment - Approved",
-                description: `Consultation on ${new Date(appointment.scheduled_for).toLocaleString()} - €${appointment.amount}`,
-              },
-            },
-            quantity: 1,
-          },
-        ],
-        metadata: {
-          appointment_id: String(appointment.id),
-          user_id: String(appointment.user_id),
-          doctor_id: String(appointment.doctor_id),
-          scheduled_for: appointment.scheduled_for,
-          amount: String(appointment.amount),
-        },
-        customer_email: appointment.User?.email,
-        success_url: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-cancelled?appointment_id=${appointment.id}`,
-        expires_at: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours from now
+      const scheduledDisplay = new Date(appointment.scheduled_for).toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+      
+      const session = await paymentService.createCheckoutSession({
+        appointmentId: appointment.id,
+        userId: appointment.user_id,
+        doctorId: appointment.doctor_id,
+        amount: appointment.amount,
+        scheduledFor: appointment.scheduled_for,
+        customerEmail: appointment.User?.email,
+        description: `Doctor Appointment - Approved for ${scheduledDisplay}`,
+        successUrl: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/payment-cancelled?appointment_id=${appointment.id}`,
+        expiresInHours: 24
       });
 
       // Update appointment: approved, payment pending, save payment link and deadline
-      const paymentDeadline = new Date();
-      paymentDeadline.setHours(paymentDeadline.getHours() + 24);
-
       await appointment.update({
         status: 'APPROVED',
-        stripe_session_id: session.id,
+        stripe_session_id: session.sessionId,
         payment_link: session.url,
-        payment_deadline: paymentDeadline,
+        payment_deadline: session.expiresAtDate,
         approved_at: new Date()
       });
 
       console.log(`✅ Appointment ${id} approved by doctor ${doctorId}`);
       console.log(`   Payment link: ${session.url}`);
-      console.log(`   Session ID: ${session.id}`);
+      console.log(`   Session ID: ${session.sessionId}`);
 
       // Send notification to patient
       try {

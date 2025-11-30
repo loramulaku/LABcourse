@@ -1,4 +1,5 @@
 const { Notification, User, Message, UserProfile } = require('../models');
+const notificationService = require('../services/NotificationService');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -37,36 +38,13 @@ const notificationController = {
       const userId = req.user.id;
       const { limit = 50, offset = 0, unreadOnly = false } = req.query;
 
-      const whereClause = { user_id: userId };
-      if (unreadOnly === 'true') {
-        whereClause.is_read = false;
-      }
-
-      const notifications = await Notification.findAll({
-        where: whereClause,
-        include: [
-          {
-            model: User,
-            as: 'Sender',
-            attributes: ['id', 'name', 'email'],
-          },
-        ],
-        order: [['created_at', 'DESC']],
-        limit: parseInt(limit),
-        offset: parseInt(offset),
+      const result = await notificationService.getUserNotifications(userId, {
+        limit,
+        offset,
+        unreadOnly: unreadOnly === 'true',
       });
 
-      const unreadCount = await Notification.count({
-        where: {
-          user_id: userId,
-          is_read: false,
-        },
-      });
-
-      res.json({
-        notifications,
-        unreadCount,
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       res.status(500).json({ error: 'Failed to fetch notifications' });
@@ -77,34 +55,21 @@ const notificationController = {
   async getNotificationById(req, res) {
     try {
       const notificationId = req.params.id;
-
-      const notification = await Notification.findByPk(notificationId, {
-        include: [
-          {
-            model: User,
-            as: 'Sender',
-            attributes: ['id', 'name', 'email'],
-          },
-          {
-            model: User,
-            as: 'Recipient',
-            attributes: ['id', 'name', 'email'],
-          },
-        ],
-      });
-
-      if (!notification) {
-        return res.status(404).json({ error: 'Notification not found' });
-      }
-
-      // Check if user is authorized to view this notification
-      if (notification.user_id !== req.user.id && req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-      }
+      const notification = await notificationService.getNotificationById(
+        notificationId,
+        req.user.id,
+        req.user.role
+      );
 
       res.json(notification);
     } catch (error) {
       console.error('Error fetching notification:', error);
+      if (error.message === 'Notification not found') {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message === 'Unauthorized') {
+        return res.status(403).json({ error: error.message });
+      }
       res.status(500).json({ error: 'Failed to fetch notification' });
     }
   },
@@ -117,7 +82,7 @@ const notificationController = {
         sent_by_user_id: req.user.id,
       };
 
-      const notification = await Notification.create(notificationData);
+      const notification = await notificationService.createNotification(notificationData);
 
       res.status(201).json(notification);
     } catch (error) {
@@ -130,23 +95,21 @@ const notificationController = {
   async markAsRead(req, res) {
     try {
       const notificationId = req.params.id;
-
-      const notification = await Notification.findByPk(notificationId);
-
-      if (!notification) {
-        return res.status(404).json({ error: 'Notification not found' });
-      }
-
-      // Check if user is authorized
-      if (notification.user_id !== req.user.id && req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-      }
-
-      await notification.update({ is_read: true });
+      const notification = await notificationService.markAsRead(
+        notificationId,
+        req.user.id,
+        req.user.role
+      );
 
       res.json(notification);
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      if (error.message === 'Notification not found') {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message === 'Unauthorized') {
+        return res.status(403).json({ error: error.message });
+      }
       res.status(500).json({ error: 'Failed to update notification' });
     }
   },
@@ -155,18 +118,12 @@ const notificationController = {
   async markAllAsRead(req, res) {
     try {
       const userId = req.user.id;
+      const updateCount = await notificationService.markAllAsRead(userId);
 
-      await Notification.update(
-        { is_read: true },
-        {
-          where: {
-            user_id: userId,
-            is_read: false,
-          },
-        }
-      );
-
-      res.json({ message: 'All notifications marked as read' });
+      res.json({ 
+        message: 'All notifications marked as read',
+        count: updateCount 
+      });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       res.status(500).json({ error: 'Failed to update notifications' });
@@ -177,23 +134,21 @@ const notificationController = {
   async deleteNotification(req, res) {
     try {
       const notificationId = req.params.id;
-
-      const notification = await Notification.findByPk(notificationId);
-
-      if (!notification) {
-        return res.status(404).json({ error: 'Notification not found' });
-      }
-
-      // Check if user is authorized
-      if (notification.user_id !== req.user.id && req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-      }
-
-      await notification.destroy();
+      await notificationService.deleteNotification(
+        notificationId,
+        req.user.id,
+        req.user.role
+      );
 
       res.json({ message: 'Notification deleted successfully' });
     } catch (error) {
       console.error('Error deleting notification:', error);
+      if (error.message === 'Notification not found') {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message === 'Unauthorized') {
+        return res.status(403).json({ error: error.message });
+      }
       res.status(500).json({ error: 'Failed to delete notification' });
     }
   },
@@ -202,13 +157,7 @@ const notificationController = {
   async getUnreadCount(req, res) {
     try {
       const userId = req.user.id;
-
-      const unreadCount = await Notification.count({
-        where: {
-          user_id: userId,
-          is_read: false,
-        },
-      });
+      const unreadCount = await notificationService.getUnreadCount(userId);
 
       res.json({ unreadCount });
     } catch (error) {
@@ -221,39 +170,20 @@ const notificationController = {
   async sendBroadcast(req, res) {
     try {
       const { title, message, notification_type, role } = req.body;
-
-      if (!title || !message) {
-        return res.status(400).json({ error: 'Title and message are required' });
-      }
-
-      // Get all users or users by role
-      const whereClause = {};
-      if (role) {
-        whereClause.role = role;
-      }
-
-      const users = await User.findAll({
-        where: whereClause,
-        attributes: ['id'],
-      });
-
-      // Create notifications for all users
-      const notifications = users.map(user => ({
-        user_id: user.id,
-        sent_by_user_id: req.user.id,
-        title,
-        message,
-        notification_type: notification_type || 'system_alert',
-      }));
-
-      await Notification.bulkCreate(notifications);
+      const result = await notificationService.sendBroadcast(
+        { title, message, notification_type, role },
+        req.user.id
+      );
 
       res.json({
         message: 'Broadcast sent successfully',
-        recipientCount: users.length,
+        recipientCount: result.count,
       });
     } catch (error) {
       console.error('Error sending broadcast:', error);
+      if (error.message === 'Title and message are required') {
+        return res.status(400).json({ error: error.message });
+      }
       res.status(500).json({ error: 'Failed to send broadcast' });
     }
   },

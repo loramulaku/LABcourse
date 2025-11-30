@@ -160,6 +160,46 @@ class IPDDoctorController extends BaseController {
   }
 
   /**
+   * GET /api/ipd/doctor/assessment/:appointmentId
+   * Get clinical assessment for viewing (read-only)
+   */
+  async getClinicalAssessment(req, res) {
+    try {
+      const assessment = await this.ipdDoctorService.getClinicalAssessment(
+        req.params.appointmentId,
+        req.user.id,
+        req.user.role
+      );
+      
+      return this.success(res, { data: assessment });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return this.error(res, error, error.statusCode);
+      }
+      return this.error(res, error);
+    }
+  }
+
+  /**
+   * GET /api/ipd/doctor/assessment/:appointmentId/status
+   * Check assessment lock status
+   */
+  async checkAssessmentStatus(req, res) {
+    try {
+      const status = await this.ipdDoctorService.checkAssessmentStatus(
+        req.params.appointmentId
+      );
+      
+      return this.success(res, status);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return this.error(res, error, error.statusCode);
+      }
+      return this.error(res, error);
+    }
+  }
+
+  /**
    * =================================
    * DAILY NOTES
    * =================================

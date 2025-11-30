@@ -22,6 +22,12 @@ router.get('/wards', ipdDoctorController.getAvailableWards);
 router.post('/admission-request', ipdDoctorController.createAdmissionRequest);
 
 /**
+ * CLINICAL ASSESSMENT
+ */
+router.get('/assessment/:appointmentId', ipdDoctorController.getClinicalAssessment);
+router.get('/assessment/:appointmentId/status', ipdDoctorController.checkAssessmentStatus);
+
+/**
  * DAILY NOTES
  */
 router.post('/notes/:ipdId', ipdDoctorController.addDailyNote);
