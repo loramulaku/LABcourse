@@ -156,18 +156,16 @@ const DoctorSidebar = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group cursor-pointer ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
+              className={`menu-item group cursor-pointer ${openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
-              } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+                } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
             >
               <span
-                className={`menu-item-icon-size ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                className={`menu-item-icon-size ${openSubmenu?.type === menuType && openSubmenu?.index === index
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
-                }`}
+                  }`}
               >
                 {nav.icon}
               </span>
@@ -176,12 +174,11 @@ const DoctorSidebar = () => {
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
+                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType &&
+                      openSubmenu?.index === index
                       ? "rotate-180 text-brand-500"
                       : ""
-                  }`}
+                    }`}
                 />
               )}
             </button>
@@ -189,16 +186,14 @@ const DoctorSidebar = () => {
             nav.path && (
               <Link
                 to={nav.path}
-                className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
+                className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                  }`}
               >
                 <span
-                  className={`menu-item-icon-size ${
-                    isActive(nav.path)
+                  className={`menu-item-icon-size ${isActive(nav.path)
                       ? "menu-item-icon-active"
                       : "menu-item-icon-inactive"
-                  }`}
+                    }`}
                 >
                   {nav.icon}
                 </span>
@@ -227,11 +222,10 @@ const DoctorSidebar = () => {
                   <li key={subItem.name}>
                     <Link
                       to={subItem.path}
-                      className={`menu-dropdown-item ${
-                        isActive(subItem.path)
+                      className={`menu-dropdown-item ${isActive(subItem.path)
                           ? "menu-dropdown-item-active"
                           : "menu-dropdown-item-inactive"
-                      }`}
+                        }`}
                     >
                       {subItem.name}
                     </Link>
@@ -247,7 +241,7 @@ const DoctorSidebar = () => {
 
   return (
     <aside
-      className={`doctor-sidebar flex flex-col px-5 bg-sidebar text-sidebar-foreground h-screen transition-all duration-300 ease-in-out border-r border-sidebar-border
+      className={`doctor-sidebar flex flex-col px-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-800 dark:text-white h-screen transition-all duration-300 ease-in-out border-r border-white/20 dark:border-gray-700/50 fixed lg:relative z-50 shadow-xl
     ${isExpanded || isMobileOpen ? "w-[280px]" : isHovered ? "w-[280px]" : "w-[100px]"}
 
       ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
@@ -260,16 +254,14 @@ const DoctorSidebar = () => {
       >
         <Link
           to="/doctor/dashboard"
-          className={`menu-item group transition-all duration-200 hover:scale-105 ${
-            location.pathname === "/doctor/dashboard" ? "menu-item-active" : "menu-item-inactive"
-          } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+          className={`menu-item group transition-all duration-200 hover:scale-105 ${location.pathname === "/doctor/dashboard" ? "menu-item-active" : "menu-item-inactive"
+            } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
         >
           <span
-            className={`menu-item-icon-size ${
-              location.pathname === "/doctor/dashboard"
+            className={`menu-item-icon-size ${location.pathname === "/doctor/dashboard"
                 ? "menu-item-icon-active"
                 : "menu-item-icon-inactive"
-            }`}
+              }`}
           >
             <GridIcon />
           </span>
@@ -284,11 +276,10 @@ const DoctorSidebar = () => {
         <nav className="mb-6 flex flex-col gap-4">
           <div>
             <h2
-              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                !isExpanded && !isHovered
+              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "justify-start"
-              }`}
+                }`}
             >
               {isExpanded || isHovered || isMobileOpen ? (
                 "Doctor Menu"
@@ -301,11 +292,10 @@ const DoctorSidebar = () => {
 
           <div>
             <h2
-              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                !isExpanded && !isHovered
+              className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "justify-start"
-              }`}
+                }`}
             >
               {isExpanded || isHovered || isMobileOpen ? (
                 "Others"
