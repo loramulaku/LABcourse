@@ -92,7 +92,7 @@ const DoctorDashboard = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                 Welcome back, Doctor
               </h1>
               <p className="text-gray-600">
@@ -284,13 +284,12 @@ const DoctorDashboard = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(appointment.scheduled_for)}</p>
                       </div>
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          appointment.status === "confirmed"
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${appointment.status === "confirmed"
                             ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
                             : appointment.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                        }`}
+                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                              : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+                          }`}
                       >
                         {appointment.status}
                       </span>

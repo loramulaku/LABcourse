@@ -157,14 +157,14 @@ const DoctorSidebar = () => {
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
               className={`menu-item group cursor-pointer ${openSubmenu?.type === menuType && openSubmenu?.index === index
-                  ? "menu-item-active"
-                  : "menu-item-inactive"
+                ? "menu-item-active"
+                : "menu-item-inactive"
                 } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
             >
               <span
                 className={`menu-item-icon-size ${openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? "menu-item-icon-active"
-                    : "menu-item-icon-inactive"
+                  ? "menu-item-icon-active"
+                  : "menu-item-icon-inactive"
                   }`}
               >
                 {nav.icon}
@@ -175,9 +175,9 @@ const DoctorSidebar = () => {
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType &&
-                      openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
-                      : ""
+                    openSubmenu?.index === index
+                    ? "rotate-180 text-brand-500"
+                    : ""
                     }`}
                 />
               )}
@@ -191,8 +191,8 @@ const DoctorSidebar = () => {
               >
                 <span
                   className={`menu-item-icon-size ${isActive(nav.path)
-                      ? "menu-item-icon-active"
-                      : "menu-item-icon-inactive"
+                    ? "menu-item-icon-active"
+                    : "menu-item-icon-inactive"
                     }`}
                 >
                   {nav.icon}
@@ -223,8 +223,8 @@ const DoctorSidebar = () => {
                     <Link
                       to={subItem.path}
                       className={`menu-dropdown-item ${isActive(subItem.path)
-                          ? "menu-dropdown-item-active"
-                          : "menu-dropdown-item-inactive"
+                        ? "menu-dropdown-item-active"
+                        : "menu-dropdown-item-inactive"
                         }`}
                     >
                       {subItem.name}
@@ -259,8 +259,8 @@ const DoctorSidebar = () => {
         >
           <span
             className={`menu-item-icon-size ${location.pathname === "/doctor/dashboard"
-                ? "menu-item-icon-active"
-                : "menu-item-icon-inactive"
+              ? "menu-item-icon-active"
+              : "menu-item-icon-inactive"
               }`}
           >
             <GridIcon />
@@ -277,8 +277,8 @@ const DoctorSidebar = () => {
           <div>
             <h2
               className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "justify-start"
+                ? "lg:justify-center"
+                : "justify-start"
                 }`}
             >
               {isExpanded || isHovered || isMobileOpen ? (
@@ -293,8 +293,8 @@ const DoctorSidebar = () => {
           <div>
             <h2
               className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "justify-start"
+                ? "lg:justify-center"
+                : "justify-start"
                 }`}
             >
               {isExpanded || isHovered || isMobileOpen ? (
@@ -307,15 +307,19 @@ const DoctorSidebar = () => {
           </div>
         </nav>
 
-        {(isExpanded || isHovered || isMobileOpen) && (
-          <div className="mt-auto mb-4">
-            <SidebarWidget
-              to="/logout"
-              icon={<CloseIcon className="w-5 h-5" />}
-              label="Logout"
-            />
-          </div>
-        )}
+        <div className={`mt-auto mb-4 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
+          <Link
+            to="/logout"
+            className={`menu-item group menu-item-inactive ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+          >
+            <span className="menu-item-icon-size menu-item-icon-inactive">
+              <CloseIcon className="w-5 h-5" />
+            </span>
+            {(isExpanded || isHovered || isMobileOpen) && (
+              <span className="menu-item-text">Logout</span>
+            )}
+          </Link>
+        </div>
       </div>
     </aside>
   );
