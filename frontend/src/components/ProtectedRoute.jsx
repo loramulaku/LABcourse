@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { getAccessToken, setAccessToken, setRole, getRole, clearAuth, validateUserRole } from "../api";
+import { getAccessToken, setAccessToken, setRole, getRole, clearAuth, validateUserRole, API_URL } from "../api";
 
 const ProtectedRoute = ({ children, requireRole }) => {
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children, requireRole }) => {
       // If we have a valid access token, validate role with server
       if (token) {
         console.log('[ProtectedRoute] ✅ Access token present, validating role with server...');
-        
+
         try {
           const serverRole = await validateUserRole();
           if (serverRole) {
@@ -69,10 +69,10 @@ const ProtectedRoute = ({ children, requireRole }) => {
       // No access token - try to refresh
       console.log('[ProtectedRoute] ❌ No access token, attempting refresh...');
       console.log('[ProtectedRoute] Using full URL for refresh request');
-      
+
       try {
         console.log('[ProtectedRoute] Making refresh request...');
-        const res = await fetch(`http://localhost:5000/api/auth/refresh`, {
+        const res = await fetch(`${API_URL}/api/auth/refresh`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -85,8 +85,8 @@ const ProtectedRoute = ({ children, requireRole }) => {
 
         if (res.ok) {
           const data = await res.json();
-          console.log('[ProtectedRoute] ✅ Refresh successful, data:', { 
-            hasAccessToken: !!data.accessToken, 
+          console.log('[ProtectedRoute] ✅ Refresh successful, data:', {
+            hasAccessToken: !!data.accessToken,
             role: data.role,
             accessTokenPreview: data.accessToken ? data.accessToken.substring(0, 30) + '...' : 'NONE'
           });
@@ -100,6 +100,7 @@ const ProtectedRoute = ({ children, requireRole }) => {
               setRole(data.role);
               setRoleState(data.role);
             } else {
+              const localRole = getRole();
               console.log('[ProtectedRoute] No role in response, keeping existing:', localRole);
               setRoleState(localRole);
             }

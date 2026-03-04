@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAccessToken, setAccessToken } from '../api';
+import { getAccessToken, setAccessToken, API_URL } from '../api';
 
 /**
  * Hook to initialize authentication on app mount
@@ -11,7 +11,7 @@ export function useAuthInit() {
   useEffect(() => {
     const initAuth = async () => {
       const token = getAccessToken();
-      
+
       // If we already have an access token, no need to refresh
       if (token) {
         console.log('✅ Access token found in localStorage');
@@ -22,10 +22,10 @@ export function useAuthInit() {
       // No access token, try to refresh if we have a refresh token cookie
       console.log('🔄 No access token found, checking for refresh token...');
       console.log('🍪 Current cookies:', document.cookie);
-      console.log('📍 Calling refresh endpoint: http://localhost:5000/api/auth/refresh');
-      
+      console.log(`📍 Calling refresh endpoint: ${API_URL}/api/auth/refresh`);
+
       try {
-        const res = await fetch(`http://localhost:5000/api/auth/refresh`, {
+        const res = await fetch(`${API_URL}/api/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -34,15 +34,15 @@ export function useAuthInit() {
         });
 
         console.log('📥 Refresh response status:', res.status, res.statusText);
-        
+
         if (res.ok) {
           const data = await res.json();
           console.log('📥 Refresh response data:', data);
-          
+
           if (data.accessToken) {
             console.log('✅ New access token obtained from refresh token');
             setAccessToken(data.accessToken);
-            
+
             if (data.role) {
               localStorage.setItem('role', data.role);
               console.log('✅ Role restored:', data.role);

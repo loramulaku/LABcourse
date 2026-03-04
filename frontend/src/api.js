@@ -34,7 +34,7 @@ export function getRole() {
 // SECURITY: Always validate role with server
 export async function validateUserRole() {
   try {
-    const response = await fetch('http://localhost:5000/api/auth/validate-role', {
+    const response = await fetch(`${API_URL}/api/auth/validate-role`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -42,18 +42,18 @@ export async function validateUserRole() {
         'Content-Type': 'application/json'
       }
     });
-    
+
     if (response.ok) {
       const data = await response.json();
-      
+
       // SECURITY CHECK: Compare server role with localStorage role
       const localRole = localStorage.getItem('role');
       if (localRole && localRole !== data.role) {
         console.log('[SECURITY] ⚠️ Role mismatch detected! Local:', localRole, 'Server:', data.role);
         console.log('[SECURITY] Possible tampering attempt - logging out user');
-        
+
         // Call logout to clear refresh token from server
-        await fetch('http://localhost:5000/api/auth/logout', {
+        await fetch(`${API_URL}/api/auth/logout`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -61,21 +61,21 @@ export async function validateUserRole() {
             'Content-Type': 'application/json'
           }
         });
-        
+
         // Clear local auth data
         clearAuth();
         return null;
       }
-      
+
       // Update local storage with server-validated role
       setRole(data.role);
       return data.role;
     } else {
       // Server says role is invalid, logout completely
       console.log('[SECURITY] Role validation failed - logging out');
-      
+
       // Call logout to clear refresh token from server
-      await fetch('http://localhost:5000/api/auth/logout', {
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -83,16 +83,16 @@ export async function validateUserRole() {
           'Content-Type': 'application/json'
         }
       });
-      
+
       clearAuth();
       return null;
     }
   } catch (error) {
     console.error('[TOKEN] Role validation error:', error);
-    
+
     // Call logout to clear refresh token from server
     try {
-      await fetch('http://localhost:5000/api/auth/logout', {
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -103,7 +103,7 @@ export async function validateUserRole() {
     } catch (logoutError) {
       console.error('[TOKEN] Logout error:', logoutError);
     }
-    
+
     clearAuth();
     return null;
   }
@@ -119,10 +119,10 @@ export function clearAuth() {
 // SECURITY: Complete logout - clears both frontend and backend tokens
 export async function secureLogout() {
   console.log('[SECURITY] Performing secure logout...');
-  
+
   try {
     // Call backend logout to clear refresh token
-    await fetch('http://localhost:5000/api/auth/logout', {
+    await fetch(`${API_URL}/api/auth/logout`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -155,14 +155,14 @@ export default async function apiFetch(url, options = {}) {
   if (response.status === 401 || response.status === 403) {
     console.log('[TOKEN] Access token invalid, attempting refresh...');
     try {
-      const refreshRes = await fetch(`http://localhost:5000/api/auth/refresh`, {
+      const refreshRes = await fetch(`${API_URL}/api/auth/refresh`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         }
       });
-      
+
       if (!refreshRes.ok) {
         console.log('[TOKEN] Refresh failed, clearing auth data');
         clearAuth();
@@ -172,19 +172,19 @@ export default async function apiFetch(url, options = {}) {
         }
         throw new Error("Session expired");
       }
-      
+
       const data = await refreshRes.json();
       if (!data.accessToken) {
         console.log('[TOKEN] No access token in refresh response');
         throw new Error("No access token from refresh");
       }
-      
+
       console.log('[TOKEN] Refresh successful, updating tokens');
       setAccessToken(data.accessToken);
       if (data.role) {
         setRole(data.role);
       }
-      
+
       token = data.accessToken;
       fetchOptions.headers["Authorization"] = `Bearer ${token}`;
       response = await fetch(url, fetchOptions);
@@ -211,13 +211,13 @@ let isRefreshing = false;
 // Start monitoring for token changes
 export function startTokenMonitoring() {
   if (tokenMonitorInterval) return; // Already monitoring
-  
+
   console.log('[TOKEN] Starting token monitoring...');
-  
+
   tokenMonitorInterval = setInterval(() => {
     const currentToken = getAccessToken();
     const currentRole = getRole();
-    
+
     // If we have a role but no token, try to refresh
     if (currentRole && !currentToken && !isRefreshing) {
       console.log('[TOKEN] Detected missing access token, attempting refresh...');
@@ -238,12 +238,12 @@ export function stopTokenMonitoring() {
 // Attempt to refresh the token
 async function attemptTokenRefresh() {
   if (isRefreshing) return; // Prevent multiple simultaneous refreshes
-  
+
   isRefreshing = true;
   console.log('[TOKEN] Starting automatic token refresh...');
-  
+
   try {
-    const res = await fetch('http://localhost:5000/api/auth/refresh', {
+    const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -256,26 +256,26 @@ async function attemptTokenRefresh() {
     if (res.ok) {
       const data = await res.json();
       console.log('[TOKEN] ✅ Automatic refresh successful!');
-      
+
       if (data.accessToken) {
         setAccessToken(data.accessToken);
-        
+
         if (data.role) {
           setRole(data.role);
         }
-        
+
         console.log('[TOKEN] ✅ Authentication restored automatically');
-        
+
         // Dispatch a custom event to notify components
-        window.dispatchEvent(new CustomEvent('tokenRefreshed', { 
-          detail: { accessToken: data.accessToken, role: data.role } 
+        window.dispatchEvent(new CustomEvent('tokenRefreshed', {
+          detail: { accessToken: data.accessToken, role: data.role }
         }));
       }
     } else {
       console.log('[TOKEN] ❌ Automatic refresh failed, status:', res.status);
       // If refresh fails, clear auth data
       clearAuth();
-      
+
       // Dispatch logout event
       window.dispatchEvent(new CustomEvent('tokenRefreshFailed'));
     }
