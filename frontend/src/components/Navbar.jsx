@@ -236,6 +236,12 @@ const Navbar = () => {
                     >
                       My Analyses
                     </p>
+                    <p
+                      onClick={() => navigate("/my-accommodations")}
+                      className="hover:text-black cursor-pointer"
+                    >
+                      My Accommodations
+                    </p>
                     {role === "admin" && (
                       <p
                         onClick={() => navigate("/dashboard")}

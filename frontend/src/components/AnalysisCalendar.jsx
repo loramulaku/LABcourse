@@ -41,50 +41,40 @@ const AnalysisCalendar = ({
     calendarDays.push(day);
   }
 
-  // Check if a date is fully booked
-  const checkDateStatus = useCallback(
-    async (date) => {
-      try {
-        const response = await fetch(
-          `${API_URL}/api/laboratories/${labId}/date-status/${date}`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          return data.isFullyBooked;
-        }
-      } catch (error) {
-        console.error("Error checking date status:", error);
-      }
-      return false;
-    },
-    [labId],
-  );
-
   // Load fully booked dates for the current month
   const loadFullyBookedDates = useCallback(async () => {
     setLoading(true);
-    const bookedDates = new Set();
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        day,
+    try {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth() + 1;
+      
+      const response = await fetch(
+        `${API_URL}/api/laboratories/${labId}/monthly-status/${year}/${month}`,
       );
-      const dateString = date.toISOString().split("T")[0];
-
-      // Skip past dates
-      if (date < new Date().setHours(0, 0, 0, 0)) continue;
-
-      const isFullyBooked = await checkDateStatus(dateString);
-      if (isFullyBooked) {
-        bookedDates.add(dateString);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const bookedDates = new Set();
+        
+        // Data format: { "2026-03-25": { isFullyBooked: true }, ... }
+        Object.keys(data).forEach(dateStr => {
+          if (data[dateStr].isFullyBooked) {
+            bookedDates.add(dateStr);
+          }
+        });
+        
+        setFullyBookedDates(bookedDates);
+      } else {
+        console.warn(`Monthly status API returned ${response.status}. Defaulting to no booked dates.`);
+        setFullyBookedDates(new Set());
       }
+    } catch (error) {
+      console.error("Error loading monthly status:", error);
+      setFullyBookedDates(new Set());
+    } finally {
+      setLoading(false);
     }
-
-    setFullyBookedDates(bookedDates);
-    setLoading(false);
-  }, [currentMonth, daysInMonth, checkDateStatus]);
+  }, [currentMonth, labId]);
 
   // Load available time slots for selected date
   const loadAvailableSlots = useCallback(

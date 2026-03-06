@@ -1,4 +1,4 @@
-const { Appointment, Doctor, User, Notification } = require("../models");
+const { Appointment, Doctor, User, Notification, ClinicalAssessment } = require("../models");
 const { Op } = require("sequelize");
 const paymentService = require("../services/PaymentService");
 
@@ -710,5 +710,182 @@ exports.getPaymentStatus = async (req, res) => {
   } catch (error) {
     console.error("Error checking payment status:", error);
     res.status(500).json({ error: "Failed to check payment status" });
+  }
+};
+
+// Get doctor's unique patients (from appointments)
+exports.getDoctorPatients = async (req, res) => {
+  try {
+    const doctorId = await getDoctorId(req.user.id);
+
+    if (!doctorId) {
+      return res.status(404).json({ error: "Doctor profile not found" });
+    }
+
+    // Get unique patients from appointments
+    const appointments = await Appointment.findAll({
+      where: {
+        doctor_id: doctorId,
+        status: {
+          [Op.ne]: 'CANCELLED'
+        }
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'email']
+        }
+      ],
+      attributes: ['user_id'],
+      group: ['user_id', 'User.id', 'User.name', 'User.email'],
+    });
+
+    // Extract unique patients
+    const patients = appointments
+      .filter(apt => apt.User)
+      .map(apt => ({
+        id: apt.User.id,
+        name: apt.User.name,
+        email: apt.User.email,
+      }))
+      .filter((patient, index, self) =>
+        index === self.findIndex(p => p.id === patient.id)
+      );
+
+    res.json(patients);
+  } catch (error) {
+    console.error("Error fetching doctor patients:", error);
+    res.status(500).json({ error: "Failed to fetch patients" });
+  }
+};
+
+// Get doctor's prescriptions (clinical assessments with therapy)
+exports.getDoctorPrescriptions = async (req, res) => {
+  try {
+    const doctorId = await getDoctorId(req.user.id);
+
+    if (!doctorId) {
+      return res.status(404).json({ error: "Doctor profile not found" });
+    }
+
+    const assessments = await ClinicalAssessment.findAll({
+      where: {
+        doctor_id: doctorId,
+      },
+      include: [
+        {
+          model: User,
+          as: 'patient',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: Appointment,
+          as: 'appointment',
+          attributes: ['id', 'scheduled_for', 'reason']
+        }
+      ],
+      order: [['created_at', 'DESC']],
+    });
+
+    const prescriptions = assessments.map(a => ({
+      id: a.id,
+      patient_name: a.patient?.name || 'Unknown',
+      patient_email: a.patient?.email || '',
+      diagnosis: a.diagnosis || a.clinical_notes || '',
+      medications: a.therapy_prescribed
+        ? [{ name: a.therapy_prescribed }]
+        : [],
+      therapy_prescribed: a.therapy_prescribed,
+      follow_up_date: a.follow_up_date,
+      created_at: a.created_at,
+      appointment_id: a.appointment_id,
+    }));
+
+    res.json(prescriptions);
+  } catch (error) {
+    console.error("Error fetching prescriptions:", error);
+    res.status(500).json({ error: "Failed to fetch prescriptions" });
+  }
+};
+
+// Create a prescription (stores as clinical assessment)
+exports.createPrescription = async (req, res) => {
+  try {
+    const doctorId = await getDoctorId(req.user.id);
+
+    if (!doctorId) {
+      return res.status(404).json({ error: "Doctor profile not found" });
+    }
+
+    const { patient_id, medications, diagnosis, notes, follow_up_date } = req.body;
+
+    if (!patient_id) {
+      return res.status(400).json({ error: "Patient is required" });
+    }
+
+    // Build therapy text from medications array
+    const therapyText = medications
+      ?.filter(m => m.name?.trim())
+      .map(m => {
+        let line = m.name;
+        if (m.dosage) line += ` - ${m.dosage}`;
+        if (m.frequency) line += ` (${m.frequency})`;
+        if (m.duration) line += ` for ${m.duration}`;
+        if (m.instructions) line += `\nInstructions: ${m.instructions}`;
+        return line;
+      })
+      .join('\n\n') || '';
+
+    // Find the most recent appointment for this patient+doctor
+    const appointment = await Appointment.findOne({
+      where: {
+        doctor_id: doctorId,
+        user_id: patient_id,
+      },
+      order: [['scheduled_for', 'DESC']],
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ error: "No appointment found for this patient" });
+    }
+
+    // Check if assessment already exists for this appointment
+    const existingAssessment = await ClinicalAssessment.findOne({
+      where: { appointment_id: appointment.id }
+    });
+
+    if (existingAssessment) {
+      // Update existing
+      await existingAssessment.update({
+        therapy_prescribed: therapyText,
+        diagnosis: diagnosis || existingAssessment.diagnosis,
+        follow_up_instructions: notes || existingAssessment.follow_up_instructions,
+        follow_up_date: follow_up_date || existingAssessment.follow_up_date,
+      });
+      return res.json({ message: 'Prescription updated successfully', id: existingAssessment.id });
+    }
+
+    // Create new assessment as prescription
+    const assessment = await ClinicalAssessment.create({
+      appointment_id: appointment.id,
+      doctor_id: doctorId,
+      patient_id: parseInt(patient_id),
+      clinical_notes: diagnosis || 'Prescription',
+      diagnosis: diagnosis || null,
+      requires_admission: false,
+      therapy_prescribed: therapyText,
+      treatment_plan: notes || null,
+      follow_up_instructions: notes || null,
+      follow_up_date: follow_up_date || null,
+      status: 'submitted',
+      is_locked: true,
+      submitted_at: new Date(),
+      submitted_by: req.user.id,
+    });
+
+    res.status(201).json({ message: 'Prescription created successfully', id: assessment.id });
+  } catch (error) {
+    console.error("Error creating prescription:", error);
+    res.status(500).json({ error: "Failed to create prescription" });
   }
 };

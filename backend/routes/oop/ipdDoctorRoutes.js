@@ -19,6 +19,8 @@ router.get('/patients/:id', ipdDoctorController.getIPDPatientDetails);
  * ADMISSION REQUESTS
  */
 router.get('/wards', ipdDoctorController.getAvailableWards);
+router.get('/rooms', ipdDoctorController.getAvailableRooms);
+router.get('/beds', ipdDoctorController.getAvailableBeds);
 router.post('/admission-request', ipdDoctorController.createAdmissionRequest);
 
 /**

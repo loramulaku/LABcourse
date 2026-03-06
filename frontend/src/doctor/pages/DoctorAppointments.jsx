@@ -286,10 +286,11 @@ const DoctorAppointments = () => {
                                   }
                                   e.target.value = '';
                                 }}
-                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white hover:border-blue-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                className="text-sm border-2 border-blue-400 rounded-lg px-3 py-1.5 bg-blue-50 text-blue-800 font-semibold hover:border-blue-600 hover:bg-blue-100 focus:border-blue-600 focus:ring-2 focus:ring-blue-300 cursor-pointer transition-all duration-200 shadow-sm appearance-none"
+                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 6px center', backgroundRepeat: 'no-repeat', backgroundSize: '20px', paddingRight: '30px' }}
                                 defaultValue=""
                               >
-                                <option value="">Change...</option>
+                                <option value="">⚡ Update Status</option>
                                 {getNextStatuses(appointment.status).map(status => (
                                   <option key={status} value={status}>
                                     → {status}

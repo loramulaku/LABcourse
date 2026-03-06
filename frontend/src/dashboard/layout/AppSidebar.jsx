@@ -235,7 +235,7 @@ const AppSidebar = () => {
         className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}
       >
         <Link
-          to="/dashboard"
+          to="#"
           className={`menu-item group transition-all duration-200 hover:scale-105 ${
             location.pathname === "/dashboard" ? "menu-item-active" : "menu-item-inactive"
           } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}

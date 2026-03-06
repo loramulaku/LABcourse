@@ -17,6 +17,8 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
     diagnosis: '',
     treatment_plan: '',
     recommended_ward_id: '',
+    recommended_room_id: '',
+    recommended_bed_id: '',
     recommended_room_type: '',
     urgency: 'Normal',
   });
@@ -25,8 +27,12 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
   const [checkingLock, setCheckingLock] = useState(true);
 
   const [wards, setWards] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [beds, setBeds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  const [loadingBeds, setLoadingBeds] = useState(false);
 
   const roomTypes = ['Single', 'Double', 'ICU', 'Maternity', 'Pediatric', 'Emergency', 'General'];
 
@@ -50,6 +56,50 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
       console.error('Error fetching wards:', error);
     } finally {
       setLoadingWards(false);
+    }
+  }, []);
+
+  const fetchRooms = useCallback(async (wardId) => {
+    if (!wardId) { setRooms([]); setBeds([]); return; }
+    try {
+      setLoadingRooms(true);
+      const response = await fetch(`${API_URL}/api/ipd/doctor/rooms?wardId=${wardId}`, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const roomsArray = data.data?.data || data.data || [];
+        setRooms(Array.isArray(roomsArray) ? roomsArray : []);
+      } else {
+        setRooms([]);
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    } finally {
+      setLoadingRooms(false);
+    }
+  }, []);
+
+  const fetchBeds = useCallback(async (roomId) => {
+    if (!roomId) { setBeds([]); return; }
+    try {
+      setLoadingBeds(true);
+      const response = await fetch(`${API_URL}/api/ipd/doctor/beds?roomId=${roomId}`, {
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const bedsArray = data.data?.data || data.data || [];
+        setBeds(Array.isArray(bedsArray) ? bedsArray : []);
+      } else {
+        setBeds([]);
+      }
+    } catch (error) {
+      console.error('Error fetching beds:', error);
+    } finally {
+      setLoadingBeds(false);
     }
   }, []);
 
@@ -104,7 +154,7 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
       return;
     }
 
-    if (formData.requires_admission === true && !formData.diagnosis) {
+    if (formData.requires_admission === true && !formData.diagnosis && !admissionDetails.diagnosis) {
       toast.error('Diagnosis is required for admission');
       return;
     }
@@ -236,7 +286,7 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
               onChange={(e) => setFormData({ ...formData, clinical_notes: e.target.value })}
               rows={5}
               disabled={isLocked || checkingLock || loading}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
+              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
               placeholder="Example: Patient presents with chief complaint of... Physical examination reveals... Assessment shows..."
               required
             />
@@ -299,7 +349,7 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
                   value={formData.therapy_prescribed}
                   onChange={(e) => setFormData({ ...formData, therapy_prescribed: e.target.value })}
                   rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter detailed therapy prescription:&#10;- Medications (name, dosage, frequency)&#10;- Treatment procedures&#10;- Follow-up instructions&#10;- Precautions and recommendations"
                   required
                   disabled={loading}
@@ -326,7 +376,7 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
                     setAdmissionDetails({ ...admissionDetails, diagnosis: e.target.value })
                   }
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter primary diagnosis for admission..."
                   required
                   disabled={loading}
@@ -343,13 +393,13 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
                     setAdmissionDetails({ ...admissionDetails, treatment_plan: e.target.value })
                   }
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter proposed treatment plan for inpatient care..."
                   disabled={loading}
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Recommended Ward
@@ -359,16 +409,22 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
                   ) : (
                     <select
                       value={admissionDetails.recommended_ward_id}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const wardId = e.target.value;
                         setAdmissionDetails({
                           ...admissionDetails,
-                          recommended_ward_id: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          recommended_ward_id: wardId,
+                          recommended_room_id: '',
+                          recommended_bed_id: '',
+                        });
+                        setRooms([]);
+                        setBeds([]);
+                        fetchRooms(wardId);
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       disabled={loading}
                     >
-                      <option value="">Select Ward (Optional)</option>
+                      <option value="">Select Ward</option>
                       {Array.isArray(wards) && wards.length > 0 ? (
                         wards.map((ward) => (
                           <option key={ward.id} value={ward.id}>
@@ -384,26 +440,70 @@ const ClinicalAssessmentForm = ({ appointment, onClose, onSuccess }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Recommended Room Type
+                    Room
                   </label>
-                  <select
-                    value={admissionDetails.recommended_room_type}
-                    onChange={(e) =>
-                      setAdmissionDetails({
-                        ...admissionDetails,
-                        recommended_room_type: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    disabled={loading}
-                  >
-                    <option value="">Select Room Type (Optional)</option>
-                    {roomTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                  {loadingRooms ? (
+                    <div className="text-sm text-gray-500">Loading rooms...</div>
+                  ) : (
+                    <select
+                      value={admissionDetails.recommended_room_id}
+                      onChange={(e) => {
+                        const roomId = e.target.value;
+                        setAdmissionDetails({
+                          ...admissionDetails,
+                          recommended_room_id: roomId,
+                          recommended_bed_id: '',
+                        });
+                        setBeds([]);
+                        fetchBeds(roomId);
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      disabled={loading || !admissionDetails.recommended_ward_id}
+                    >
+                      <option value="">Select Room</option>
+                      {Array.isArray(rooms) && rooms.length > 0 ? (
+                        rooms.map((room) => (
+                          <option key={room.id} value={room.id}>
+                            {room.room_number || `Room ${room.id}`} ({room.room_type || 'General'})
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>{admissionDetails.recommended_ward_id ? 'No rooms in this ward' : 'Select a ward first'}</option>
+                      )}
+                    </select>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bed
+                  </label>
+                  {loadingBeds ? (
+                    <div className="text-sm text-gray-500">Loading beds...</div>
+                  ) : (
+                    <select
+                      value={admissionDetails.recommended_bed_id}
+                      onChange={(e) =>
+                        setAdmissionDetails({
+                          ...admissionDetails,
+                          recommended_bed_id: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      disabled={loading || !admissionDetails.recommended_room_id}
+                    >
+                      <option value="">Select Bed</option>
+                      {Array.isArray(beds) && beds.length > 0 ? (
+                        beds.map((bed) => (
+                          <option key={bed.id} value={bed.id}>
+                            Bed {bed.bed_number || bed.id} ({bed.bed_type || 'Standard'})
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>{admissionDetails.recommended_room_id ? 'No available beds' : 'Select a room first'}</option>
+                      )}
+                    </select>
+                  )}
                 </div>
               </div>
 

@@ -104,6 +104,50 @@ class IPDDoctorController extends BaseController {
   }
 
   /**
+   * GET /api/ipd/doctor/rooms?wardId=X
+   */
+  async getAvailableRooms(req, res) {
+    try {
+      const wardId = req.query.wardId ? parseInt(req.query.wardId) : null;
+      if (!wardId) {
+        return this.error(res, new Error('wardId is required'), 400);
+      }
+      const rooms = await this.ipdDoctorService.getAvailableRooms(wardId);
+      return this.success(res, {
+        data: rooms,
+        count: rooms.length,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return this.error(res, error, error.statusCode);
+      }
+      return this.error(res, error);
+    }
+  }
+
+  /**
+   * GET /api/ipd/doctor/beds?roomId=X
+   */
+  async getAvailableBeds(req, res) {
+    try {
+      const roomId = req.query.roomId ? parseInt(req.query.roomId) : null;
+      if (!roomId) {
+        return this.error(res, new Error('roomId is required'), 400);
+      }
+      const beds = await this.ipdDoctorService.getAvailableBeds(roomId);
+      return this.success(res, {
+        data: beds,
+        count: beds.length,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return this.error(res, error, error.statusCode);
+      }
+      return this.error(res, error);
+    }
+  }
+
+  /**
    * POST /api/ipd/doctor/admission-request
    */
   async createAdmissionRequest(req, res) {

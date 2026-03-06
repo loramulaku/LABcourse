@@ -48,4 +48,11 @@ const IPDDoctorController = require('../controllers/oop/IPDDoctorController');
 const ipdDoctorController = new IPDDoctorController();
 router.post("/appointment/:id/clinical-assessment", authenticateToken, isDoctor, ipdDoctorController.submitClinicalAssessment);
 
+// Doctor patients (unique patients from appointments)
+router.get("/patients", authenticateToken, isDoctor, doctorDashboardController.getDoctorPatients);
+
+// Doctor prescriptions
+router.get("/prescriptions", authenticateToken, isDoctor, doctorDashboardController.getDoctorPrescriptions);
+router.post("/prescriptions", authenticateToken, isDoctor, doctorDashboardController.createPrescription);
+
 module.exports = router;

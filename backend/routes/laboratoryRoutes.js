@@ -17,6 +17,11 @@ function requireLab(req, res, next) {
 // Get all laboratories
 router.get('/', laboratoryController.getAllLaboratories);
 
+// Availability and Status
+router.get('/:labId/monthly-status/:year/:month', laboratoryController.getMonthlyStatus);
+router.get('/:labId/available-slots/:date', laboratoryController.getAvailableSlots);
+router.get('/:labId/date-status/:date', laboratoryController.getDateStatus);
+
 // Get laboratory by ID
 router.get('/:id', laboratoryController.getLaboratoryById);
 

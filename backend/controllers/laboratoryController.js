@@ -159,7 +159,7 @@ const laboratoryController = {
           model: AnalysisType,
           attributes: ['name', 'price']
         }],
-        order: [['scheduled_date', 'ASC']]
+        order: [['appointment_date', 'ASC']]
       });
 
       res.json(appointments);
@@ -185,12 +185,12 @@ const laboratoryController = {
           model: AnalysisType,
           attributes: ['name']
         }],
-        order: [['scheduled_date', 'ASC']]
+        order: [['appointment_date', 'ASC']]
       });
 
       // Group by date
       const grouped = analyses.reduce((acc, analysis) => {
-        const date = analysis.scheduled_date ? analysis.scheduled_date.toString().split('T')[0] : 'No Date';
+        const date = analysis.appointment_date ? analysis.appointment_date.toISOString().split('T')[0] : 'No Date';
         if (!acc[date]) acc[date] = [];
         acc[date].push(analysis);
         return acc;
@@ -633,6 +633,130 @@ const laboratoryController = {
     }
   },
 
+  // Get available slots for a laboratory
+  async getAvailableSlots(req, res) {
+    try {
+      const { labId, date } = req.params;
+      
+      // Verify laboratory exists
+      const laboratory = await Laboratory.findByPk(labId);
+      if (!laboratory) {
+        return res.status(404).json({ error: 'Laboratory not found' });
+      }
+
+      // Check existing bookings for this date to determine availability
+      const bookings = await PatientAnalysis.findAll({
+        where: {
+          laboratory_id: labId,
+          appointment_date: {
+            [Op.between]: [new Date(date + "T00:00:00Z"), new Date(date + "T23:59:59Z")]
+          },
+          status: { [Op.ne]: 'cancelled' }
+        }
+      });
+
+      const bookedTimes = new Set(bookings.map(b => {
+        // Assume notes or some other field stores the time if it's not in appointment_date
+        // Looking at AnalysisCalendar.jsx, it sends date only for the slot check?
+        // Wait, if appointment_date is a full DATE with time, we use that.
+        if (b.appointment_date instanceof Date) {
+          const time = b.appointment_date.toISOString().split('T')[1].substring(0, 5);
+          return time;
+        }
+        return null;
+      }).filter(t => t));
+
+      const times = [
+        "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+        "11:00", "11:30", "12:00", "13:00", "13:30", "14:00",
+        "14:30", "15:00", "15:30", "16:00"
+      ];
+
+      const allSlots = times.map(time => ({
+        time,
+        displayTime: time,
+        isAvailable: !bookedTimes.has(time)
+      }));
+
+      res.json(allSlots);
+    } catch (error) {
+      console.error('Error fetching available slots:', error);
+      res.status(500).json({ error: 'Failed to fetch available slots' });
+    }
+  },
+
+  // Get date status for a laboratory (whether it's fully booked)
+  async getDateStatus(req, res) {
+    try {
+      const { labId, date } = req.params;
+      
+      // Verify laboratory exists
+      const laboratory = await Laboratory.findByPk(labId);
+      if (!laboratory) {
+        return res.status(404).json({ error: 'Laboratory not found' });
+      }
+
+      // Count bookings for this date
+      const bookingCount = await PatientAnalysis.count({
+        where: {
+          laboratory_id: labId,
+          appointment_date: {
+            [Op.between]: [new Date(date + "T00:00:00Z"), new Date(date + "T23:59:59Z")]
+          },
+          status: { [Op.ne]: 'cancelled' }
+        }
+      });
+
+      // Simple rule: fully booked if count >= 16 (max slots)
+      res.json({ date, isFullyBooked: bookingCount >= 16 });
+    } catch (error) {
+      console.error('Error fetching date status:', error);
+      res.status(500).json({ error: 'Failed to fetch date status' });
+    }
+  },
+
+  // Get status for an entire month (bulk)
+  async getMonthlyStatus(req, res) {
+    try {
+      const { labId, year, month } = req.params;
+      
+      // Calculate start and end of month
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0, 23, 59, 59);
+
+      const bookings = await PatientAnalysis.findAll({
+        where: {
+          laboratory_id: labId,
+          appointment_date: {
+            [Op.between]: [startOfMonth, endOfMonth]
+          },
+          status: { [Op.ne]: 'cancelled' }
+        },
+        attributes: ['appointment_date']
+      });
+
+      // Count bookings per day
+      const dayCounts = {};
+      bookings.forEach(booking => {
+        if (booking.appointment_date) {
+          const dateStr = booking.appointment_date.toISOString().split('T')[0];
+          dayCounts[dateStr] = (dayCounts[dateStr] || 0) + 1;
+        }
+      });
+
+      // Fully booked if count >= 16
+      const results = {};
+      Object.keys(dayCounts).forEach(date => {
+        results[date] = { isFullyBooked: dayCounts[date] >= 16 };
+      });
+
+      res.json(results);
+    } catch (error) {
+      console.error('Error fetching monthly status:', error);
+      res.status(500).json({ error: 'Failed to fetch monthly status' });
+    }
+  },
+
   // Admin: Create analysis type for lab
   async adminCreateAnalysisType(req, res) {
     try {
@@ -685,17 +809,24 @@ const laboratoryController = {
   async requestAnalysis(req, res) {
     try {
       console.log('Analysis request received:', req.body);
-      const { laboratory_id, analysis_type_id, scheduled_date, notes } = req.body;
+      const { laboratory_id, analysis_type_id, appointment_date, notes } = req.body;
 
-      if (!laboratory_id || !analysis_type_id || !scheduled_date) {
+      if (!laboratory_id || !analysis_type_id || !appointment_date) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
+
+      // The date from frontend might be YYYY-MM-DD
+      // If the frontend sends a time separately later, we'll need to combine them.
+      // For now, if we're just requesting, we might need a time too.
+      // Looking at the request analysis, it usually happens AFTER selecting a time.
+      const { time } = req.body;
+      const fullDate = time ? new Date(`${appointment_date.split('T')[0]}T${time}:00Z`) : new Date(appointment_date);
 
       const analysis = await PatientAnalysis.create({
         patient_id: req.user.id,
         laboratory_id,
         analysis_type_id,
-        scheduled_date,
+        appointment_date: fullDate,
         notes,
         status: 'pending'
       });

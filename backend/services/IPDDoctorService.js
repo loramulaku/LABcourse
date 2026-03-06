@@ -78,6 +78,36 @@ class IPDDoctorService extends BaseService {
   }
 
   /**
+   * Get rooms for a given ward
+   * @param {number} wardId - Ward ID
+   * @returns {Promise<Array>}
+   */
+  async getAvailableRooms(wardId) {
+    this.log(`Fetching rooms for ward ${wardId}`);
+    const { Room } = require('../models');
+    const rooms = await Room.findAll({
+      where: { ward_id: wardId, is_active: true },
+      order: [['room_number', 'ASC']],
+    });
+    return Array.isArray(rooms) ? rooms : [];
+  }
+
+  /**
+   * Get available beds for a given room
+   * @param {number} roomId - Room ID
+   * @returns {Promise<Array>}
+   */
+  async getAvailableBeds(roomId) {
+    this.log(`Fetching available beds for room ${roomId}`);
+    const { Bed } = require('../models');
+    const beds = await Bed.findAll({
+      where: { room_id: roomId, status: 'Available' },
+      order: [['bed_number', 'ASC']],
+    });
+    return Array.isArray(beds) ? beds : [];
+  }
+
+  /**
    * Create admission request from confirmed appointment
    * @param {Object} requestData - Request data
    * @param {number} doctorId - Doctor ID
@@ -114,11 +144,28 @@ class IPDDoctorService extends BaseService {
       throw new ConflictError('There is already a pending admission request for this patient');
     }
 
+    // Verify and reserve recommended bed if provided
+    if (requestData.recommended_bed_id) {
+      const { Bed } = require('../models');
+      const bed = await Bed.findByPk(requestData.recommended_bed_id);
+      if (!bed) {
+         throw new NotFoundError('Recommended bed');
+      }
+      if (bed.status !== 'Available') {
+         throw new BadRequestError('The selected bed is no longer available. Please choose another one.');
+      }
+      // Reserve the bed immediately to prevent double booking
+      await bed.update({ status: 'Reserved' });
+      this.log(`Bed ${bed.id} reserved for admission request`);
+    }
+
     const request = await this.admissionRequestRepo.create({
       appointment_id: requestData.appointment_id || null,
       doctor_id: doctorId,
       patient_id: requestData.patient_id,
       recommended_ward_id: requestData.recommended_ward_id || null,
+      recommended_room_id: requestData.recommended_room_id || null,
+      recommended_bed_id: requestData.recommended_bed_id || null,
       recommended_room_type: requestData.recommended_room_type || null,
       diagnosis: requestData.diagnosis,
       treatment_plan: requestData.treatment_plan || null,
@@ -313,6 +360,8 @@ class IPDDoctorService extends BaseService {
           {
             appointment_id: appointmentId,
             patient_id: appointment.user_id,
+            diagnosis: assessmentData.admission_details.diagnosis || assessmentData.diagnosis,
+            treatment_plan: assessmentData.admission_details.treatment_plan || assessmentData.treatment_plan,
             ...assessmentData.admission_details,
           },
           doctorId

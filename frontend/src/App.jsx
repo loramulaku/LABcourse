@@ -1,7 +1,7 @@
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import React, { Suspense, useEffect } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { startTokenMonitoring } from "./api";
 
 import Navbar from "./components/Navbar";
@@ -173,6 +173,11 @@ const BillingManagement = React.lazy(() => import("./dashboard/pages/billing/Bil
 const CreateBill = React.lazy(() => import("./dashboard/pages/billing/CreateBill.jsx"));
 const InvoiceDetail = React.lazy(() => import("./dashboard/pages/billing/InvoiceDetail.jsx"));
 const PackageManagement = React.lazy(() => import("./dashboard/pages/billing/PackageManagement.jsx"));
+
+// Loading component for Suspense fallback
+const AdminDashboard = React.lazy(
+  () => import("./dashboard/pages/AdminDashboard.jsx")
+);
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -354,6 +359,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             >
+              <Route index element={<Navigate to="profile" replace />} />
               <Route path="profile" element={<AdminProfile />} />
               <Route path="departments" element={<DepartmentManagement />} />
               <Route path="add-doctor" element={<AddDoctor />} />

@@ -93,66 +93,77 @@ export default function Doctors() {
       <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
 
         <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700/50 dark:to-gray-600/50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="w-[30%] px-4 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Doctor
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="w-[20%] px-4 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Speciality
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Experience
+                <th className="w-[20%] px-4 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  Department
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="w-[15%] px-4 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Fees
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="w-[15%] px-4 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white/50 dark:bg-gray-800/50 divide-y divide-white/20 dark:divide-gray-700/50">
-              {filteredDoctors.map((doctor) => (
+              {filteredDoctors.map((doctor) => {
+                const imgPath = doctor.profile_image || doctor.image || null;
+                const imgUrl = imgPath
+                  ? `${API_URL}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`
+                  : null;
+
+                return (
                 <tr
                   key={doctor.id}
                   className="hover:bg-white/70 dark:hover:bg-gray-700/50 transition-all duration-300"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        {doctor.image ? (
+                        {imgUrl ? (
                           <img
-                            className="h-10 w-10 rounded-full object-cover"
-                            src={`${API_URL}/${doctor.image}`}
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-100 dark:ring-gray-600"
+                            src={imgUrl}
                             alt={doctor.name}
+                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                           />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">
-                            {doctor.name?.charAt(0)?.toUpperCase() || "D"}
-                          </div>
-                        )}
+                        ) : null}
+                        <div
+                          className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-md"
+                          style={{ display: imgUrl ? 'none' : 'flex' }}
+                        >
+                          {doctor.name?.charAt(0)?.toUpperCase() || "D"}
+                        </div>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="ml-4 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {doctor.name || "N/A"}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
                           {doctor.email}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      {doctor.speciality || "N/A"}
+                      {doctor.speciality || doctor.specialization || "N/A"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {doctor.experience || "N/A"}
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      {doctor.departmentName || "N/A"}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                     {doctor.fees ? `€${doctor.fees}` : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -198,7 +209,8 @@ export default function Doctors() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>

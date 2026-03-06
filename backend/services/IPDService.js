@@ -407,9 +407,9 @@ class IPDService extends BaseService {
       throw new BadRequestError('This request has already been processed');
     }
 
-    // Verify bed availability
-    const isAvailable = await this.bedRepo.isAvailable(bedAssignment.bed_id);
-    if (!isAvailable) {
+    // Verify bed availability (allow 'Reserved' since it might have been reserved by the doctor for this specific request)
+    const bed = await this.bedRepo.findById(bedAssignment.bed_id);
+    if (!bed || (bed.status !== 'Available' && bed.status !== 'Reserved')) {
       throw new BadRequestError('Selected bed is not available');
     }
 
@@ -454,6 +454,11 @@ class IPDService extends BaseService {
 
     if (request.status !== 'Pending') {
       throw new BadRequestError('This request has already been processed');
+    }
+
+    // Free the bed if it was reserved by the doctor
+    if (request.recommended_bed_id) {
+      await this.bedRepo.updateStatus(request.recommended_bed_id, 'Available');
     }
 
     return await this.admissionRequestRepo.updateStatus(requestId, 'Rejected', rejectionReason);

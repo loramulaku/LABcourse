@@ -247,27 +247,27 @@ const AppointmentDetails = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Name</label>
+                <label className="text-sm font-semibold text-gray-700">Name</label>
                 <p className="text-gray-900 font-medium">{appointment.patient_name || 'N/A'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Email</label>
+                <label className="text-sm font-semibold text-gray-700">Email</label>
                 <p className="text-gray-900 flex items-center space-x-2">
-                  <Mail className="w-4 h-4 text-gray-400" />
+                  <Mail className="w-4 h-4 text-gray-500" />
                   <span>{appointment.patient_email || 'N/A'}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Phone</label>
+                <label className="text-sm font-semibold text-gray-700">Phone</label>
                 <p className="text-gray-900 flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-gray-400" />
+                  <Phone className="w-4 h-4 text-gray-500" />
                   <span>{appointment.patient_phone || 'N/A'}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Address</label>
+                <label className="text-sm font-semibold text-gray-700">Address</label>
                 <p className="text-gray-900 flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <MapPin className="w-4 h-4 text-gray-500" />
                   <span>{appointment.patient_address || 'N/A'}</span>
                 </p>
               </div>
@@ -282,43 +282,43 @@ const AppointmentDetails = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Date & Time</label>
+                <label className="text-sm font-semibold text-gray-700">Date & Time</label>
                 <p className="text-gray-900 flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-gray-400" />
+                  <Clock className="w-4 h-4 text-gray-500" />
                   <span>{new Date(appointment.scheduled_for).toLocaleString()}</span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Department</label>
+                <label className="text-sm font-semibold text-gray-700">Department</label>
                 <p className="text-gray-900">{appointment.department || 'General'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Type</label>
+                <label className="text-sm font-semibold text-gray-700">Type</label>
                 <p className="text-gray-900">{appointment.appointment_type || 'Consultation'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Duration</label>
+                <label className="text-sm font-semibold text-gray-700">Duration</label>
                 <p className="text-gray-900">30 minutes</p>
               </div>
             </div>
 
             {appointment.reason && (
               <div className="mt-4">
-                <label className="text-sm font-medium text-gray-600">Reason for Visit</label>
+                <label className="text-sm font-semibold text-gray-700">Reason for Visit</label>
                 <p className="text-gray-900 mt-1 p-3 bg-gray-50 rounded-lg">{appointment.reason}</p>
               </div>
             )}
 
             {appointment.clinical_assessment && (
               <div className="mt-4">
-                <label className="text-sm font-medium text-gray-600">Clinical Assessment</label>
+                <label className="text-sm font-semibold text-gray-700">Clinical Assessment</label>
                 <p className="text-gray-900 mt-1 p-3 bg-blue-50 rounded-lg">{appointment.clinical_assessment}</p>
               </div>
             )}
 
             {appointment.therapy_prescribed && (
               <div className="mt-4">
-                <label className="text-sm font-medium text-gray-600">Therapy Prescribed</label>
+                <label className="text-sm font-semibold text-gray-700">Therapy Prescribed</label>
                 <p className="text-gray-900 mt-1 p-3 bg-green-50 rounded-lg whitespace-pre-line">{appointment.therapy_prescribed}</p>
               </div>
             )}
@@ -335,18 +335,18 @@ const AppointmentDetails = () => {
             </h3>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-600">Amount</label>
+                <label className="text-sm font-semibold text-gray-700">Amount</label>
                 <p className="text-2xl font-bold text-gray-900">€{appointment.amount || '60.00'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Status</label>
+                <label className="text-sm font-semibold text-gray-700">Status</label>
                 <div className="mt-1">
                   {getPaymentStatusBadge(appointment.payment_status)}
                 </div>
               </div>
               {appointment.paid_at && (
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Paid At</label>
+                  <label className="text-sm font-semibold text-gray-700">Paid At</label>
                   <p className="text-gray-900">{new Date(appointment.paid_at).toLocaleString()}</p>
                 </div>
               )}

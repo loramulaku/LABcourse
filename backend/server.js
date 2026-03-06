@@ -12,6 +12,15 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 
+// --- TRAFFIC LOGGING ---
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/laboratories')) {
+    console.log(`📡 [LAB_TRAFFIC] ${req.method} ${req.url}`);
+  }
+  next();
+});
+// --- END TRAFFIC LOGGING ---
+
 // Middleware
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
@@ -109,7 +118,8 @@ const therapyRoutes = require("./routes/therapyRoutes");
 // Debug: Clear require cache for contactRoutes
 delete require.cache[require.resolve("./routes/contactRoutes")];
 const contactRoutes = require("./routes/contactRoutes");
-console.log("📋 contactRoutes loaded:", typeof contactRoutes, contactRoutes);
+console.log("📋 contactRoutes loaded: OK");
+console.log("🚀 DEBUG: Server is initializing with LAB_FIX_VERSION_5");
 
 const departmentRoutes = require("./routes/departmentRoutes");
 const patientAnalysesRoutes = require("./routes/patientAnalysesRoutes");
@@ -127,8 +137,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/doctor", doctorDashboardRoutes); // Doctor dashboard routes
-app.use("/api/laboratories", labRoutes); // Changed from /api/labs to match frontend
-app.use("/api/labs", labRoutes); // Keep legacy route for backward compatibility
+
+app.use("/api/laboratories", labRoutes); 
+app.use("/api/labs", labRoutes); 
+
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/profile", profileRoutes);
@@ -144,6 +156,8 @@ app.use("/api/patient-analyses", patientAnalysesRoutes);
 // IPD Routes - Layered Architecture
 app.use("/api/ipd/admin", ipdAdminRoutesOOP);
 app.use("/api/ipd/doctor", ipdDoctorRoutesOOP);
+const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
+app.use("/api/admin/dashboard", adminDashboardRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/opd", opdRoutes);

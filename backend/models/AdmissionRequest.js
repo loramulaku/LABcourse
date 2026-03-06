@@ -28,6 +28,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    recommended_room_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    recommended_bed_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     recommended_room_type: {
       type: DataTypes.STRING(50),
       allowNull: true,
@@ -97,6 +105,18 @@ module.exports = (sequelize, DataTypes) => {
     AdmissionRequest.belongsTo(models.Ward, {
       foreignKey: 'recommended_ward_id',
       as: 'recommended_ward',
+      onDelete: 'SET NULL',
+    });
+
+    AdmissionRequest.belongsTo(models.Room, {
+      foreignKey: 'recommended_room_id',
+      as: 'recommended_room',
+      onDelete: 'SET NULL',
+    });
+
+    AdmissionRequest.belongsTo(models.Bed, {
+      foreignKey: 'recommended_bed_id',
+      as: 'recommended_bed',
       onDelete: 'SET NULL',
     });
   };
