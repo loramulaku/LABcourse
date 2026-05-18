@@ -52,13 +52,17 @@ exports.signup = async (req, res) => {
       role: 'user',
     });
     
-    // Create user profile
-    await UserProfile.create({
-      user_id: user.id,
-      profile_image: 'uploads/default.png',
-    });
-    
-    res.json({ 
+    // Create user profile; if it fails, log error but still return success
+    try {
+      await UserProfile.create({
+        user_id: user.id,
+        profile_image: 'uploads/default.png',
+      });
+    } catch (profileErr) {
+      console.error('Signup: failed to create UserProfile, continuing. Error:', profileErr);
+    }
+
+    res.status(201).json({ 
       message: 'User u krijua, tash kyçu',
       userId: user.id 
     });
@@ -76,28 +80,26 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
   
   try {
-    // Find user by email using Sequelize
+    // Find user by email using Sequelize (return model instance so we can use instance methods)
     const user = await User.findOne({ 
-      where: { email },
-      raw: true 
+      where: { email }
     });
     
     if (!user) {
       return res.status(400).json({ error: 'Ska user me ketë email' });
     }
 
-    // Verify password - support both Argon2 (new) and bcrypt (legacy)
+    // Verify password - prefer the model's verifier which supports both Argon2 and bcrypt
     let match = false;
-    
-    if (user.password.startsWith('$argon2')) {
-      // New Argon2 hash
-      match = await argon2.verify(user.password, password);
-    } else if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
-      // Legacy bcrypt hash
-      match = await bcrypt.compare(password, user.password);
-      
-      // If login successful with bcrypt, rehash with Argon2 for future
-      if (match) {
+    try {
+      match = await user.verifyPassword(password);
+    } catch (err) {
+      match = false;
+    }
+
+    // If the password matched and it was a legacy bcrypt hash, migrate to Argon2
+    if (match && (user.password.startsWith('$2b$') || user.password.startsWith('$2a$'))) {
+      try {
         const newHash = await argon2.hash(password, {
           type: argon2.argon2id,
           memoryCost: 65536,
@@ -112,10 +114,9 @@ exports.login = async (req, res) => {
           }
         );
         console.log(`[LOGIN] ✅ Migrated user ${user.id} from bcrypt to Argon2`);
+      } catch (err) {
+        console.error('[LOGIN] Migration error:', err);
       }
-    } else {
-      // Unknown hash format
-      console.log('[LOGIN] ❌ Unknown password hash format');
     }
     
     // Log login attempt using Sequelize
