@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-05-20" agent="13.0" version="20.3.0" type="device">
+  <diagram id="uc02-doctor-staff" name="UC02 - Doctor &amp; Staff Management">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1400" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="Doctor &amp; Staff Management System" style="rectangle;html=1;rounded=0;whiteSpace=wrap;fontSize=14;fontStyle=1;align=center;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="450" height="550" fill="none" stroke="black" strokeWidth="2"/>
+        </mxCell>
+        
+        <!-- Actors -->
+        <!-- Admin Actor -->
+        <mxCell id="admin" value="Admin" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Doctor Actor -->
+        <mxCell id="doctor" value="Doctor" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Use Cases -->
+        <!-- Register Doctor -->
+        <mxCell id="uc-reg-doc" value="Register Doctor" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Verify Credentials -->
+        <mxCell id="uc-verify-cred" value="Verify Credentials" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Manage Specialization -->
+        <mxCell id="uc-spec" value="Manage Specialization" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Set Availability -->
+        <mxCell id="uc-avail" value="Set Availability" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Register Staff Member -->
+        <mxCell id="uc-reg-staff" value="Register Staff Member" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Assign Department -->
+        <mxCell id="uc-dept" value="Assign Department" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- View Performance Metrics -->
+        <mxCell id="uc-perf" value="View Performance Metrics" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="390" y="540" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Relationships -->
+        <!-- Admin to Register Doctor -->
+        <mxCell id="rel-a-regdoc" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-reg-doc">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="200" as="sourcePoint"/>
+            <mxPoint x="300" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Register Staff -->
+        <mxCell id="rel-a-regstaff" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-reg-staff">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="440" as="sourcePoint"/>
+            <mxPoint x="300" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Assign Department -->
+        <mxCell id="rel-a-dept" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-dept">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="440" as="sourcePoint"/>
+            <mxPoint x="480" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Performance -->
+        <mxCell id="rel-a-perf" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-perf">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="450" as="sourcePoint"/>
+            <mxPoint x="400" y="570" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Doctor to Set Availability -->
+        <mxCell id="rel-d-avail" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="doctor" target="uc-avail">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="310" as="sourcePoint"/>
+            <mxPoint x="600" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Include Relationships -->
+        <!-- Register Doctor includes Verify Credentials -->
+        <mxCell id="inc-regdoc-verify" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-regdoc-verify" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-reg-doc" target="uc-verify-cred">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="180" as="sourcePoint"/>
+            <mxPoint x="480" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Register Doctor includes Manage Specialization -->
+        <mxCell id="inc-regdoc-spec" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="310" y="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-regdoc-spec" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-reg-doc" target="uc-spec">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="360" y="210" as="sourcePoint"/>
+            <mxPoint x="360" y="280" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Register Staff includes Assign Department -->
+        <mxCell id="inc-regstaff-dept" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-regstaff-dept" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-reg-staff" target="uc-dept">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="410" as="sourcePoint"/>
+            <mxPoint x="480" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

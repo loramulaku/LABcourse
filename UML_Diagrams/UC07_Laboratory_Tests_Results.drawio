@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-05-20" agent="13.0" version="20.3.0" type="device">
+  <diagram id="uc07-lab" name="UC07 - Laboratory Tests &amp; Results">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1400" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="Laboratory Tests &amp; Results System" style="rectangle;html=1;rounded=0;whiteSpace=wrap;fontSize=14;fontStyle=1;align=center;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="450" height="550" fill="none" stroke="black" strokeWidth="2"/>
+        </mxCell>
+        
+        <!-- Actors -->
+        <!-- Patient -->
+        <mxCell id="patient" value="Patient" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Lab Technician -->
+        <mxCell id="tech" value="Lab Technician" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Use Cases -->
+        <!-- Order Lab Test -->
+        <mxCell id="uc-order" value="Order Lab Test" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Schedule Sample Collection -->
+        <mxCell id="uc-schedule" value="Schedule Sample Collection" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Collect Samples -->
+        <mxCell id="uc-collect" value="Collect Samples" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Process Samples -->
+        <mxCell id="uc-process" value="Process Samples" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Generate Test Results -->
+        <mxCell id="uc-generate" value="Generate Test Results" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Verify Results -->
+        <mxCell id="uc-verify-res" value="Verify Results" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Notify Results -->
+        <mxCell id="uc-notify-res" value="Notify Results" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="390" y="540" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Relationships -->
+        <!-- Patient to Order -->
+        <mxCell id="rel-p-order" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="patient" target="uc-order">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="200" as="sourcePoint"/>
+            <mxPoint x="300" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Tech to Collect -->
+        <mxCell id="rel-t-collect" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="tech" target="uc-collect">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="310" as="sourcePoint"/>
+            <mxPoint x="420" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Tech to Process -->
+        <mxCell id="rel-t-process" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="tech" target="uc-process">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="310" as="sourcePoint"/>
+            <mxPoint x="600" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Tech to Generate -->
+        <mxCell id="rel-t-generate" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="tech" target="uc-generate">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="440" as="sourcePoint"/>
+            <mxPoint x="420" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Include Relationships -->
+        <!-- Order includes Schedule -->
+        <mxCell id="inc-order-schedule" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-order-schedule" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-order" target="uc-schedule">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="180" as="sourcePoint"/>
+            <mxPoint x="480" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Collect includes Process -->
+        <mxCell id="inc-collect-process" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-collect-process" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-collect" target="uc-process">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="310" as="sourcePoint"/>
+            <mxPoint x="480" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Generate includes Verify -->
+        <mxCell id="inc-generate-verify" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-generate-verify" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-generate" target="uc-verify-res">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="440" as="sourcePoint"/>
+            <mxPoint x="480" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Notify extends Generate -->
+        <mxCell id="ext-notify-generate" value="&lt;&lt;extend&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="350" y="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-ext-notify-generate" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-notify-res" target="uc-generate">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="540" as="sourcePoint"/>
+            <mxPoint x="360" y="470" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

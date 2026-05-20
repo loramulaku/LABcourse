@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-05-20" agent="13.0" version="20.3.0" type="device">
+  <diagram id="uc01-patient-registration" name="UC01 - Patient Registration & Management">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1400" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="Patient Registration &amp; Management System" style="rectangle;html=1;rounded=0;whiteSpace=wrap;fontSize=14;fontStyle=1;align=center;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="450" height="550" fill="none" stroke="black" strokeWidth="2"/>
+        </mxCell>
+        
+        <!-- Actors -->
+        <!-- Patient Actor -->
+        <mxCell id="patient" value="Patient" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        <mxCell id="patient-stick" value="" style="shape=line;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry x="80" y="330" width="20" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="patient-arms" value="" style="shape=line;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry x="60" y="350" width="40" height="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="patient-legs" value="" style="shape=line;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry x="70" y="370" width="20" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- Admin Actor -->
+        <mxCell id="admin" value="Admin" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        <mxCell id="admin-stick" value="" style="shape=line;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry x="900" y="330" width="20" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="admin-arms" value="" style="shape=line;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry x="880" y="350" width="40" height="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="admin-legs" value="" style="shape=line;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry x="890" y="370" width="20" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- Use Cases -->
+        <!-- Register New Patient -->
+        <mxCell id="uc-register" value="Register New Patient" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Verify Patient Identity -->
+        <mxCell id="uc-verify" value="Verify Patient Identity" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Update Patient Profile -->
+        <mxCell id="uc-update" value="Update Patient Profile" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Search Patient Records -->
+        <mxCell id="uc-search" value="Search Patient Records" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Manage Insurance Info -->
+        <mxCell id="uc-insurance" value="Manage Insurance Info" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Deactivate Patient -->
+        <mxCell id="uc-deactivate" value="Deactivate Patient Account" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Generate Patient Report -->
+        <mxCell id="uc-report" value="Generate Patient Report" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="390" y="540" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Relationships -->
+        <!-- Patient to Register -->
+        <mxCell id="rel-p-reg" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="patient" target="uc-register">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="200" as="sourcePoint"/>
+            <mxPoint x="360" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Patient to Update -->
+        <mxCell id="rel-p-upd" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="patient" target="uc-update">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="310" as="sourcePoint"/>
+            <mxPoint x="300" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Patient to Search -->
+        <mxCell id="rel-p-search" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="patient" target="uc-search">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="310" as="sourcePoint"/>
+            <mxPoint x="480" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Register -->
+        <mxCell id="rel-a-reg" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-register">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="200" as="sourcePoint"/>
+            <mxPoint x="420" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Verify -->
+        <mxCell id="rel-a-verify" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-verify">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="200" as="sourcePoint"/>
+            <mxPoint x="600" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Insurance -->
+        <mxCell id="rel-a-insurance" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-insurance">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="350" as="sourcePoint"/>
+            <mxPoint x="420" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Deactivate -->
+        <mxCell id="rel-a-deact" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-deactivate">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="350" as="sourcePoint"/>
+            <mxPoint x="600" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin to Report -->
+        <mxCell id="rel-a-report" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="admin" target="uc-report">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="450" as="sourcePoint"/>
+            <mxPoint x="450" y="570" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Include Relationships -->
+        <!-- Register includes Verify -->
+        <mxCell id="inc-reg-verify" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-reg-verify" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-register" target="uc-verify">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="180" as="sourcePoint"/>
+            <mxPoint x="480" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Update includes Search -->
+        <mxCell id="inc-upd-search" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-upd-search" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-update" target="uc-search">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="310" as="sourcePoint"/>
+            <mxPoint x="480" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Deactivate extends Insurance -->
+        <mxCell id="ext-deact-insurance" value="&lt;&lt;extend&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="420" y="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-ext-deact-insurance" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-deactivate" target="uc-insurance">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="480" y="410" as="sourcePoint"/>
+            <mxPoint x="420" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

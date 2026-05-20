@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-05-20" agent="13.0" version="20.3.0" type="device">
+  <diagram id="uc03-appointment" name="UC03 - Appointment Booking &amp; Scheduling">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1400" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="Appointment Booking &amp; Scheduling System" style="rectangle;html=1;rounded=0;whiteSpace=wrap;fontSize=14;fontStyle=1;align=center;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="450" height="550" fill="none" stroke="black" strokeWidth="2"/>
+        </mxCell>
+        
+        <!-- Actors -->
+        <!-- Patient -->
+        <mxCell id="patient" value="Patient" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Doctor -->
+        <mxCell id="doctor" value="Doctor" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Use Cases -->
+        <!-- Search Doctor -->
+        <mxCell id="uc-search-doc" value="Search Doctor" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- View Availability -->
+        <mxCell id="uc-view-avail" value="View Availability" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Book Appointment -->
+        <mxCell id="uc-book" value="Book Appointment" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Verify Insurance -->
+        <mxCell id="uc-verify-ins" value="Verify Insurance" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Confirm Appointment -->
+        <mxCell id="uc-confirm" value="Confirm Appointment" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Send Notification -->
+        <mxCell id="uc-notify" value="Send Notification" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Reschedule Appointment -->
+        <mxCell id="uc-reschedule" value="Reschedule Appointment" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="390" y="540" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Relationships -->
+        <!-- Patient to Search Doctor -->
+        <mxCell id="rel-p-search" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="patient" target="uc-search-doc">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="200" as="sourcePoint"/>
+            <mxPoint x="300" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Patient to Book -->
+        <mxCell id="rel-p-book" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="patient" target="uc-book">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="310" as="sourcePoint"/>
+            <mxPoint x="300" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Doctor to View Availability -->
+        <mxCell id="rel-d-avail" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="doctor" target="uc-view-avail">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="200" as="sourcePoint"/>
+            <mxPoint x="600" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Doctor to Confirm -->
+        <mxCell id="rel-d-confirm" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="doctor" target="uc-confirm">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="440" as="sourcePoint"/>
+            <mxPoint x="420" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Include Relationships -->
+        <!-- Search Doctor includes View Availability -->
+        <mxCell id="inc-search-avail" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-search-avail" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-search-doc" target="uc-view-avail">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="180" as="sourcePoint"/>
+            <mxPoint x="480" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Book includes Verify Insurance -->
+        <mxCell id="inc-book-verify" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-book-verify" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-book" target="uc-verify-ins">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="310" as="sourcePoint"/>
+            <mxPoint x="480" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Confirm includes Send Notification -->
+        <mxCell id="inc-confirm-notify" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-confirm-notify" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-confirm" target="uc-notify">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="440" as="sourcePoint"/>
+            <mxPoint x="480" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Reschedule extends Book -->
+        <mxCell id="ext-reschedule-book" value="&lt;&lt;extend&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="350" y="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-ext-reschedule-book" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-reschedule" target="uc-book">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="540" as="sourcePoint"/>
+            <mxPoint x="360" y="340" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

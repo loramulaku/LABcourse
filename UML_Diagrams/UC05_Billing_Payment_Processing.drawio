@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-05-20" agent="13.0" version="20.3.0" type="device">
+  <diagram id="uc05-billing" name="UC05 - Billing &amp; Payment Processing">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1400" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="Billing &amp; Payment Processing System" style="rectangle;html=1;rounded=0;whiteSpace=wrap;fontSize=14;fontStyle=1;align=center;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="450" height="550" fill="none" stroke="black" strokeWidth="2"/>
+        </mxCell>
+        
+        <!-- Actors -->
+        <!-- Patient -->
+        <mxCell id="patient" value="Patient" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Billing Clerk -->
+        <mxCell id="clerk" value="Billing Clerk" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="250" width="80" height="80" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Use Cases -->
+        <!-- Generate Invoice -->
+        <mxCell id="uc-invoice" value="Generate Invoice" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Calculate Bill -->
+        <mxCell id="uc-calc" value="Calculate Bill" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="150" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Process Payment -->
+        <mxCell id="uc-payment" value="Process Payment" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Process Insurance Claim -->
+        <mxCell id="uc-insurance" value="Process Insurance Claim" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="280" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Send Invoice -->
+        <mxCell id="uc-send" value="Send Invoice" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Track Payment Status -->
+        <mxCell id="uc-track" value="Track Payment Status" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="480" y="410" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Generate Refund -->
+        <mxCell id="uc-refund" value="Generate Refund" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="390" y="540" width="120" height="60" fill="white" stroke="black" strokeWidth="1.5"/>
+        </mxCell>
+        
+        <!-- Relationships -->
+        <!-- Patient to Process Payment -->
+        <mxCell id="rel-p-payment" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="patient" target="uc-payment">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="200" y="310" as="sourcePoint"/>
+            <mxPoint x="300" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Clerk to Generate Invoice -->
+        <mxCell id="rel-c-invoice" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="clerk" target="uc-invoice">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="180" as="sourcePoint"/>
+            <mxPoint x="420" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Clerk to Calculate -->
+        <mxCell id="rel-c-calc" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="clerk" target="uc-calc">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="180" as="sourcePoint"/>
+            <mxPoint x="600" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Clerk to Track -->
+        <mxCell id="rel-c-track" value="" style="endArrow=open;html=1;strokeWidth=2;" edge="1" parent="1" source="clerk" target="uc-track">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="800" y="440" as="sourcePoint"/>
+            <mxPoint x="600" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Include Relationships -->
+        <!-- Generate Invoice includes Calculate Bill -->
+        <mxCell id="inc-invoice-calc" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="400" y="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-invoice-calc" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-invoice" target="uc-calc">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="180" as="sourcePoint"/>
+            <mxPoint x="480" y="180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Process Payment includes Send Invoice -->
+        <mxCell id="inc-payment-send" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="310" y="350" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-payment-send" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-payment" target="uc-send">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="360" y="340" as="sourcePoint"/>
+            <mxPoint x="360" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Process Payment includes Track Status -->
+        <mxCell id="inc-payment-track" value="&lt;&lt;include&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="420" y="350" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-inc-payment-track" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-payment" target="uc-track">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="340" as="sourcePoint"/>
+            <mxPoint x="540" y="410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Process Insurance Claim extends Process Payment -->
+        <mxCell id="ext-insurance-payment" value="&lt;&lt;extend&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="420" y="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-ext-insurance-payment" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-insurance" target="uc-payment">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="480" y="310" as="sourcePoint"/>
+            <mxPoint x="420" y="310" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Refund extends Payment -->
+        <mxCell id="ext-refund-payment" value="&lt;&lt;extend&gt;&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="350" y="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-ext-refund-payment" value="" style="endArrow=open;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="uc-refund" target="uc-payment">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="420" y="540" as="sourcePoint"/>
+            <mxPoint x="360" y="340" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

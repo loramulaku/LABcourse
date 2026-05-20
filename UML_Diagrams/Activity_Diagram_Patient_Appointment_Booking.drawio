@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-05-20" agent="13.0" version="20.3.0" type="device">
+  <diagram id="activity-appointment" name="Patient Appointment Booking Activity Diagram">
+    <mxGraphModel dx="1200" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1800" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Start -->
+        <mxCell id="start" value="" style="ellipse;html=1;shape=startEvent;perimeter=ellipsePerimeter;background=fillColor;fillColor=#000000;strokeColor=#ff0000;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="475" y="20" width="50" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- Activity 1: Patient Logs In -->
+        <mxCell id="act1" value="Patient Logs In" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d4e6f1" vertex="1" parent="1">
+          <mxGeometry x="425" y="90" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition 1 -->
+        <mxCell id="trans1" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="start" target="act1">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="70" as="sourcePoint"/>
+            <mxPoint x="500" y="90" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 2: Search for Doctor/Slot -->
+        <mxCell id="act2" value="Search for Doctor/Slot" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d4e6f1" vertex="1" parent="1">
+          <mxGeometry x="425" y="170" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition 2 -->
+        <mxCell id="trans2" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act1" target="act2">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="150" as="sourcePoint"/>
+            <mxPoint x="500" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Decision 1: Slot Available? -->
+        <mxCell id="decision1" value="Slot Available?" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fillColor=#fef5d9" vertex="1" parent="1">
+          <mxGeometry x="450" y="250" width="100" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition 3: Yes -->
+        <mxCell id="trans3" value="Yes" style="endArrow=block;html=1;strokeWidth=2;label=Yes;" edge="1" parent="1" source="act2" target="decision1">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="230" as="sourcePoint"/>
+            <mxPoint x="500" y="250" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 3: Join Waitlist -->
+        <mxCell id="act3" value="Join Waitlist" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#fadbd8" vertex="1" parent="1">
+          <mxGeometry x="200" y="270" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition to Waitlist (No) -->
+        <mxCell id="trans4" value="No" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="decision1" target="act3">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="450" y="290" as="sourcePoint"/>
+            <mxPoint x="350" y="300" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 4: Check Insurance Status -->
+        <mxCell id="act4" value="Check Insurance Status" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d4e6f1" vertex="1" parent="1">
+          <mxGeometry x="425" y="360" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition from decision (Yes path) -->
+        <mxCell id="trans5" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="decision1" target="act4">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="330" as="sourcePoint"/>
+            <mxPoint x="500" y="360" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Decision 2: Patient Insured? -->
+        <mxCell id="decision2" value="Patient Insured?" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fillColor=#fef5d9" vertex="1" parent="1">
+          <mxGeometry x="450" y="440" width="100" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition 6 -->
+        <mxCell id="trans6" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act4" target="decision2">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="420" as="sourcePoint"/>
+            <mxPoint x="500" y="440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 5: Process Insurance Verification -->
+        <mxCell id="act5" value="Process Insurance Verification" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d4e6f1" vertex="1" parent="1">
+          <mxGeometry x="650" y="460" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition to Insurance Check (Yes) -->
+        <mxCell id="trans7" value="Yes" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="decision2" target="act5">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="550" y="480" as="sourcePoint"/>
+            <mxPoint x="650" y="490" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 6: Record Appointment -->
+        <mxCell id="act6" value="Record Appointment" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d5f4e6" vertex="1" parent="1">
+          <mxGeometry x="425" y="550" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition from Insurance to Record (merge paths) -->
+        <mxCell id="trans8a" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act5" target="act6">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="725" y="520" as="sourcePoint"/>
+            <mxPoint x="500" y="550" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Transition from decision (No path) -->
+        <mxCell id="trans8b" value="No" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="decision2" target="act6">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="520" as="sourcePoint"/>
+            <mxPoint x="500" y="550" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Parallel Start: Notify Doctor & Confirm Patient -->
+        <mxCell id="para-bar1" value="" style="shape=line;strokeWidth=2;horizontal=1" vertex="1" parent="1">
+          <mxGeometry x="350" y="630" width="300" height="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition to parallel -->
+        <mxCell id="trans9" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act6" target="para-bar1">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="610" as="sourcePoint"/>
+            <mxPoint x="500" y="630" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 7a: Notify Doctor -->
+        <mxCell id="act7a" value="Notify Doctor" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d4e6f1" vertex="1" parent="1">
+          <mxGeometry x="300" y="660" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Activity 7b: Confirm to Patient -->
+        <mxCell id="act7b" value="Confirm to Patient" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d4e6f1" vertex="1" parent="1">
+          <mxGeometry x="550" y="660" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition to parallel activities -->
+        <mxCell id="trans10a" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="para-bar1" target="act7a">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="425" y="630" as="sourcePoint"/>
+            <mxPoint x="375" y="660" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="trans10b" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="para-bar1" target="act7b">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="575" y="630" as="sourcePoint"/>
+            <mxPoint x="625" y="660" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Parallel End: Join both -->
+        <mxCell id="para-bar2" value="" style="shape=line;strokeWidth=2;horizontal=1" vertex="1" parent="1">
+          <mxGeometry x="350" y="740" width="300" height="1" as="geometry"/>
+        </mxGeometry>
+        </mxCell>
+        
+        <!-- Transition from parallel activities -->
+        <mxCell id="trans11a" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act7a" target="para-bar2">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="375" y="720" as="sourcePoint"/>
+            <mxPoint x="425" y="740" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="trans11b" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act7b" target="para-bar2">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="625" y="720" as="sourcePoint"/>
+            <mxPoint x="575" y="740" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 8: Send Notification -->
+        <mxCell id="act8" value="Send SMS/Email Notification" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d4e6f1" vertex="1" parent="1">
+          <mxGeometry x="425" y="770" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition from parallel merge -->
+        <mxCell id="trans12" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="para-bar2" target="act8">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="740" as="sourcePoint"/>
+            <mxPoint x="500" y="770" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Activity 9: Appointment Confirmed -->
+        <mxCell id="act9" value="Appointment Confirmed &amp; Scheduled" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d5f4e6" vertex="1" parent="1">
+          <mxGeometry x="425" y="860" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition from Notification -->
+        <mxCell id="trans13" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act8" target="act9">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="830" as="sourcePoint"/>
+            <mxPoint x="500" y="860" as="targetPoint"/>
+          </mxGeometry>
+        </cell>
+        
+        <!-- Waitlist merge -->
+        <mxCell id="trans14" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act3" target="act9">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="275" y="330" as="sourcePoint"/>
+            <mxPoint x="425" y="890" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- End Activity -->
+        <mxCell id="end" value="" style="ellipse;html=1;shape=endEvent;perimeter=ellipsePerimeter;background=fillColor;fillColor=#000000;strokeColor=#00ff00;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="475" y="950" width="50" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transition to End -->
+        <mxCell id="trans15" value="" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="act9" target="end">
+          <mxGeometry width="160" height="160" relative="1" as="geometry">
+            <mxPoint x="500" y="920" as="sourcePoint"/>
+            <mxPoint x="500" y="950" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
