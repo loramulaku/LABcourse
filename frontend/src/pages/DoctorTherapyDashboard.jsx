@@ -238,7 +238,7 @@ const DoctorTherapyDashboard = () => {
               >
                 <div>
                   <p className="font-medium text-gray-900">
-                    {followUp.patient_name}
+                    {followUp.patient?.name || 'Patient'}
                   </p>
                   <p className="text-sm text-gray-600">
                     {followUp.therapy_text.substring(0, 100)}...
@@ -266,7 +266,7 @@ const DoctorTherapyDashboard = () => {
               onClick={() => navigate("/doctor/refused")}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Create New Therapy
+              Prescribe Therapy for Patient
             </button>
           </div>
 
@@ -331,7 +331,7 @@ const DoctorTherapyDashboard = () => {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Follow-up Date
                   </th>
                 </tr>
               </thead>
@@ -341,10 +341,10 @@ const DoctorTherapyDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {therapy.patient_name}
+                          {therapy.patient?.name || '—'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {therapy.patient_email}
+                          {therapy.patient?.email || ''}
                         </div>
                       </div>
                     </td>
@@ -372,23 +372,10 @@ const DoctorTherapyDashboard = () => {
                         {therapy.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() =>
-                          navigate(`/doctor/therapy/edit/${therapy.id}`)
-                        }
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() =>
-                          navigate(`/doctor/therapy/view/${therapy.id}`)
-                        }
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        View
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {therapy.follow_up_date
+                        ? new Date(therapy.follow_up_date).toLocaleDateString()
+                        : 'No follow-up'}
                     </td>
                   </tr>
                 ))}

@@ -12,6 +12,17 @@ function requireDoctor(req, res, next) {
   next();
 }
 
+// ================ PATIENT THERAPY ENDPOINTS ================
+
+// Get all therapies for current patient
+router.get("/patient/dashboard", authenticateToken, therapyController.getPatientDashboard);
+
+// Get therapy statistics for current patient
+router.get("/patient/stats", authenticateToken, therapyController.getPatientStats);
+
+// Get upcoming follow-ups for current patient
+router.get("/patient/upcoming-followups", authenticateToken, therapyController.getPatientUpcomingFollowUps);
+
 // ================ DOCTOR THERAPY DASHBOARD ENDPOINTS ================
 
 // Get all therapies for current doctor

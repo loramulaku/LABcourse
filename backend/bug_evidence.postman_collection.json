@@ -1,0 +1,360 @@
+{
+  "info": {
+    "_postman_id": "b0c1d2e3-f4a5-6789-bcde-f01234567890",
+    "name": "Bug Evidence – LABcourse (15 Bugs)",
+    "description": "INSTRUCTIONS:\n1. Make sure your backend is running on localhost:5000\n2. Import this file into Postman (File → Import)\n3. Open the '0. Setup' folder and RUN ALL THREE login requests in order (they save tokens automatically)\n4. Run each BUG-XXX request and take a screenshot showing the URL, status code, and response body\n\nFor file-upload bugs (BUG-006, BUG-009, BUG-010): see the request description for which file to select.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "patToken",  "value": "" },
+    { "key": "docToken",  "value": "" },
+    { "key": "labToken",  "value": "" },
+    { "key": "soon_timestamp",    "value": "" },
+    { "key": "pending_appt_id",   "value": "" },
+    { "key": "completed_appt_id", "value": "" },
+    { "key": "declined_appt_id",  "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Setup – Get Tokens (RUN FIRST)",
+      "item": [
+        {
+          "name": "1 – Login as Patient  →  saves patToken",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "pm.collectionVariables.set('patToken', r.accessToken);",
+            "console.log('patToken saved:', r.accessToken ? r.accessToken.slice(0,20)+'...' : 'MISSING – check credentials');"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"bugtest_patient@test.com\",\n  \"password\": \"BugTest123!\"\n}", "options": { "raw": { "language": "json" }}},
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "2 – Login as Doctor  →  saves docToken",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "pm.collectionVariables.set('docToken', r.accessToken);",
+            "console.log('docToken saved:', r.accessToken ? r.accessToken.slice(0,20)+'...' : 'MISSING – check credentials');"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"dok1@gmail.com\",\n  \"password\": \"doctor123\"\n}", "options": { "raw": { "language": "json" }}},
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "3 – Login as Lab  →  saves labToken",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "pm.collectionVariables.set('labToken', r.accessToken);",
+            "console.log('labToken saved:', r.accessToken ? r.accessToken.slice(0,20)+'...' : 'MISSING – check credentials');"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"lab1@gmail.com\",\n  \"password\": \"lab123\"\n}", "options": { "raw": { "language": "json" }}},
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api","auth","login"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "BUG-001 – ENUM mismatch: lab request returns 500",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{patToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"laboratory_id\": 1,\n  \"analysis_type_id\": 1,\n  \"appointment_date\": \"2026-07-01\",\n  \"time\": \"09:00\",\n  \"notes\": \"BUG-001 test\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/laboratories/request-analysis", "host": ["{{base_url}}"], "path": ["api","laboratories","request-analysis"] },
+        "description": "Expected: 201 Created\nActual: 500 Internal Server Error\n\nRoot cause: code sets status='pending' but DB ENUM has no such value (uses 'Pending' with capital P)."
+      }
+    },
+
+    {
+      "name": "BUG-002 – IPD admission: unknown column 'patient.first_name'",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{docToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"patient_id\": 60,\n  \"diagnosis\": \"BUG-002 test\",\n  \"treatment_plan\": \"Test plan\",\n  \"urgency\": \"Normal\",\n  \"recommended_ward_id\": 1,\n  \"recommended_room_type\": \"General\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/ipd/doctor/admission-request", "host": ["{{base_url}}"], "path": ["api","ipd","doctor","admission-request"] },
+        "description": "Expected: 201 Created\nActual: 500 – Unknown column 'patient.first_name' in 'field list'\n\nRoot cause: IPDDoctorService.js queries User model with first_name/last_name which do not exist on the users table."
+      }
+    },
+
+    {
+      "name": "BUG-003 – Invalid email returns 500 instead of 400",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testgmail.com\",\n  \"password\": \"test123\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/auth/signup", "host": ["{{base_url}}"], "path": ["api","auth","signup"] },
+        "description": "Expected: 400 Bad Request (invalid email format)\nActual: 500 Internal Server Error\n\nRoot cause: SequelizeValidationError not caught — falls through to generic 500 handler."
+      }
+    },
+
+    {
+      "name": "BUG-004 – 5-char password accepted (no min-length check)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"bug004_real@test.com\",\n  \"password\": \"ab123\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/auth/signup", "host": ["{{base_url}}"], "path": ["api","auth","signup"] },
+        "description": "Expected: 400 Bad Request (password too short)\nActual: 200 OK — account created with only 5 characters\n\nRoot cause: no minimum password length validation in signup handler."
+      }
+    },
+
+    {
+      "name": "BUG-005 – Unavailable doctor can still be booked",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{patToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"doctor_id\": 14,\n  \"scheduled_for\": \"2026-07-20T10:00:00Z\",\n  \"reason\": \"BUG-005 test\",\n  \"phone\": \"044111222\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/", "host": ["{{base_url}}"], "path": ["api","appointments",""] },
+        "description": "Expected: 400 Bad Request (doctor not available)\nActual: 201 Created — appointment booked even though doctor 14 has available=false in DB\n\nRoot cause: createAppointment() performs no availability check."
+      }
+    },
+
+    {
+      "name": "BUG-006 – Wrong file type returns 500 instead of 400  [FILE UPLOAD]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{labToken}}" }],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "result_pdf",
+              "type": "file",
+              "src": "",
+              "description": "SELECT ANY .jpg OR .png FILE from your computer here"
+            }
+          ]
+        },
+        "url": { "raw": "{{base_url}}/api/laboratories/dashboard/upload-result/2", "host": ["{{base_url}}"], "path": ["api","laboratories","dashboard","upload-result","2"] },
+        "description": "HOW TO RUN IN POSTMAN:\n1. Click on 'Body' tab → 'form-data'\n2. Set Key = result_pdf, Type = File\n3. Click 'Select Files' and choose any .jpg or .png file\n4. Send\n\nExpected: 400 Bad Request (only PDF allowed)\nActual: 500 Internal Server Error\n\nRoot cause: Multer fileFilter calls cb(new Error('Only PDF files are allowed')) which propagates to the global 500 handler."
+      }
+    },
+
+    {
+      "name": "BUG-007 – Appointment 4m59s in future accepted (no min-time check)",
+      "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+        "// Compute a timestamp exactly 4 minutes and 59 seconds from now",
+        "const soon = new Date(Date.now() + 4 * 60 * 1000 + 59 * 1000).toISOString();",
+        "pm.collectionVariables.set('soon_timestamp', soon);",
+        "console.log('BUG-007 scheduled_for set to:', soon);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{patToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"doctor_id\": 8,\n  \"scheduled_for\": \"{{soon_timestamp}}\",\n  \"reason\": \"BUG-007 – 4min 59sec in future\",\n  \"phone\": \"044111222\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/", "host": ["{{base_url}}"], "path": ["api","appointments",""] },
+        "description": "The pre-request script auto-computes a timestamp 4 min 59 sec from now.\n\nExpected: 400 Bad Request (must book at least 5 minutes ahead)\nActual: 201 Created\n\nRoot cause: no minimum advance-booking time check in createAppointment()."
+      }
+    },
+
+    {
+      "name": "BUG-008 – Past-date appointment accepted",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{patToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"doctor_id\": 8,\n  \"scheduled_for\": \"2020-01-01T10:00:00Z\",\n  \"reason\": \"BUG-008 past date test\",\n  \"phone\": \"044111222\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/", "host": ["{{base_url}}"], "path": ["api","appointments",""] },
+        "description": "Expected: 400 Bad Request (cannot book in the past)\nActual: 201 Created with scheduled_for: 2020-01-01\n\nRoot cause: no past-date validation in createAppointment()."
+      }
+    },
+
+    {
+      "name": "BUG-009 – Exactly 10 MB PDF rejected (boundary value error)  [FILE UPLOAD]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{labToken}}" }],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "result_pdf",
+              "type": "file",
+              "src": "",
+              "description": "SELECT a PDF file that is EXACTLY 10 MB (10,485,760 bytes). See instructions below."
+            }
+          ]
+        },
+        "url": { "raw": "{{base_url}}/api/laboratories/dashboard/upload-result/2", "host": ["{{base_url}}"], "path": ["api","laboratories","dashboard","upload-result","2"] },
+        "description": "HOW TO CREATE THE 10 MB TEST FILE (run once in PowerShell/Terminal):\n  node -e \"const fs=require('fs'); const h=Buffer.from('%PDF-1.4\\n1 0 obj\\n<<>>\\nendobj\\n'); const f=Buffer.from('\\n%%EOF\\n'); const p=Buffer.alloc(10*1024*1024-h.length-f.length,37); fs.writeFileSync('C:/tmp/exact10mb.pdf',Buffer.concat([h,p,f])); console.log('done');\"\n\nThen select C:/tmp/exact10mb.pdf in Postman.\n\nExpected: 200 OK (10 MB is the maximum, boundary should be ACCEPTED)\nActual: 500 – 'File too large'\n\nRoot cause: Multer limit is < 10 MB exclusive, so exactly 10 MB is rejected. Also, LIMIT_FILE_SIZE returns 500 instead of 413."
+      }
+    },
+
+    {
+      "name": "BUG-010 – Over 10 MB PDF returns 500 instead of 413  [FILE UPLOAD]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{labToken}}" }],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "result_pdf",
+              "type": "file",
+              "src": "",
+              "description": "SELECT a PDF file larger than 10 MB (~10.5 MB). See instructions below."
+            }
+          ]
+        },
+        "url": { "raw": "{{base_url}}/api/laboratories/dashboard/upload-result/2", "host": ["{{base_url}}"], "path": ["api","laboratories","dashboard","upload-result","2"] },
+        "description": "HOW TO CREATE THE 10.5 MB TEST FILE (run once in PowerShell/Terminal):\n  node -e \"const fs=require('fs'); const h=Buffer.from('%PDF-1.4\\n1 0 obj\\n<<>>\\nendobj\\n'); const f=Buffer.from('\\n%%EOF\\n'); const p=Buffer.alloc(10*1024*1024+512*1024-h.length-f.length,37); fs.writeFileSync('C:/tmp/over10mb.pdf',Buffer.concat([h,p,f])); console.log('done');\"\n\nThen select C:/tmp/over10mb.pdf in Postman.\n\nExpected: 413 Request Entity Too Large\nActual: 500 Internal Server Error\n\nRoot cause: Multer LIMIT_FILE_SIZE error is not handled — falls through to generic 500 handler."
+      }
+    },
+
+    {
+      "name": "BUG-011 – 501-char reason causes 500 (VARCHAR(500) overflow)",
+      "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+        "// Build a 501-char string and set tomorrow's timestamp",
+        "const reason501 = 'A'.repeat(501);",
+        "const tomorrow = new Date(Date.now() + 25 * 3600 * 1000).toISOString();",
+        "pm.collectionVariables.set('reason501', reason501);",
+        "pm.collectionVariables.set('tomorrow_ts', tomorrow);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{patToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"doctor_id\": 8,\n  \"scheduled_for\": \"{{tomorrow_ts}}\",\n  \"reason\": \"{{reason501}}\",\n  \"phone\": \"044111222\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/", "host": ["{{base_url}}"], "path": ["api","appointments",""] },
+        "description": "The pre-request script builds a 501-character reason string automatically.\n\nExpected: 400 Bad Request (reason exceeds 500 characters)\nActual: 500 Internal Server Error\n\nRoot cause: Appointment.reason is STRING(500); 501-char input hits DB VARCHAR(500) limit — error falls through to 500 handler instead of being validated first."
+      }
+    },
+
+    {
+      "name": "BUG-012 – Doctor role can book appointment (RBAC missing on POST /appointments/)",
+      "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+        "const tom2h = new Date(Date.now() + 26 * 3600 * 1000).toISOString();",
+        "pm.collectionVariables.set('tom2h_ts', tom2h);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{docToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"doctor_id\": 8,\n  \"scheduled_for\": \"{{tom2h_ts}}\",\n  \"reason\": \"BUG-012 – doctor role booking (RBAC missing)\",\n  \"phone\": \"044111222\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/", "host": ["{{base_url}}"], "path": ["api","appointments",""] },
+        "description": "Using DOCTOR token (not patient).\n\nExpected: 403 Forbidden (only patients should book appointments)\nActual: 201 Created — doctor successfully books an appointment\n\nRoot cause: POST /appointments/ has no role-check middleware — any authenticated user can book."
+      }
+    },
+
+    {
+      "name": "BUG-013 – Patient changes PENDING→APPROVED (no role check on PUT)",
+      "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+        "// Auto-find a PENDING appointment ID",
+        "const baseUrl = pm.collectionVariables.get('base_url');",
+        "pm.sendRequest({ url: baseUrl + '/api/appointments/', method: 'GET' }, function(err, res) {",
+        "  if (err) { console.error('Error fetching appointments:', err); return; }",
+        "  const list = res.json();",
+        "  const appts = Array.isArray(list) ? list : (list.appointments || list.data || []);",
+        "  const pending = appts.find(a => a.status === 'PENDING');",
+        "  if (pending) {",
+        "    pm.collectionVariables.set('pending_appt_id', pending.id);",
+        "    console.log('Found PENDING appointment ID:', pending.id);",
+        "  } else {",
+        "    pm.collectionVariables.set('pending_appt_id', '18');",
+        "    console.log('No PENDING found – using fallback ID 18. Update manually if needed.');",
+        "  }",
+        "});"
+      ]}}],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{patToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"APPROVED\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/{{pending_appt_id}}", "host": ["{{base_url}}"], "path": ["api","appointments","{{pending_appt_id}}"] },
+        "description": "Using PATIENT token.\nThe pre-request script auto-finds a PENDING appointment ID.\n\nExpected: 403 Forbidden (only doctors should be able to approve appointments)\nActual: 200 OK — patient successfully changed status to APPROVED\n\nRoot cause: PUT /appointments/:id has no role-check middleware."
+      }
+    },
+
+    {
+      "name": "BUG-014 – Doctor reverts COMPLETED→PENDING (no terminal-state guard)",
+      "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+        "// Auto-find a COMPLETED appointment ID",
+        "const baseUrl = pm.collectionVariables.get('base_url');",
+        "pm.sendRequest({ url: baseUrl + '/api/appointments/', method: 'GET' }, function(err, res) {",
+        "  if (err) { console.error('Error fetching appointments:', err); return; }",
+        "  const list = res.json();",
+        "  const appts = Array.isArray(list) ? list : (list.appointments || list.data || []);",
+        "  const completed = appts.find(a => a.status === 'COMPLETED');",
+        "  if (completed) {",
+        "    pm.collectionVariables.set('completed_appt_id', completed.id);",
+        "    console.log('Found COMPLETED appointment ID:', completed.id);",
+        "  } else {",
+        "    pm.collectionVariables.set('completed_appt_id', '1');",
+        "    console.log('No COMPLETED found – using fallback ID 1. Update manually if needed.');",
+        "  }",
+        "});"
+      ]}}],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{docToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"PENDING\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/{{completed_appt_id}}", "host": ["{{base_url}}"], "path": ["api","appointments","{{completed_appt_id}}"] },
+        "description": "Using DOCTOR token.\nThe pre-request script auto-finds a COMPLETED appointment ID.\n\nExpected: 400 Bad Request (COMPLETED is a terminal state — transitions are not allowed)\nActual: 200 OK — appointment reverted to PENDING\n\nRoot cause: updateAppointment() has no terminal-state guard."
+      }
+    },
+
+    {
+      "name": "BUG-015 – Doctor changes DECLINED→CONFIRMED (no terminal-state guard)",
+      "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+        "// Auto-find a DECLINED appointment ID",
+        "const baseUrl = pm.collectionVariables.get('base_url');",
+        "pm.sendRequest({ url: baseUrl + '/api/appointments/', method: 'GET' }, function(err, res) {",
+        "  if (err) { console.error('Error fetching appointments:', err); return; }",
+        "  const list = res.json();",
+        "  const appts = Array.isArray(list) ? list : (list.appointments || list.data || []);",
+        "  const declined = appts.find(a => a.status === 'DECLINED');",
+        "  if (declined) {",
+        "    pm.collectionVariables.set('declined_appt_id', declined.id);",
+        "    console.log('Found DECLINED appointment ID:', declined.id);",
+        "  } else {",
+        "    pm.collectionVariables.set('declined_appt_id', '34');",
+        "    console.log('No DECLINED found – using fallback ID 34. Update manually if needed.');",
+        "  }",
+        "});"
+      ]}}],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{docToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"CONFIRMED\"\n}", "options": { "raw": { "language": "json" }}},
+        "url": { "raw": "{{base_url}}/api/appointments/{{declined_appt_id}}", "host": ["{{base_url}}"], "path": ["api","appointments","{{declined_appt_id}}"] },
+        "description": "Using DOCTOR token.\nThe pre-request script auto-finds a DECLINED appointment ID.\n\nExpected: 400 Bad Request (DECLINED is a terminal state — transitions are not allowed)\nActual: 200 OK — appointment changed to CONFIRMED\n\nRoot cause: updateAppointment() has no terminal-state guard."
+      }
+    }
+  ]
+}

@@ -43,7 +43,7 @@ export default defineConfig({
     include: ["react", "react-dom", "react-router-dom"],
   },
   server: {
-    port: 5173,
+    port: 5174,
     host: true,
     strictPort: false,
     proxy: {
