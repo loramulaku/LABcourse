@@ -53,6 +53,9 @@ describe('05 — Logout', () => {
     const oldToken = await loginUser();
     await request(app).post(LOGOUT).set('Authorization', `Bearer ${oldToken}`);
 
+    // Wait 1100ms so the new JWT has a different iat (JWT precision is 1 second)
+    await new Promise(r => setTimeout(r, 1100));
+
     const newToken = await loginUser();
     expect(newToken).toBeDefined();
     expect(newToken).not.toBe(oldToken);
