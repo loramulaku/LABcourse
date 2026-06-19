@@ -4,6 +4,17 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
+// Keep the process alive — never let unhandled errors kill the server
+process.on('unhandledRejection', (reason) => {
+  console.error('❌ Unhandled Promise Rejection (server stays up):', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception (server stays up):', err);
+});
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received — ignoring, use Ctrl+C to stop');
+});
+
 // Initialize Sequelize models
 const { sequelize } = require('./models');
 
@@ -25,9 +36,12 @@ app.use((req, res, next) => {
 const allowedOrigins = [
   process.env.CLIENT_ORIGIN,
   process.env.FRONTEND_URL,
+  'http://localhost:5174',
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://127.0.0.1:5174',
   'http://127.0.0.1:5173',
+  'http://192.168.56.1:5174',
   'http://192.168.56.1:5173'
 ].filter(Boolean);
 
@@ -102,20 +116,17 @@ if (process.env.STRIPE_SECRET_KEY) {
   console.log("⚠️ Stripe not configured");
 }
 
-// Database connection using Sequelize
+// Database connection — retries forever, never exits the process
 const connectDatabase = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Sequelize database connection established successfully');
-    
-    // Sync models in development (NOT recommended for production)
-    if (process.env.NODE_ENV === 'development') {
-      // Use migrations instead: npx sequelize-cli db:migrate
-      console.log('ℹ️ To create/update tables, run: npx sequelize-cli db:migrate');
+  while (true) {
+    try {
+      await sequelize.authenticate();
+      console.log('✅ Database connected');
+      return;
+    } catch (error) {
+      console.error('❌ DB connection failed, retrying in 5s...', error.message);
+      await new Promise(r => setTimeout(r, 5000));
     }
-  } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
-    process.exit(1);
   }
 };
 
@@ -202,8 +213,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to database and start server
-connectDatabase().then(() => {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`🚀 Server po punon në portën ${PORT}`));
-});
+// Start server immediately — DB connects in background, retries if down
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+connectDatabase();

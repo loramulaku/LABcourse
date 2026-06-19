@@ -410,6 +410,94 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
+// ================ PATIENT THERAPY ENDPOINTS ================
+
+// Get all therapies for the current patient
+exports.getPatientDashboard = async (req, res) => {
+  try {
+    const therapies = await Therapy.findAll({
+      where: { patient_id: req.user.id },
+      include: [
+        {
+          model: Doctor,
+          attributes: ['id', 'specialization'],
+        },
+        {
+          model: Appointment,
+          as: 'appointment',
+          required: false,
+        },
+      ],
+      order: [['created_at', 'DESC']],
+    });
+
+    const result = therapies.map((t) => {
+      const json = t.toJSON();
+      json.doctor_speciality = json.Doctor?.specialization || 'General Medicine';
+      return json;
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Get therapy statistics for the current patient
+exports.getPatientStats = async (req, res) => {
+  try {
+    const patientId = req.user.id;
+    const [total, active, completed, cancelled] = await Promise.all([
+      Therapy.count({ where: { patient_id: patientId } }),
+      Therapy.count({ where: { patient_id: patientId, status: 'active' } }),
+      Therapy.count({ where: { patient_id: patientId, status: 'completed' } }),
+      Therapy.count({ where: { patient_id: patientId, status: 'cancelled' } }),
+    ]);
+
+    res.json({
+      total_therapies: total,
+      active_therapies: active,
+      completed_therapies: completed,
+      cancelled_therapies: cancelled,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Get upcoming follow-ups for the current patient
+exports.getPatientUpcomingFollowUps = async (req, res) => {
+  try {
+    const followUps = await Therapy.findAll({
+      where: {
+        patient_id: req.user.id,
+        follow_up_date: { [Op.gte]: new Date() },
+      },
+      include: [
+        {
+          model: Doctor,
+          attributes: ['id', 'specialization'],
+        },
+      ],
+      order: [['follow_up_date', 'ASC']],
+      limit: 10,
+    });
+
+    const result = followUps.map((t) => {
+      const json = t.toJSON();
+      json.doctor_speciality = json.Doctor?.specialization || 'General Medicine';
+      return json;
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // Delete therapy
 exports.delete = async (req, res) => {
   try {

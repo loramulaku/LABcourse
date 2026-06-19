@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="30" failures="0" errors="0" time="13.671">
+  <testsuite name="05 — Logout" errors="0" failures="0" skipped="0" timestamp="2026-06-18T16:16:28" time="3.587" tests="6">
+    <testcase classname="05 — Logout" name="returns 200 when logging out with a valid token" time="0.237">
+    </testcase>
+    <testcase classname="05 — Logout" name="returns 401 when no Authorization header is provided" time="0.096">
+    </testcase>
+    <testcase classname="05 — Logout" name="returns 401 when the token is invalid (random string)" time="0.089">
+    </testcase>
+    <testcase classname="05 — Logout" name="rejects a protected route (checkout) after logout — token is invalidated" time="0.186">
+    </testcase>
+    <testcase classname="05 — Logout" name="allows the user to login again and get a new valid token after logout" time="1.554">
+    </testcase>
+    <testcase classname="05 — Logout" name="returns 401 on a second logout attempt with the same token" time="0.294">
+    </testcase>
+  </testsuite>
+  <testsuite name="04 — Product Listing &amp; Checkout" errors="0" failures="0" skipped="0" timestamp="2026-06-18T16:16:32" time="3.336" tests="6">
+    <testcase classname="04 — Product Listing &amp; Checkout" name="returns 200 with the full product list without authentication" time="0.504">
+    </testcase>
+    <testcase classname="04 — Product Listing &amp; Checkout" name="returns 401 for checkout when no token is provided" time="0.645">
+    </testcase>
+    <testcase classname="04 — Product Listing &amp; Checkout" name="returns 201 and the order details on a successful checkout" time="0.466">
+    </testcase>
+    <testcase classname="04 — Product Listing &amp; Checkout" name="returns 404 when the productId does not exist" time="0.363">
+    </testcase>
+    <testcase classname="04 — Product Listing &amp; Checkout" name="returns 400 when quantity is missing from the checkout body" time="0.407">
+    </testcase>
+    <testcase classname="04 — Product Listing &amp; Checkout" name="calculates the total price correctly (unitPrice × quantity)" time="0.459">
+    </testcase>
+  </testsuite>
+  <testsuite name="03 — Password Reset Flow" errors="0" failures="0" skipped="0" timestamp="2026-06-18T16:16:35" time="3.053" tests="6">
+    <testcase classname="03 — Password Reset Flow" name="returns 200 for forgot-password with a registered email and provides a reset token" time="0.317">
+    </testcase>
+    <testcase classname="03 — Password Reset Flow" name="returns 200 for forgot-password with an unknown email (security: no disclosure)" time="0.24">
+    </testcase>
+    <testcase classname="03 — Password Reset Flow" name="returns 400 when email is missing from forgot-password request" time="0.24">
+    </testcase>
+    <testcase classname="03 — Password Reset Flow" name="resets the password successfully with a valid token" time="0.435">
+    </testcase>
+    <testcase classname="03 — Password Reset Flow" name="returns 400 for reset-password with an invalid token" time="0.168">
+    </testcase>
+    <testcase classname="03 — Password Reset Flow" name="allows login with the new password after a successful reset" time="0.829">
+    </testcase>
+  </testsuite>
+  <testsuite name="02 — Login" errors="0" failures="0" skipped="0" timestamp="2026-06-18T16:16:38" time="2.657" tests="6">
+    <testcase classname="02 — Login" name="returns 200 with a JWT token and user data on valid credentials" time="0.692">
+    </testcase>
+    <testcase classname="02 — Login" name="returns 401 when the password is wrong" time="0.327">
+    </testcase>
+    <testcase classname="02 — Login" name="returns 401 when the email does not exist" time="0.183">
+    </testcase>
+    <testcase classname="02 — Login" name="returns 400 when email is missing from the request body" time="0.145">
+    </testcase>
+    <testcase classname="02 — Login" name="returns 400 when password is missing from the request body" time="0.143">
+    </testcase>
+    <testcase classname="02 — Login" name="response user object contains id, name, email, and role" time="0.445">
+    </testcase>
+  </testsuite>
+  <testsuite name="01 — User Registration" errors="0" failures="0" skipped="0" timestamp="2026-06-18T16:16:41" time="0.902" tests="6">
+    <testcase classname="01 — User Registration" name="registers a new user and returns 201 with user data (no password)" time="0.228">
+    </testcase>
+    <testcase classname="01 — User Registration" name="returns 400 when email is missing" time="0.01">
+    </testcase>
+    <testcase classname="01 — User Registration" name="returns 400 when password is missing" time="0.009">
+    </testcase>
+    <testcase classname="01 — User Registration" name="returns 409 when the email is already registered" time="0.146">
+    </testcase>
+    <testcase classname="01 — User Registration" name="returns 400 for an invalid email format" time="0.009">
+    </testcase>
+    <testcase classname="01 — User Registration" name="returns 400 when password is shorter than 6 characters" time="0.008">
+    </testcase>
+  </testsuite>
+</testsuites>

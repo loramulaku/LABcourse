@@ -347,7 +347,7 @@ const DoctorTherapyDashboard = () => {
                 >
                   <div>
                     <p className="font-medium text-gray-900">
-                      {followUp.patient_name}
+                      {followUp.patient?.name || 'Patient'}
                     </p>
                     <p className="text-sm text-gray-600">
                       {followUp.therapy_text.substring(0, 100)}...
@@ -448,10 +448,10 @@ const DoctorTherapyDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {therapy.patient_name}
+                            {therapy.patient?.name || '—'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {therapy.patient_email}
+                            {therapy.patient?.email || ''}
                           </div>
                         </div>
                       </td>
@@ -483,22 +483,6 @@ const DoctorTherapyDashboard = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
-                          <button
-                            onClick={() =>
-                              navigate(`/dashboard/therapy/edit/${therapy.id}`)
-                            }
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              navigate(`/dashboard/therapy/view/${therapy.id}`)
-                            }
-                            className="text-green-600 hover:text-green-900"
-                          >
-                            View
-                          </button>
                           {therapy.status === "draft" && (
                             <button
                               onClick={() =>
